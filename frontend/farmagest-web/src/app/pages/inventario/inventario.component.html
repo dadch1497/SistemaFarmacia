@@ -1,0 +1,532 @@
+<div class="inventario-page">
+
+  <!-- Encabezado del Módulo -->
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">Gestión de Inventario y Control de Lotes (FEFO)</h1>
+      <p class="page-subtitle">
+        Control de existencias físicas por lote, fechas de caducidad, auditoría Kardex y semaforización de vencimientos.
+      </p>
+    </div>
+
+    <!-- Acciones disponibles para Admin y Almacenero -->
+    <div class="header-actions" *ngIf="authService.isAdmin() || authService.isAlmacenero()">
+      <button class="btn btn-primary" (click)="abrirModalAjuste()">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+        </svg>
+        Registrar Ajuste / Merma
+      </button>
+    </div>
+  </div>
+
+  <!-- Alertas de Éxito / Error -->
+  <div *ngIf="mensajeExito()" class="alert alert-success">
+    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span>{{ mensajeExito() }}</span>
+  </div>
+
+  <div *ngIf="mensajeError()" class="alert alert-danger">
+    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <span>{{ mensajeError() }}</span>
+  </div>
+
+  <!-- Barra de Notificación de Alertas Activas -->
+  <div *ngIf="alertas().length > 0" class="alerta-banner">
+    <div class="alerta-icon-box">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+      </svg>
+    </div>
+    <div class="alerta-content">
+      <strong>Atención requerida en almacén:</strong>
+      <span>{{ alertas().length }} alertas activas de inventario (vencimientos próximos o stock crítico).</span>
+    </div>
+    <button class="btn btn-sm btn-outline-warning" (click)="cambiarTab('STOCK_BAJO')">
+      Revisar Alertas
+    </button>
+  </div>
+
+  <!-- Pestañas de Navegación del Módulo -->
+  <div class="tabs-nav">
+    <button
+      class="tab-btn"
+      [class.active]="tabActivo === 'EXISTENCIAS'"
+      (click)="cambiarTab('EXISTENCIAS')"
+    >
+      <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+      </svg>
+      Existencias & Lotes
+    </button>
+
+    <button
+      class="tab-btn"
+      [class.active]="tabActivo === 'VENCIMIENTOS'"
+      (click)="cambiarTab('VENCIMIENTOS')"
+    >
+      <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+      </svg>
+      Control de Vencimientos (FEFO)
+    </button>
+
+    <button
+      class="tab-btn"
+      [class.active]="tabActivo === 'STOCK_BAJO'"
+      (click)="cambiarTab('STOCK_BAJO')"
+    >
+      <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+      </svg>
+      Alertas de Stock Bajo
+    </button>
+  </div>
+
+  <!-- CONTENIDO TAB 1: EXISTENCIAS & LOTES -->
+  <div *ngIf="tabActivo === 'EXISTENCIAS'" class="tab-panel">
+    <div class="tarjeta tabla-card">
+      <div class="tabla-meta">
+        <span class="total-badge">
+          Consolidado en <strong>Sucursal #1 · Ate Principal</strong>
+        </span>
+        <span *ngIf="authService.isVendedor()" class="role-badge-vendor">
+          <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Vista Vendedor: Consulta de existencias físicas disponibles para venta
+        </span>
+      </div>
+
+      <div class="table-container" [class.loading]="cargando()">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Medicamento / Producto</th>
+              <th class="text-center">Stock Actual</th>
+              <th class="text-center">Stock Mínimo</th>
+              <th>Estado de Stock</th>
+              <th>Última Actualización</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of stocks()">
+              <td>
+                <span class="code-badge">{{ s.codigoBarras }}</span>
+              </td>
+              <td>
+                <div class="prod-nombre">{{ s.nombreProducto }}</div>
+                <div class="prod-subinfo">{{ s.presentacion }}</div>
+              </td>
+              <td class="text-center">
+                <span class="stock-numero">{{ s.stockActual }} un.</span>
+              </td>
+              <td class="text-center">
+                <span class="stock-minimo">{{ s.stockMinimo }} un.</span>
+              </td>
+              <td>
+                <span
+                  class="badge-estado-stock"
+                  [class.stock-optimo]="s.estadoStock === 'OPTIMO'"
+                  [class.stock-bajo]="s.estadoStock === 'BAJO'"
+                  [class.stock-critico]="s.estadoStock === 'CRITICO'"
+                >
+                  {{ s.estadoStock === 'OPTIMO' ? 'Óptimo' : (s.estadoStock === 'BAJO' ? 'Stock Bajo' : 'Crítico / Agotado') }}
+                </span>
+              </td>
+              <td class="text-secondary text-sm">
+                {{ s.actualizadoEn | date:'short' }}
+              </td>
+              <td class="text-center">
+                <div class="action-buttons">
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    title="Ver desglose de lotes y vencimientos FEFO"
+                    (click)="verLotesDeProducto(s)"
+                  >
+                    <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    Lotes FEFO
+                  </button>
+
+                  <button
+                    *ngIf="authService.isAdmin() || authService.isAlmacenero()"
+                    class="btn btn-secondary btn-sm"
+                    title="Historial de movimientos Kardex"
+                    (click)="verKardexDeProducto(s)"
+                  >
+                    <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    Kardex
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <tr *ngIf="stocks().length === 0 && !cargando()">
+              <td colspan="7" class="text-center py-8 text-secondary">
+                No hay registros de inventario disponibles en esta sucursal.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENIDO TAB 2: LOTES POR VENCER (SEMAFORIZACIÓN) -->
+  <div *ngIf="tabActivo === 'VENCIMIENTOS'" class="tab-panel">
+    <div class="tarjeta tabla-card">
+      <div class="vencimiento-header">
+        <div>
+          <h3 class="card-title">Semaforización de Caducidad (Salida FEFO)</h3>
+          <p class="card-desc">Monitoreo anticipado de medicamentos próximos a vencer según norma técnica sanitaria.</p>
+        </div>
+
+        <!-- Filtros de horizonte de días -->
+        <div class="horizonte-pills">
+          <button
+            class="pill-btn"
+            [class.active]="diasVencimiento === 30"
+            (click)="cargarLotesPorVencer(30)"
+          >
+            Próximos 30 días (Crítico)
+          </button>
+          <button
+            class="pill-btn"
+            [class.active]="diasVencimiento === 60"
+            (click)="cargarLotesPorVencer(60)"
+          >
+            Próximos 60 días
+          </button>
+          <button
+            class="pill-btn"
+            [class.active]="diasVencimiento === 90"
+            (click)="cargarLotesPorVencer(90)"
+          >
+            Próximos 90 días
+          </button>
+        </div>
+      </div>
+
+      <div class="table-container" [class.loading]="cargando()">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Número de Lote</th>
+              <th>Medicamento</th>
+              <th>Fecha de Vencimiento</th>
+              <th class="text-center">Días Restantes</th>
+              <th class="text-center">Semaforización</th>
+              <th class="text-center">Stock en Lote</th>
+              <th *ngIf="authService.isAdmin() || authService.isAlmacenero()" class="text-right">Costo Unitario</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let l of lotesPorVencer()">
+              <td>
+                <span class="code-badge">{{ l.numeroLote }}</span>
+              </td>
+              <td>
+                <strong>{{ getNombreProducto(l.productoId) }}</strong>
+              </td>
+              <td>
+                <span class="font-bold">{{ l.fechaVencimiento }}</span>
+              </td>
+              <td class="text-center">
+                <span class="dias-badge">{{ l.diasRestantes }} días</span>
+              </td>
+              <td class="text-center">
+                <span
+                  class="badge-semaforo"
+                  [class.semaforo-rojo]="l.semaforoVencimiento === 'ROJO' || l.semaforoVencimiento === 'VENCIDO'"
+                  [class.semaforo-amarillo]="l.semaforoVencimiento === 'AMARILLO'"
+                  [class.semaforo-verde]="l.semaforoVencimiento === 'VERDE'"
+                >
+                  {{ l.semaforoVencimiento }}
+                </span>
+              </td>
+              <td class="text-center">
+                <span class="stock-numero">{{ l.cantidadActual }} un.</span>
+              </td>
+              <td *ngIf="authService.isAdmin() || authService.isAlmacenero()" class="text-right text-secondary">
+                S/ {{ (l.costoUnitario || 0) | number:'1.2-2' }}
+              </td>
+            </tr>
+
+            <tr *ngIf="lotesPorVencer().length === 0 && !cargando()">
+              <td [attr.colspan]="(authService.isAdmin() || authService.isAlmacenero()) ? 7 : 6" class="text-center py-8 text-secondary">
+                No existen lotes próximos a vencer en los siguientes {{ diasVencimiento }} días.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENIDO TAB 3: ALERTAS DE STOCK BAJO -->
+  <div *ngIf="tabActivo === 'STOCK_BAJO'" class="tab-panel">
+    <div class="tarjeta tabla-card">
+      <div class="tabla-meta">
+        <h3 class="card-title">Productos en Nivel Crítico o de Reposición</h3>
+      </div>
+
+      <div class="table-container" [class.loading]="cargando()">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Medicamento</th>
+              <th class="text-center">Stock Actual</th>
+              <th class="text-center">Stock Mínimo</th>
+              <th class="text-center">Faltante para Mínimo</th>
+              <th>Estado de Reposición</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let sb of stockBajoLista()">
+              <td>
+                <span class="code-badge">{{ sb.codigoBarras }}</span>
+              </td>
+              <td>
+                <strong>{{ sb.nombreProducto }}</strong>
+                <div class="text-secondary text-sm">{{ sb.presentacion }}</div>
+              </td>
+              <td class="text-center">
+                <span class="stock-numero text-danger">{{ sb.stockActual }} un.</span>
+              </td>
+              <td class="text-center">
+                <span class="stock-minimo">{{ sb.stockMinimo }} un.</span>
+              </td>
+              <td class="text-center">
+                <span class="badge-faltante">+{{ sb.stockMinimo - sb.stockActual }} un.</span>
+              </td>
+              <td>
+                <span class="badge-alerta-critica">
+                  <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                  Generar Orden de Compra
+                </span>
+              </td>
+            </tr>
+
+            <tr *ngIf="stockBajoLista().length === 0 && !cargando()">
+              <td colspan="6" class="text-center py-8 text-secondary">
+                No hay productos por debajo del stock mínimo. Todo el inventario se encuentra abastecido.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE DE LOTES DEL PRODUCTO (FEFO) -->
+  <div class="modal-backdrop" *ngIf="modalLotesAbierto">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3>Lotes Registrados para Despacho FEFO</h3>
+        <button class="modal-close" (click)="cerrarModalLotes()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-prod-info" *ngIf="productoSeleccionadoParaLotes">
+          <strong>{{ productoSeleccionadoParaLotes.nombre }}</strong>
+          <span> · {{ productoSeleccionadoParaLotes.presentacion }}</span>
+          <div class="text-secondary text-sm mt-1">
+            Principio Activo: {{ productoSeleccionadoParaLotes.principioActivo || '---' }}
+          </div>
+        </div>
+
+        <p class="text-sm text-secondary my-2">
+          Los lotes se despachan prioritariamente en el orden listado a continuación (menor fecha de vencimiento primero).
+        </p>
+
+        <div class="table-container max-h-64">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Lote #</th>
+                <th>Fecha Vencimiento</th>
+                <th class="text-center">Días Restantes</th>
+                <th class="text-center">Semáforo</th>
+                <th class="text-center">Stock Actual</th>
+                <th>Estado</th>
+                <th *ngIf="authService.isAdmin() || authService.isAlmacenero()" class="text-right">Costo Unit.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let l of lotesDelProducto">
+                <td>
+                  <span class="code-badge">{{ l.numeroLote }}</span>
+                </td>
+                <td class="font-bold">{{ l.fechaVencimiento }}</td>
+                <td class="text-center">{{ l.diasRestantes }} días</td>
+                <td class="text-center">
+                  <span
+                    class="badge-semaforo"
+                    [class.semaforo-rojo]="l.semaforoVencimiento === 'ROJO' || l.semaforoVencimiento === 'VENCIDO'"
+                    [class.semaforo-amarillo]="l.semaforoVencimiento === 'AMARILLO'"
+                    [class.semaforo-verde]="l.semaforoVencimiento === 'VERDE'"
+                  >
+                    {{ l.semaforoVencimiento }}
+                  </span>
+                </td>
+                <td class="text-center font-bold text-accent">{{ l.cantidadActual }} un.</td>
+                <td>
+                  <span class="chip-estado" [class.chip-disponible]="l.estado === 'DISPONIBLE'">
+                    {{ l.estado }}
+                  </span>
+                </td>
+                <td *ngIf="authService.isAdmin() || authService.isAlmacenero()" class="text-right text-secondary">
+                  S/ {{ (l.costoUnitario || 0) | number:'1.2-2' }}
+                </td>
+              </tr>
+              <tr *ngIf="lotesDelProducto.length === 0">
+                <td colspan="7" class="text-center py-4 text-secondary">
+                  No hay lotes asociados a este producto.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalLotes()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KARDEX DEL PRODUCTO -->
+  <div class="modal-backdrop" *ngIf="modalKardexAbierto">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3>Historial Cronológico de Movimientos (Kardex)</h3>
+        <button class="modal-close" (click)="cerrarModalKardex()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-prod-info" *ngIf="productoSeleccionadoParaKardex">
+          <strong>{{ productoSeleccionadoParaKardex.nombre }}</strong>
+          <span> · {{ productoSeleccionadoParaKardex.presentacion }}</span>
+        </div>
+
+        <div class="table-container max-h-64 mt-3">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Lote</th>
+                <th>Tipo de Movimiento</th>
+                <th class="text-center">Movimiento</th>
+                <th class="text-center">Saldo</th>
+                <th>Motivo / Referencia</th>
+                <th>Operador</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let k of kardexMovimientos">
+                <td class="text-sm">{{ k.fechaHora | date:'short' }}</td>
+                <td>
+                  <span class="code-badge">{{ k.numeroLote || 'N/A' }}</span>
+                </td>
+                <td>
+                  <span class="chip-kardex">{{ k.tipoMovimiento }}</span>
+                </td>
+                <td class="text-center font-bold" [class.text-success]="k.cantidad > 0" [class.text-danger]="k.cantidad < 0">
+                  {{ k.cantidad > 0 ? '+' : '' }}{{ k.cantidad }}
+                </td>
+                <td class="text-center font-bold">{{ k.saldoResultante }} un.</td>
+                <td class="text-sm text-secondary">{{ k.motivo || k.referenciaId || '---' }}</td>
+                <td class="text-sm">#{{ k.usuarioId }}</td>
+              </tr>
+              <tr *ngIf="kardexMovimientos.length === 0">
+                <td colspan="7" class="text-center py-4 text-secondary">
+                  No hay transacciones registradas en el kardex para este producto.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalKardex()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR AJUSTE / MERMA (ADMIN & ALMACENERO) -->
+  <div class="modal-backdrop" *ngIf="modalAjusteAbierto">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Registrar Ajuste de Stock o Merma</h3>
+        <button class="modal-close" (click)="cerrarModalAjuste()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Producto a Ajustar *</label>
+          <select
+            class="input"
+            [(ngModel)]="ajusteForm.productoId"
+            (change)="onProductoAjusteChange(ajusteForm.productoId)"
+          >
+            <option *ngFor="let s of stocks()" [value]="s.productoId">
+              {{ s.nombreProducto }} (Stock: {{ s.stockActual }} un.)
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group mt-2">
+          <label>Lote Físico Afectado *</label>
+          <select class="input" [(ngModel)]="ajusteForm.loteId">
+            <option *ngFor="let l of lotesDisponiblesParaAjuste" [value]="l.id">
+              {{ l.numeroLote }} (Disponible: {{ l.cantidadActual }} un. · Vence: {{ l.fechaVencimiento }})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group mt-2">
+          <label>Tipo de Ajuste *</label>
+          <select class="input" [(ngModel)]="ajusteForm.tipoAjuste">
+            <option value="AJUSTE_MERMA">Merma por Rotura o Empaque Dañado (-)</option>
+            <option value="AJUSTE_VENCIMIENTO">Merma por Caducidad / Vencimiento (-)</option>
+            <option value="AJUSTE_SOBRANTE">Ajuste Positivo por Conteo Físico (+)</option>
+          </select>
+        </div>
+
+        <div class="form-group mt-2">
+          <label>Cantidad de Unidades *</label>
+          <input
+            type="number"
+            class="input"
+            min="1"
+            [(ngModel)]="ajusteForm.cantidad"
+          />
+        </div>
+
+        <div class="form-group mt-2">
+          <label>Motivo Obligatorio para Auditoría *</label>
+          <textarea
+            class="input textarea"
+            rows="3"
+            placeholder="Ej: Frasco de jarabe quebrado en góndola durante limpieza..."
+            [(ngModel)]="ajusteForm.motivo"
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalAjuste()">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarAjuste()">Confirmar y Asentar en Kardex</button>
+      </div>
+    </div>
+  </div>
+
+</div>

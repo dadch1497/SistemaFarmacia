@@ -1,0 +1,314 @@
+<div class="dashboard-page">
+  
+  <!-- Encabezado del Dashboard -->
+  <div class="dashboard-header">
+    <div class="header-titles">
+      <div class="header-badge">
+        <span class="pulse-dot"></span>
+        SISTEMA EN LÍNEA · FARMA OCHENTA (SUCURSAL #1)
+      </div>
+      <h2>Panel de Control y Reportes</h2>
+      <p class="subtitle">Visión ejecutiva de ventas, rentabilidad, rotación de productos y auditoría</p>
+    </div>
+
+    <!-- Controles de Periodo -->
+    <div class="periodo-selector" *ngIf="authService.isAdmin()">
+      <button class="btn btn-secondary btn-refresh" (click)="cargarDatosDashboard()">
+        ↻ Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Vista para Roles no Administradores (Vendedor / Almacenero) -->
+  <div *ngIf="!authService.isAdmin()" class="non-admin-view">
+    <div class="tarjeta welcome-box">
+      <h3>Bienvenido a FarmaGest, {{ authService.currentUser()?.nombres }}</h3>
+      <p>Has iniciado sesión con el rol <strong>{{ authService.currentUser()?.rolPrincipal }}</strong>.</p>
+      
+      <div class="operational-shortcuts">
+        <div *ngIf="authService.isVendedor()" class="shortcut-card">
+          <div class="icon-wrap">🛒</div>
+          <h4>Punto de Venta (POS)</h4>
+          <p>Realiza ventas rápidas en mostrador, emisión de boletas/facturas y cobra en efectivo o billetera digital.</p>
+          <a routerLink="/pos" class="btn btn-primary">Ir al POS Mostrador</a>
+        </div>
+
+        <div *ngIf="authService.isAlmacenero()" class="shortcut-card">
+          <div class="icon-wrap">📦</div>
+          <h4>Control de Inventario</h4>
+          <p>Verifica existencias por lote, control de vencimientos a 30/60/90 días y recepción de mercadería.</p>
+          <a routerLink="/inventario" class="btn btn-primary">Ver Inventario & FEFO</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista Ejecutiva de Administrador -->
+  <div *ngIf="authService.isAdmin()">
+
+    <!-- Estado de Carga / Error -->
+    <div *ngIf="cargando()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Calculando estadísticas y métricas analíticas...</p>
+    </div>
+
+    <div *ngIf="errorMensaje()" class="alert-box alert-error">
+      {{ errorMensaje() }}
+    </div>
+
+    <div *ngIf="!cargando() && dashboardData() as data" class="dashboard-content">
+
+      <!-- 1. Tarjetas de KPIs (Fila Superior) -->
+      <div class="kpis-grid">
+        
+        <!-- Ventas Hoy -->
+        <div class="tarjeta kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-title">VENTAS HOY</span>
+            <span class="kpi-tag" [class.positive]="(data.kpis.ventasHoy.variacionPorcentual ?? 0) >= 0">
+              {{ (data.kpis.ventasHoy.variacionPorcentual ?? 0) >= 0 ? '+' : '' }}{{ (data.kpis.ventasHoy.variacionPorcentual ?? 0) | number:'1.1-1' }}%
+            </span>
+          </div>
+          <div class="kpi-main">
+            <h3>S/ {{ data.kpis.ventasHoy.monto | number:'1.2-2' }}</h3>
+          </div>
+          <div class="kpi-footer">
+            <span>Vs. día anterior</span>
+          </div>
+        </div>
+
+        <!-- Ventas Mes -->
+        <div class="tarjeta kpi-card highlight-card">
+          <div class="kpi-top">
+            <span class="kpi-title">VENTAS DEL MES</span>
+            <span class="kpi-tag positive">+12.5%</span>
+          </div>
+          <div class="kpi-main">
+            <h3>S/ {{ data.kpis.ventasMes.monto | number:'1.2-2' }}</h3>
+          </div>
+          <div class="kpi-footer">
+            <span>Meta mensual 82% alcanzada</span>
+          </div>
+        </div>
+
+        <!-- Utilidad del Mes -->
+        <div class="tarjeta kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-title">UTILIDAD ESTIMADA</span>
+            <span class="kpi-tag chip-optimo">{{ data.kpis.utilidadMes.margenPorcentual | number:'1.1-1' }}% margen</span>
+          </div>
+          <div class="kpi-main">
+            <h3>S/ {{ data.kpis.utilidadMes.monto | number:'1.2-2' }}</h3>
+          </div>
+          <div class="kpi-footer">
+            <span>Margen neto comercial</span>
+          </div>
+        </div>
+
+        <!-- Ticket Promedio -->
+        <div class="tarjeta kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-title">TICKET PROMEDIO</span>
+            <span class="kpi-count">{{ data.kpis.ticketPromedio.totalTransaccionesDia }} txs hoy</span>
+          </div>
+          <div class="kpi-main">
+            <h3>S/ {{ data.kpis.ticketPromedio.monto | number:'1.2-2' }}</h3>
+          </div>
+          <div class="kpi-footer">
+            <span>Gasto promedio por cliente</span>
+          </div>
+        </div>
+
+        <!-- Ventas Año -->
+        <div class="tarjeta kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-title">ACUMULADO ANUAL</span>
+            <span class="kpi-tag">Año 2026</span>
+          </div>
+          <div class="kpi-main">
+            <h3>S/ {{ data.kpis.ventasAnio.monto | number:'1.2-2' }}</h3>
+          </div>
+          <div class="kpi-footer">
+            <span>Sucursal #1 Principal</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 2. Gráficos y Tablas de Segundo Nivel (2 Columnas) -->
+      <div class="dashboard-grid-2cols">
+        
+        <!-- Gráfico de Ventas por Día de la Semana -->
+        <div class="tarjeta chart-card">
+          <div class="card-header-clean">
+            <div>
+              <h4>Ventas por Día de la Semana</h4>
+              <p class="text-muted">Promedio de las últimas 4 semanas para identificar picos de afluencia</p>
+            </div>
+          </div>
+
+          <div class="bar-chart-container">
+            <div class="bar-col" *ngFor="let item of ventasPorDia()">
+              <div class="bar-val">S/ {{ item.montoPromedio | number:'1.0-0' }}</div>
+              <div class="bar-track">
+                <div 
+                  class="bar-fill" 
+                  [class.bar-peak]="item.esMayor"
+                  [style.height.%]="getBarHeightPercentage(item.montoPromedio)">
+                </div>
+              </div>
+              <div class="bar-label" [class.bar-peak-text]="item.esMayor">
+                {{ item.dia.substring(0, 3) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking de Medicamentos más Vendidos -->
+        <div class="tarjeta ranking-card">
+          <div class="card-header-clean">
+            <div>
+              <h4>Top Medicamentos con Mayor Demanda</h4>
+              <p class="text-muted">Productos líderes en rotación e ingresos</p>
+            </div>
+          </div>
+
+          <div class="ranking-list">
+            <div class="ranking-item" *ngFor="let prod of data.productosMasVendidos">
+              <div class="rank-pos" [class.gold]="prod.rank === 1" [class.silver]="prod.rank === 2" [class.bronze]="prod.rank === 3">
+                #{{ prod.rank }}
+              </div>
+              <div class="rank-info">
+                <strong>{{ prod.producto }}</strong>
+                <span class="rank-sub">{{ prod.unidades }} unidades despachadas</span>
+              </div>
+              <div class="rank-total">
+                S/ {{ prod.monto | number:'1.2-2' }}
+              </div>
+            </div>
+
+            <div *ngIf="!data.productosMasVendidos.length" class="empty-state">
+              No se registran ventas para este periodo.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3. Tercera Fila: Desglose por Medio de Pago y Ventas por Vendedor -->
+      <div class="dashboard-grid-2cols">
+        
+        <!-- Medios de Pago -->
+        <div class="tarjeta card-pagos">
+          <div class="card-header-clean">
+            <h4>Distribución por Medio de Pago</h4>
+            <p class="text-muted">Preferencia de cobro en mostrador</p>
+          </div>
+
+          <div class="pagos-list">
+            <div class="pago-item" *ngFor="let p of data.ventasPorMedioPago">
+              <div class="pago-info">
+                <div class="pago-badge" [ngSwitch]="p.medioPago">
+                  <span *ngSwitchCase="'EFECTIVO'">💵 Efectivo</span>
+                  <span *ngSwitchCase="'YAPE_PLIN'">📱 Yape / Plin</span>
+                  <span *ngSwitchCase="'TARJETA'">💳 Tarjeta Débito/Crédito</span>
+                  <span *ngSwitchDefault>{{ p.medioPago }}</span>
+                </div>
+                <strong>S/ {{ p.total | number:'1.2-2' }}</strong>
+              </div>
+              <div class="pago-bar-track">
+                <div class="pago-bar-fill" [style.width.%]="p.porcentaje"></div>
+              </div>
+              <div class="pago-pct-label">{{ p.porcentaje | number:'1.1-1' }}% del total</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rendimiento de Vendedores -->
+        <div class="tarjeta card-vendedores">
+          <div class="card-header-clean">
+            <h4>Ventas por Personal de Mostrador</h4>
+            <p class="text-muted">Total acumulado por cada vendedor activo</p>
+          </div>
+
+          <table class="tabla-farmagest">
+            <thead>
+              <tr>
+                <th>Vendedor</th>
+                <th>Transacciones</th>
+                <th class="text-right">Monto Facturado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let v of data.ventasPorVendedor">
+                <td>
+                  <strong>{{ v.vendedor }}</strong>
+                </td>
+                <td>{{ v.totalVentas }} ventas</td>
+                <td class="text-right font-bold text-teal">
+                  S/ {{ v.monto | number:'1.2-2' }}
+                </td>
+              </tr>
+              <tr *ngIf="!data.ventasPorVendedor.length">
+                <td colspan="3" class="text-center text-muted">Sin registros de ventas.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- 4. Cuarta Fila: Bitácora de Auditoría en Tiempo Real -->
+      <div class="tarjeta card-auditoria">
+        <div class="card-header-clean">
+          <div>
+            <h4>Bitácora de Auditoría y Control Operativo</h4>
+            <p class="text-muted">Registro inmutable de anulaciones, ajustes de stock y cambios de precio disparados por eventos</p>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="tabla-farmagest">
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Acción</th>
+                <th>Usuario</th>
+                <th>Entidad Afectada</th>
+                <th>Registro / Ref</th>
+                <th>Detalle del Cambio</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let log of bitacoraAuditoria()">
+                <td class="text-muted text-sm">{{ log.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <span class="chip" [ngClass]="formatActionBadge(log.accion)">
+                    {{ log.accion }}
+                  </span>
+                </td>
+                <td>
+                  <strong>{{ log.username }}</strong>
+                  <span class="text-xs text-muted d-block">{{ log.rol }}</span>
+                </td>
+                <td>{{ log.entidadAfectada }}</td>
+                <td><code>{{ log.registroId }}</code></td>
+                <td class="text-sm">
+                  <div *ngIf="log.valorNuevo" class="log-payload">
+                    {{ log.valorNuevo }}
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="!bitacoraAuditoria().length">
+                <td colspan="6" class="text-center text-muted">No se registran eventos de auditoría recientes.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

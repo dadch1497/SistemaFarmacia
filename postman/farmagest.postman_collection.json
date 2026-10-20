@@ -1,0 +1,646 @@
+{
+  "info": {
+    "_postman_id": "f8a1b2c3-d4e5-6f7a-8b9c-0d1e2f3a4b5c",
+    "name": "FarmaGest — API Microservicios E2E",
+    "description": "Colección completa de pruebas para FarmaGest Botica Farma Ochenta (Ate, Lima). Cubre todo el ciclo: Autenticación JWT, Catálogo, Inventario FEFO, Compras, Ventas POS, Caja y Reportes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. ms-auth",
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"tokenAdmin\", jsonData.token);",
+                  "pm.test(\"Token JWT recibido y rol ADMIN\", function () {",
+                  "    pm.expect(jsonData.token).to.not.be.empty;",
+                  "    pm.expect(jsonData.usuario.rolPrincipal).to.eql(\"ROLE_ADMINISTRADOR\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"AdminSecure2026!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Vendedor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"tokenVendedor\", jsonData.token);",
+                  "pm.test(\"Token JWT recibido y rol VENDEDOR\", function () {",
+                  "    pm.expect(jsonData.token).to.not.be.empty;",
+                  "    pm.expect(jsonData.usuario.rolPrincipal).to.eql(\"ROLE_VENDEDOR\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"vendedor1\",\n  \"password\": \"Vendedor1Secure2026!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Almacenero",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"tokenAlmacenero\", jsonData.token);",
+                  "pm.test(\"Token JWT recibido y rol ALMACENERO\", function () {",
+                  "    pm.expect(jsonData.token).to.not.be.empty;",
+                  "    pm.expect(jsonData.usuario.rolPrincipal).to.eql(\"ROLE_ALMACENERO\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"almacenero\",\n  \"password\": \"AlmaceneroSecure2026!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. ms-catalogo",
+      "item": [
+        {
+          "name": "Listar Productos (Paginado)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Tiene contenido de productos\", function () {",
+                  "    pm.expect(jsonData.content).to.be.an('array');",
+                  "    pm.expect(jsonData.content.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalogo/productos?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "catalogo", "productos"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consultar Producto por ID (Admin ve costos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Admin puede ver precioCosto y margen\", function () {",
+                  "    pm.expect(jsonData.precioCosto).to.not.be.null;",
+                  "    pm.expect(jsonData.margenPorcentaje).to.not.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalogo/productos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "catalogo", "productos", "1"]
+            }
+          }
+        },
+        {
+          "name": "Consultar Producto por ID (Vendedor NO ve costos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Vendedor tiene precioCosto nulo por seguridad\", function () {",
+                  "    pm.expect(jsonData.precioCosto).to.be.null;",
+                  "    pm.expect(jsonData.margenPorcentaje).to.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenVendedor}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalogo/productos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "catalogo", "productos", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. ms-inventario",
+      "item": [
+        {
+          "name": "Consultar Stock Consolidado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Retorna lista de stock\", function () {",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventario/stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventario", "stock"]
+            }
+          }
+        },
+        {
+          "name": "Lotes Ordenados por FEFO (Producto #1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Lotes ordenados por vencimiento ascendente\", function () {",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    if (jsonData.length > 1) {",
+                  "        var d1 = new Date(jsonData[0].fechaVencimiento);",
+                  "        var d2 = new Date(jsonData[1].fechaVencimiento);",
+                  "        pm.expect(d1 <= d2).to.be.true;",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventario/lotes/producto/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventario", "lotes", "producto", "1"]
+            }
+          }
+        },
+        {
+          "name": "Alertas de Vencimiento Próximo (30/60/90 días)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventario/lotes/por-vencer?dias=90",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventario", "lotes", "por-vencer"],
+              "query": [
+                { "key": "dias", "value": "90" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. ms-compras",
+      "item": [
+        {
+          "name": "Listar Proveedores",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAlmacenero}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/compras/proveedores",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "compras", "proveedores"]
+            }
+          }
+        },
+        {
+          "name": "Crear Orden de Compra",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"compraId\", jsonData.id);",
+                  "pm.test(\"Orden creada en estado PENDIENTE\", function () {",
+                  "    pm.expect(jsonData.estado).to.eql(\"PENDIENTE\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proveedorId\": 1,\n  \"observaciones\": \"Orden de reposición automática Postman\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidadSolicitada\": 50,\n      \"costoUnitario\": 0.45\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/compras/ordenes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "compras", "ordenes"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. ms-ventas & Caja",
+      "item": [
+        {
+          "name": "Consultar Mi Turno de Caja",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200 o 204\", function () {",
+                  "    pm.expect([200, 204]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"sesionCajaId\", jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenVendedor}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/caja/mi-turno",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "caja", "mi-turno"]
+            }
+          }
+        },
+        {
+          "name": "Validar Cupón de Descuento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Cupón válido\", function () {",
+                  "    pm.expect(jsonData.valido).to.be.true;",
+                  "    pm.expect(jsonData.codigo).to.eql(\"BIENVENIDA2026\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenVendedor}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"BIENVENIDA2026\",\n  \"montoVenta\": 50.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ventas/cupones/validar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ventas", "cupones", "validar"]
+            }
+          }
+        },
+        {
+          "name": "Emitir Venta POS (Boleta)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"ventaId\", jsonData.id);",
+                  "pm.test(\"Comprobante y montos calculados\", function () {",
+                  "    pm.expect(jsonData.numeroComprobante).to.not.be.empty;",
+                  "    pm.expect(jsonData.vuelto).to.be.at.least(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenVendedor}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": 1,\n  \"tipoComprobante\": \"BOLETA\",\n  \"medioPago\": \"EFECTIVO\",\n  \"montoRecibido\": 50.00,\n  \"descuentoManualPorcentaje\": 0.0,\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 2,\n      \"precioUnitario\": 1.50,\n      \"costoUnitario\": 0.50\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ventas",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ventas"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. ms-reportes",
+      "item": [
+        {
+          "name": "Dashboard Ejecutivo (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Contiene estructura de KPIs\", function () {",
+                  "    pm.expect(jsonData.kpis).to.have.property('ventasMes');",
+                  "    pm.expect(jsonData.kpis).to.have.property('utilidadMes');",
+                  "    pm.expect(jsonData.kpis).to.have.property('ticketPromedio');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/dashboard?periodo=mes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reportes", "dashboard"],
+              "query": [
+                { "key": "periodo", "value": "mes" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ventas por Día de la Semana",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Retorna los 7 días\", function () {",
+                  "    pm.expect(jsonData.length).to.eql(7);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/ventas/por-dia-semana",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reportes", "ventas", "por-dia-semana"]
+            }
+          }
+        },
+        {
+          "name": "Bitácora de Auditoría",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Contiene registros de auditoría\", function () {",
+                  "    pm.expect(jsonData.content).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenAdmin}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/auditoria?size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reportes", "auditoria"],
+              "query": [
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Seguridad RBAC - Vendedor bloqueado de Dashboard (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 403 Forbidden\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{tokenVendedor}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reportes/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reportes", "dashboard"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

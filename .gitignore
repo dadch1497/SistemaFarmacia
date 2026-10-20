@@ -1,0 +1,32 @@
+# FarmaGest Git Ignore
+
+# Variables de entorno y secretos
+.env
+infra/.env
+*.env.local
+
+# Compilados de Java y Maven
+target/
+*.class
+*.jar
+*.war
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.metadata/
+bin/
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+
+# Logs y SO
+*.log
+Thumbs.db
+.DS_Store

@@ -1,0 +1,229 @@
+<div class="usuarios-page">
+  
+  <!-- Encabezado de Gestión de Personal -->
+  <div class="usuarios-header">
+    <div class="header-titles">
+      <div class="header-badge">
+        <span class="pulse-dot"></span>
+        CONTROL DE ACCESO Y SEGURIDAD · FARMA OCHENTA
+      </div>
+      <h2>Personal: Vendedores y Almaceneros</h2>
+      <p class="subtitle">Administra los permisos de acceso al sistema y registra nuevo personal de mostrador y almacén</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="cargarUsuarios()">
+        ↻ Actualizar
+      </button>
+      <button class="btn btn-primary" (click)="abrirModalNuevoUsuario(2)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <line x1="19" y1="8" x2="19" y2="14"/>
+          <line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+        + Registrar Nuevo Usuario
+      </button>
+    </div>
+  </div>
+
+  <!-- Alertas de Éxito / Error -->
+  <div *ngIf="mensajeExito()" class="alert alert-success">
+    <span>{{ mensajeExito() }}</span>
+  </div>
+  <div *ngIf="mensajeError()" class="alert alert-danger">
+    <span>{{ mensajeError() }}</span>
+  </div>
+
+  <!-- Métricas Rápidas de Personal -->
+  <div class="kpi-grid-usuarios">
+    <div class="kpi-card" (click)="filtroRol = 'ROLE_VENDEDOR'">
+      <div class="kpi-icon vendedor-icon">🛒</div>
+      <div class="kpi-info">
+        <div class="kpi-label">VENDEDORES ACTIVOS</div>
+        <div class="kpi-value text-teal">{{ contarVendedores() }}</div>
+        <div class="kpi-sub">Acceso a Punto de Venta (POS)</div>
+      </div>
+    </div>
+
+    <div class="kpi-card" (click)="filtroRol = 'ROLE_ALMACENERO'">
+      <div class="kpi-icon almacenero-icon">📦</div>
+      <div class="kpi-info">
+        <div class="kpi-label">ALMACENEROS ACTIVOS</div>
+        <div class="kpi-value text-primary">{{ contarAlmaceneros() }}</div>
+        <div class="kpi-sub">Acceso a Inventario, Lotes y FEFO</div>
+      </div>
+    </div>
+
+    <div class="kpi-card" (click)="filtroRol = 'TODOS'">
+      <div class="kpi-icon inactivos-icon">🚫</div>
+      <div class="kpi-info">
+        <div class="kpi-label">USUARIOS BLOQUEADOS</div>
+        <div class="kpi-value text-danger">{{ contarInactivos() }}</div>
+        <div class="kpi-sub">Sin permiso para entrar al sistema</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros -->
+  <div class="tarjeta filtro-bar">
+    <div class="filtro-group">
+      <label>Filtrar por Rol:</label>
+      <select [(ngModel)]="filtroRol" class="form-select">
+        <option value="TODOS">Todos los roles</option>
+        <option value="ROLE_VENDEDOR">Vendedores de Mostrador</option>
+        <option value="ROLE_ALMACENERO">Almaceneros</option>
+        <option value="ROLE_ADMINISTRADOR">Administradores</option>
+      </select>
+    </div>
+
+    <div class="filtro-group search-group">
+      <label>Buscar por nombre, usuario o correo:</label>
+      <input 
+        type="text" 
+        [(ngModel)]="busqueda" 
+        placeholder="Ej. Carlos, Lucía, Quispe, vendedor1..."
+        class="form-input search-input" />
+    </div>
+  </div>
+
+  <!-- Tabla de Personal y Control de Permisos -->
+  <div class="tarjeta tabla-container">
+    <div *ngIf="cargando()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Consultando base de datos de usuarios y permisos...</p>
+    </div>
+
+    <div *ngIf="!cargando()" class="table-responsive">
+      <table class="tabla-farmagest">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Nombres y Apellidos</th>
+            <th>Correo Electrónico</th>
+            <th>Rol Asignado</th>
+            <th>Permiso de Acceso</th>
+            <th>Fecha Registro</th>
+            <th class="text-right">Acción de Permiso</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of usuariosFiltrados()" [class.fila-bloqueada]="!u.activo">
+            <td>
+              <div class="usuario-badge">
+                <span class="user-avatar-mini">{{ u.nombres.charAt(0) }}</span>
+                <strong>{{ u.username }}</strong>
+              </div>
+            </td>
+            <td>{{ u.nombres }} {{ u.apellidos }}</td>
+            <td class="text-muted">{{ u.email }}</td>
+            <td>
+              <span *ngIf="u.roles.includes('ROLE_ADMINISTRADOR')" class="badge badge-admin">Administrador</span>
+              <span *ngIf="u.roles.includes('ROLE_VENDEDOR')" class="badge badge-vendedor">🛒 Vendedor POS</span>
+              <span *ngIf="u.roles.includes('ROLE_ALMACENERO')" class="badge badge-almacenero">📦 Almacenero</span>
+            </td>
+            <td>
+              <span class="chip-permiso" [class.autorizado]="u.activo" [class.bloqueado]="!u.activo">
+                <span class="dot" [class.green]="u.activo" [class.red]="!u.activo"></span>
+                {{ u.activo ? 'ACCESO PERMITIDO' : 'ACCESO DENEGADO' }}
+              </span>
+            </td>
+            <td class="text-muted text-sm">
+              {{ u.creadoEn | date:'dd/MM/yyyy' }}
+            </td>
+            <td class="text-right">
+              <!-- No permitir auto-bloqueo del administrador principal -->
+              <button 
+                *ngIf="u.id !== 1"
+                type="button" 
+                class="btn-toggle-permiso"
+                [class.btn-dar-permiso]="!u.activo"
+                [class.btn-quitar-permiso]="u.activo"
+                (click)="alternarPermisoAcceso(u)"
+                [title]="u.activo ? 'Revocar permiso para que no pueda iniciar sesión' : 'Permitir que este usuario inicie sesión en el sistema'">
+                <span *ngIf="u.activo">🚫 Quitar Permiso</span>
+                <span *ngIf="!u.activo">✓ Dar Permiso de Entrada</span>
+              </button>
+
+              <span *ngIf="u.id === 1" class="text-xs text-muted">
+                (Superadmin)
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="!usuariosFiltrados().length">
+            <td colspan="7" class="text-center text-muted p-4">
+              No se encontraron usuarios registrados con el criterio de búsqueda.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal para Registro de Nuevo Vendedor o Almacenero -->
+  <div *ngIf="modalNuevoUsuarioAbierto" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-header-icon">👤</div>
+        <div>
+          <h3>Registrar Nuevo Personal</h3>
+          <p class="text-muted">Crea las credenciales de acceso para un nuevo Vendedor o Almacenero</p>
+        </div>
+        <button class="btn-close" (click)="cerrarModalNuevoUsuario()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form (ngSubmit)="guardarNuevoUsuario()" class="form-usuario">
+          
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Rol en la Botica: *</label>
+              <select [(ngModel)]="rolSeleccionadoId" name="rolId" class="form-control select-rol" required>
+                <option [value]="2">🛒 Vendedor (Punto de Venta POS y Boletas)</option>
+                <option [value]="3">📦 Almacenero (Inventario, Lotes y FEFO)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Nombres: *</label>
+              <input type="text" [(ngModel)]="nuevoUsuario.nombres" name="nombres" class="form-control" placeholder="Ej. Juan Carlos" required />
+            </div>
+            <div class="form-group flex-1">
+              <label>Apellidos: *</label>
+              <input type="text" [(ngModel)]="nuevoUsuario.apellidos" name="apellidos" class="form-control" placeholder="Ej. Pérez Mendoza" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Nombre de Usuario (Login): *</label>
+              <input type="text" [(ngModel)]="nuevoUsuario.username" name="username" class="form-control" placeholder="Ej. vendedor3 o jperez" required />
+              <small class="text-muted">Con este usuario iniciará sesión en FarmaGest.</small>
+            </div>
+            <div class="form-group flex-1">
+              <label>Contraseña: *</label>
+              <input type="password" [(ngModel)]="nuevoUsuario.password" name="password" class="form-control" placeholder="Mínimo 6 caracteres" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Correo Electrónico Corporativo: *</label>
+            <input type="email" [(ngModel)]="nuevoUsuario.email" name="email" class="form-control" placeholder="Ej. juan.perez@farmaochenta.pe" required />
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="cerrarModalNuevoUsuario()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="guardandoUsuario">
+              <span *ngIf="!guardandoUsuario">Guardar y Habilitar Acceso</span>
+              <span *ngIf="guardandoUsuario">Guardando...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>

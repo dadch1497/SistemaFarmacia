@@ -1,0 +1,670 @@
+<div class="compras-page">
+  <!-- Encabezado de página -->
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">Gestión de Compras y Abastecimiento</h1>
+      <p class="page-subtitle">Proveedores mayoristas, órdenes de compra y recepción física de mercadería con control de lotes</p>
+    </div>
+  </div>
+
+  <!-- Banner Restricción para Rol Vendedor -->
+  <div *ngIf="esVendedor" class="alert alert-danger py-4">
+    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <div>
+      <strong>Acceso Restringido (Matriz RBAC):</strong> El rol <em>Vendedor</em> no tiene permisos sobre el módulo de Compras ni costos de adquisición de mercadería.
+    </div>
+  </div>
+
+  <ng-container *ngIf="!esVendedor">
+    <!-- Mensajes de Alerta -->
+    <div *ngIf="mensajeExito()" class="alert alert-success">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+      </svg>
+      <span>{{ mensajeExito() }}</span>
+    </div>
+
+    <div *ngIf="mensajeError()" class="alert alert-danger">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ mensajeError() }}</span>
+    </div>
+
+    <!-- Navegación por Tabs -->
+    <div class="tabs-nav">
+      <button 
+        class="tab-btn" 
+        [class.active]="tabActivo === 'ORDENES'"
+        (click)="cambiarTab('ORDENES')">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Órdenes de Compra ({{ ordenes().length }})
+      </button>
+
+      <button 
+        class="tab-btn" 
+        [class.active]="tabActivo === 'INGRESOS'"
+        (click)="cambiarTab('INGRESOS')">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20"/>
+        </svg>
+        Recepción en Almacén ({{ ingresos().length }})
+      </button>
+
+      <button 
+        class="tab-btn" 
+        [class.active]="tabActivo === 'PROVEEDORES'"
+        (click)="cambiarTab('PROVEEDORES')">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+        </svg>
+        Proveedores / Laboratorios ({{ proveedores().length }})
+      </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: ÓRDENES DE COMPRA -->
+    <!-- ========================================================================= -->
+    <div *ngIf="tabActivo === 'ORDENES'" class="tab-panel">
+      <div class="actions-bar">
+        <div class="search-box">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input 
+            type="text" 
+            [(ngModel)]="filtroOrden" 
+            placeholder="Buscar por Nº Orden, proveedor o estado..." 
+            class="input-search"/>
+        </div>
+
+        <button *ngIf="esAdmin" class="btn btn-primary" (click)="abrirModalNuevaOrden()">
+          <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Nueva Orden de Compra
+        </button>
+      </div>
+
+      <div class="card tabla-card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nº Orden</th>
+              <th>Proveedor</th>
+              <th>Fecha Emisión</th>
+              <th class="text-right">Subtotal</th>
+              <th class="text-right">IGV (18%)</th>
+              <th class="text-right">Total</th>
+              <th class="text-center">Estado</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="cargando()">
+              <td colspan="8" class="text-center py-4">Cargando órdenes de compra...</td>
+            </tr>
+            <tr *ngIf="!cargando() && ordenesFiltradas().length === 0">
+              <td colspan="8" class="text-center py-4 text-muted">No se encontraron órdenes de compra registradas.</td>
+            </tr>
+            <tr *ngFor="let ord of ordenesFiltradas()">
+              <td><span class="code-badge">{{ ord.numeroOrden }}</span></td>
+              <td><strong>{{ ord.proveedor?.razonSocial || 'Proveedor #' + ord.proveedor?.id }}</strong></td>
+              <td>{{ formatearFecha(ord.fechaEmision) }}</td>
+              <td class="text-right">S/ {{ ord.subtotal | number:'1.2-2' }}</td>
+              <td class="text-right">S/ {{ ord.igv | number:'1.2-2' }}</td>
+              <td class="text-right font-bold text-accent">S/ {{ ord.total | number:'1.2-2' }}</td>
+              <td class="text-center">
+                <span class="badge-estado-orden" [ngClass]="obtenerClaseEstadoOrden(ord.estado)">
+                  {{ ord.estado }}
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="action-buttons">
+                  <button class="btn btn-outline btn-sm" (click)="verDetalleOrden(ord)" title="Ver ítems">
+                    Ver Detalle
+                  </button>
+                  <button 
+                    *ngIf="ord.estado === 'PENDIENTE' && esAdmin" 
+                    class="btn btn-sm btn-success-action" 
+                    (click)="aprobarOrden(ord)" 
+                    title="Aprobar Orden">
+                    Aprobar
+                  </button>
+                  <button 
+                    *ngIf="(ord.estado === 'APROBADA' || ord.estado === 'EN_TRANSITO') && (esAdmin || esAlmacenero)" 
+                    class="btn btn-sm btn-recepcion" 
+                    (click)="iniciarRecepcionDesdeOrden(ord)" 
+                    title="Recepcionar mercadería">
+                    Recepcionar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: RECEPCIÓN DE MERCADERÍA (INGRESOS FÍSICOS CON LOTES) -->
+    <!-- ========================================================================= -->
+    <div *ngIf="tabActivo === 'INGRESOS'" class="tab-panel">
+      <div class="actions-bar">
+        <div class="search-box">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input 
+            type="text" 
+            [(ngModel)]="filtroIngreso" 
+            placeholder="Buscar por guía, factura o nº orden..." 
+            class="input-search"/>
+        </div>
+
+        <button class="btn btn-primary" (click)="abrirModalNuevoIngreso()">
+          <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Registrar Ingreso de Mercadería
+        </button>
+      </div>
+
+      <div class="card tabla-card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nº Guía Remisión</th>
+              <th>Factura Proveedor</th>
+              <th>Orden Asociada</th>
+              <th>Fecha Recepción</th>
+              <th class="text-right">Monto Total</th>
+              <th class="text-center">Lotes Recibidos</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="cargando()">
+              <td colspan="7" class="text-center py-4">Cargando registros de recepción...</td>
+            </tr>
+            <tr *ngIf="!cargando() && ingresosFiltrados().length === 0">
+              <td colspan="7" class="text-center py-4 text-muted">No se registran ingresos de mercadería.</td>
+            </tr>
+            <tr *ngFor="let ing of ingresosFiltrados()">
+              <td><span class="code-badge">{{ ing.numeroGuia }}</span></td>
+              <td>{{ ing.numeroFacturaProveedor || '-' }}</td>
+              <td>{{ ing.numeroOrdenCompra || '-' }}</td>
+              <td>{{ formatearFecha(ing.fechaRecepcion) }}</td>
+              <td class="text-right font-bold text-accent">S/ {{ calcularTotalIngresoDto(ing) | number:'1.2-2' }}</td>
+              <td class="text-center">
+                <span class="chip-kardex">{{ ing.detalles ? ing.detalles.length : 0 }} lotes</span>
+              </td>
+              <td class="text-center">
+                <button class="btn btn-outline btn-sm" (click)="verDetalleIngreso(ing)">
+                  Ver Lotes Recibidos
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: PROVEEDORES / LABORATORIOS -->
+    <!-- ========================================================================= -->
+    <div *ngIf="tabActivo === 'PROVEEDORES'" class="tab-panel">
+      <div class="actions-bar">
+        <div class="search-box">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input 
+            type="text" 
+            [(ngModel)]="filtroProveedor" 
+            placeholder="Buscar por RUC, razón social o laboratorio..." 
+            class="input-search"/>
+        </div>
+
+        <button *ngIf="esAdmin" class="btn btn-primary" (click)="abrirModalNuevoProveedor()">
+          <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Nuevo Proveedor
+        </button>
+      </div>
+
+      <div class="card tabla-card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>RUC</th>
+              <th>Razón Social</th>
+              <th>Contacto</th>
+              <th>Teléfono</th>
+              <th>Email</th>
+              <th>Dirección</th>
+              <th *ngIf="esAdmin" class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="cargando()">
+              <td colspan="7" class="text-center py-4">Cargando proveedores...</td>
+            </tr>
+            <tr *ngIf="!cargando() && proveedoresFiltrados().length === 0">
+              <td colspan="7" class="text-center py-4 text-muted">No se encontraron proveedores.</td>
+            </tr>
+            <tr *ngFor="let prov of proveedoresFiltrados()">
+              <td><span class="code-badge">{{ prov.ruc }}</span></td>
+              <td>
+                <div class="prod-nombre">{{ prov.razonSocial }}</div>
+                <div *ngIf="prov.nombreComercial" class="prod-subinfo">{{ prov.nombreComercial }}</div>
+              </td>
+              <td>{{ prov.contacto || '-' }}</td>
+              <td>{{ prov.telefono || '-' }}</td>
+              <td>{{ prov.email || '-' }}</td>
+              <td><small class="text-muted">{{ prov.direccion || '-' }}</small></td>
+              <td *ngIf="esAdmin" class="text-center">
+                <div class="action-buttons">
+                  <button class="btn btn-outline btn-sm" (click)="abrirModalEditarProveedor(prov)" title="Editar">
+                    Editar
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm" (click)="darDeBajaProveedor(prov.id)" title="Dar de baja">
+                    Baja
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: REGISTRAR / EDITAR PROVEEDOR -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalProveedorAbierto" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>{{ proveedorEditandoId ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</h3>
+        <button class="modal-close" (click)="modalProveedorAbierto = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>RUC (11 dígitos) *</label>
+            <input type="text" [(ngModel)]="proveedorForm.ruc" class="input" maxlength="11" placeholder="20100047218"/>
+          </div>
+          <div class="form-group">
+            <label>Razón Social *</label>
+            <input type="text" [(ngModel)]="proveedorForm.razonSocial" class="input" placeholder="Droguería Los Olivos S.A.C."/>
+          </div>
+          <div class="form-group">
+            <label>Nombre Comercial</label>
+            <input type="text" [(ngModel)]="proveedorForm.nombreComercial" class="input" placeholder="Farmacéutica Los Olivos"/>
+          </div>
+          <div class="form-group">
+            <label>Persona de Contacto</label>
+            <input type="text" [(ngModel)]="proveedorForm.contacto" class="input" placeholder="Lic. María Delgado"/>
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" [(ngModel)]="proveedorForm.telefono" class="input" placeholder="(01) 456-7890"/>
+          </div>
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" [(ngModel)]="proveedorForm.email" class="input" placeholder="pedidos@proveedor.pe"/>
+          </div>
+          <div class="form-group full-width">
+            <label>Dirección Fiscal</label>
+            <input type="text" [(ngModel)]="proveedorForm.direccion" class="input" placeholder="Av. Nicolás Ayllón 1234, Lima"/>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="modalProveedorAbierto = false">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarProveedor()">Guardar Proveedor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: NUEVA ORDEN DE COMPRA -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalNuevaOrdenAbierto" class="modal-backdrop">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3>Nueva Orden de Compra</h3>
+        <button class="modal-close" (click)="modalNuevaOrdenAbierto = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Proveedor Mayorista *</label>
+            <select [(ngModel)]="ordenForm.proveedorId" class="input">
+              <option *ngFor="let p of proveedores()" [value]="p.id">{{ p.razonSocial }} (RUC: {{ p.ruc }})</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Observaciones / Nota de entrega</label>
+            <input type="text" [(ngModel)]="ordenForm.observaciones" class="input" placeholder="Entrega prioritaria para reposición"/>
+          </div>
+        </div>
+
+        <div class="section-divider">
+          <h4>Productos Solicitados</h4>
+        </div>
+
+        <!-- Fila para agregar ítem -->
+        <div class="add-item-row">
+          <div class="form-group flex-2">
+            <label>Producto *</label>
+            <select [(ngModel)]="itemOrdenTemporal.productoId" (change)="alCambiarProductoOrdenTemporal()" class="input">
+              <option *ngFor="let prod of productos()" [value]="prod.id">
+                {{ prod.nombre }} ({{ prod.laboratorio }}) - Costo ref: S/ {{ prod.precioCosto || 0 }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cantidad Solicitada *</label>
+            <input type="number" [(ngModel)]="itemOrdenTemporal.cantidad" min="1" class="input"/>
+          </div>
+          <div class="form-group">
+            <label>Costo Pactado S/ *</label>
+            <input type="number" [(ngModel)]="itemOrdenTemporal.costoPactado" step="0.10" min="0.01" class="input"/>
+          </div>
+          <div class="form-group btn-col">
+            <label>&nbsp;</label>
+            <button class="btn btn-primary" (click)="agregarItemOrden()">+ Agregar</button>
+          </div>
+        </div>
+
+        <!-- Tabla de ítems agregados -->
+        <div class="table-responsive mt-3">
+          <table class="table-compact">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th class="text-right">Cantidad</th>
+                <th class="text-right">Costo Pactado</th>
+                <th class="text-right">Subtotal</th>
+                <th class="text-center">Eliminar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="ordenForm.items.length === 0">
+                <td colspan="5" class="text-center py-4 text-muted">No ha agregado productos a la orden.</td>
+              </tr>
+              <tr *ngFor="let it of ordenForm.items; let i = index">
+                <td>{{ it.nombreProducto }}</td>
+                <td class="text-right">{{ it.cantidadSolicitada }}</td>
+                <td class="text-right">S/ {{ it.costoPactado | number:'1.2-2' }}</td>
+                <td class="text-right font-bold">S/ {{ it.subtotal | number:'1.2-2' }}</td>
+                <td class="text-center">
+                  <button class="btn-icon-danger" (click)="eliminarItemOrden(i)">&times;</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Totales de la Orden -->
+        <div *ngIf="ordenForm.items.length > 0" class="orden-totales-box mt-3">
+          <div class="totales-fila">
+            <span>Subtotal (Base Imponible):</span>
+            <strong>S/ {{ calcularSubtotalOrden() | number:'1.2-2' }}</strong>
+          </div>
+          <div class="totales-fila">
+            <span>IGV (18%):</span>
+            <strong>S/ {{ calcularIgvOrden() | number:'1.2-2' }}</strong>
+          </div>
+          <div class="totales-fila total-destacado">
+            <span>Total Orden:</span>
+            <span>S/ {{ calcularTotalOrden() | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="modalNuevaOrdenAbierto = false">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarOrden()">Generar Orden de Compra</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: REGISTRAR RECEPCIÓN FÍSICA DE MERCADERÍA (CON LOTES Y VENCIMIENTO) -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalIngresoAbierto" class="modal-backdrop">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3>Recepción Física de Mercadería (Ingreso con Lotes)</h3>
+        <button class="modal-close" (click)="modalIngresoAbierto = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-prod-info mb-3">
+          <strong>Control de Trazabilidad FEFO:</strong> Cada producto recibido debe registrar obligatoriamente su 
+          <strong>Número de Lote</strong> y <strong>Fecha de Vencimiento</strong> para garantizar la rotación y semaforización de vencimientos.
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nº Guía de Remisión *</label>
+            <input type="text" [(ngModel)]="ingresoForm.numeroGuia" class="input" placeholder="GR01-0001254"/>
+          </div>
+          <div class="form-group">
+            <label>Nº Factura del Proveedor</label>
+            <input type="text" [(ngModel)]="ingresoForm.numeroFacturaProveedor" class="input" placeholder="F001-0004581"/>
+          </div>
+          <div class="form-group full-width">
+            <label>Observaciones de Recepción</label>
+            <input type="text" [(ngModel)]="ingresoForm.observaciones" class="input" placeholder="Recepción conforme en almacén"/>
+          </div>
+        </div>
+
+        <div class="section-divider">
+          <h4>Ítems a Ingresar (Lote y Vencimiento Obligatorios)</h4>
+        </div>
+
+        <!-- Fila para agregar ítem de recepción -->
+        <div class="add-item-row-recepcion">
+          <div class="form-group flex-2">
+            <label>Producto *</label>
+            <select [(ngModel)]="itemIngresoTemporal.productoId" (change)="alCambiarProductoIngresoTemporal()" class="input">
+              <option *ngFor="let prod of productos()" [value]="prod.id">
+                {{ prod.nombre }} ({{ prod.presentacion }})
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nº Lote *</label>
+            <input type="text" [(ngModel)]="itemIngresoTemporal.numeroLote" class="input font-mono" placeholder="LOT-2026-X"/>
+          </div>
+          <div class="form-group">
+            <label>Fecha Vencimiento *</label>
+            <input type="date" [(ngModel)]="itemIngresoTemporal.fechaVencimiento" class="input"/>
+          </div>
+          <div class="form-group w-24">
+            <label>Cant. *</label>
+            <input type="number" [(ngModel)]="itemIngresoTemporal.cantidadRecibida" min="1" class="input"/>
+          </div>
+          <div class="form-group w-28">
+            <label>Costo S/ *</label>
+            <input type="number" [(ngModel)]="itemIngresoTemporal.costoUnitarioReal" step="0.10" min="0.01" class="input"/>
+          </div>
+          <div class="form-group btn-col">
+            <label>&nbsp;</label>
+            <button class="btn btn-primary" (click)="agregarItemIngreso()">+ Agregar</button>
+          </div>
+        </div>
+
+        <!-- Tabla de ítems con lote listos para ingresar -->
+        <div class="table-responsive mt-3">
+          <table class="table-compact">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Nº Lote</th>
+                <th>Vencimiento</th>
+                <th class="text-right">Cantidad</th>
+                <th class="text-right">Costo Unit.</th>
+                <th class="text-right">Subtotal</th>
+                <th class="text-center">Quitar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="ingresoForm.items.length === 0">
+                <td colspan="7" class="text-center py-4 text-muted">Agregue los productos con sus números de lote y fecha de vencimiento.</td>
+              </tr>
+              <tr *ngFor="let it of ingresoForm.items; let i = index">
+                <td><strong>{{ it.nombreProducto }}</strong></td>
+                <td><span class="code-badge">{{ it.numeroLote }}</span></td>
+                <td><span class="venc-badge">{{ it.fechaVencimiento }}</span></td>
+                <td class="text-right font-bold">{{ it.cantidadRecibida }}</td>
+                <td class="text-right">S/ {{ it.costoUnitarioReal | number:'1.2-2' }}</td>
+                <td class="text-right font-bold text-accent">S/ {{ it.subtotal | number:'1.2-2' }}</td>
+                <td class="text-center">
+                  <button class="btn-icon-danger" (click)="eliminarItemIngreso(i)">&times;</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="ingresoForm.items.length > 0" class="orden-totales-box mt-3">
+          <div class="totales-fila total-destacado">
+            <span>Total Ingreso:</span>
+            <span>S/ {{ calcularTotalIngreso() | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="modalIngresoAbierto = false">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarIngreso()">Confirmar Recepción y Actualizar Stock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: DETALLE ORDEN DE COMPRA -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalDetalleOrdenAbierto && ordenSeleccionada" class="modal-backdrop">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3>Detalle de Orden {{ ordenSeleccionada.numeroOrden }}</h3>
+        <button class="modal-close" (click)="modalDetalleOrdenAbierto = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-card-grid mb-3">
+          <div><strong>Proveedor:</strong> {{ ordenSeleccionada.proveedor?.razonSocial || 'Proveedor #' + ordenSeleccionada.proveedor?.id }}</div>
+          <div><strong>Estado:</strong> 
+            <span class="badge-estado-orden" [ngClass]="obtenerClaseEstadoOrden(ordenSeleccionada.estado)">
+              {{ ordenSeleccionada.estado }}
+            </span>
+          </div>
+          <div><strong>Fecha Emisión:</strong> {{ formatearFecha(ordenSeleccionada.fechaEmision) }}</div>
+          <div><strong>Observaciones:</strong> {{ ordenSeleccionada.observaciones || '-' }}</div>
+        </div>
+
+        <table class="table-compact">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th class="text-right">Cantidad Solicitada</th>
+              <th class="text-right">Costo Pactado</th>
+              <th class="text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of ordenSeleccionada.detalles">
+              <td>{{ obtenerNombreProducto(d.productoId) }}</td>
+              <td class="text-right font-bold">{{ d.cantidadSolicitada }}</td>
+              <td class="text-right">S/ {{ d.costoPactado | number:'1.2-2' }}</td>
+              <td class="text-right font-bold">S/ {{ d.subtotal | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="orden-totales-box mt-3">
+          <div class="totales-fila">
+            <span>Subtotal:</span>
+            <strong>S/ {{ ordenSeleccionada.subtotal | number:'1.2-2' }}</strong>
+          </div>
+          <div class="totales-fila">
+            <span>IGV (18%):</span>
+            <strong>S/ {{ ordenSeleccionada.igv | number:'1.2-2' }}</strong>
+          </div>
+          <div class="totales-fila total-destacado">
+            <span>Total Facturado:</span>
+            <span>S/ {{ ordenSeleccionada.total | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="modalDetalleOrdenAbierto = false">Cerrar</button>
+        <button 
+          *ngIf="ordenSeleccionada.estado === 'PENDIENTE' && esAdmin" 
+          class="btn btn-success-action" 
+          (click)="aprobarOrden(ordenSeleccionada)">
+          Aprobar Orden
+        </button>
+        <button 
+          *ngIf="(ordenSeleccionada.estado === 'APROBADA' || ordenSeleccionada.estado === 'EN_TRANSITO') && (esAdmin || esAlmacenero)" 
+          class="btn btn-primary" 
+          (click)="iniciarRecepcionDesdeOrden(ordenSeleccionada)">
+          Recepcionar Mercadería
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: DETALLE DE RECEPCIÓN (LOTES INGRESADOS) -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalDetalleIngresoAbierto && ingresoSeleccionado" class="modal-backdrop">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3>Lotes Recibidos - Guía {{ ingresoSeleccionado.numeroGuia }}</h3>
+        <button class="modal-close" (click)="modalDetalleIngresoAbierto = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-card-grid mb-3">
+          <div><strong>Factura Proveedor:</strong> {{ ingresoSeleccionado.numeroFacturaProveedor || '-' }}</div>
+          <div><strong>Orden Asociada:</strong> {{ ingresoSeleccionado.numeroOrdenCompra || '-' }}</div>
+          <div><strong>Fecha Recepción:</strong> {{ formatearFecha(ingresoSeleccionado.fechaRecepcion) }}</div>
+          <div><strong>Total:</strong> S/ {{ calcularTotalIngresoDto(ingresoSeleccionado) | number:'1.2-2' }}</div>
+        </div>
+
+        <table class="table-compact">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Número de Lote</th>
+              <th>Vencimiento</th>
+              <th class="text-right">Cantidad Recibida</th>
+              <th class="text-right">Costo Unitario</th>
+              <th class="text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let det of ingresoSeleccionado.detalles">
+              <td><strong>{{ obtenerNombreProducto(det.productoId) }}</strong></td>
+              <td><span class="code-badge">{{ det.numeroLote }}</span></td>
+              <td><span class="venc-badge">{{ det.fechaVencimiento }}</span></td>
+              <td class="text-right font-bold text-success">{{ det.cantidadRecibida }}</td>
+              <td class="text-right">S/ {{ det.costoUnitarioReal | number:'1.2-2' }}</td>
+              <td class="text-right font-bold text-accent">S/ {{ (det.cantidadRecibida * det.costoUnitarioReal) | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="modalDetalleIngresoAbierto = false">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

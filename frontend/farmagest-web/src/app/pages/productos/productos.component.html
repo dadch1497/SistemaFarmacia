@@ -1,0 +1,418 @@
+<div class="productos-page">
+
+  <!-- Encabezado del Módulo -->
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">Catálogo de Productos y Precios</h1>
+      <p class="page-subtitle">
+        Listado centralizado de medicamentos, material médico y productos con control de precios y restricciones de receta.
+      </p>
+    </div>
+
+    <!-- Botón para Admin -->
+    <div *ngIf="authService.isAdmin()">
+      <button class="btn btn-primary" (click)="abrirModalNuevo()">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Nuevo Medicamento
+      </button>
+    </div>
+  </div>
+
+  <!-- Alertas de Éxito / Error -->
+  <div *ngIf="mensajeExito()" class="alert alert-success">
+    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span>{{ mensajeExito() }}</span>
+  </div>
+
+  <div *ngIf="mensajeError()" class="alert alert-danger">
+    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <span>{{ mensajeError() }}</span>
+  </div>
+
+  <!-- Barra de Búsqueda y Filtros Rápidos -->
+  <div class="tarjeta filtros-card">
+    <div class="filtros-grid">
+      <!-- Input de Búsqueda -->
+      <div class="search-box">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input
+          type="text"
+          class="input search-input"
+          placeholder="Buscar por código de barras, nombre o principio activo..."
+          [(ngModel)]="filtroTexto"
+          (keyup.enter)="buscar()"
+        />
+        <button class="btn btn-secondary btn-buscar" (click)="buscar()">
+          Buscar
+        </button>
+      </div>
+
+      <!-- Filtro de Receta -->
+      <div class="receta-filtro">
+        <label class="filtro-label">Prescripción Médica:</label>
+        <select class="input select-filtro" [(ngModel)]="filtroReceta" (change)="filtrarPorReceta(filtroReceta)">
+          <option value="TODOS">Todos los tipos</option>
+          <option value="VENTA_LIBRE">Venta Libre (OTC)</option>
+          <option value="CON_RECETA">Requiere Receta Médica</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Píldoras de Categorías -->
+    <div class="categorias-scroll">
+      <button
+        class="categoria-pill"
+        [class.active]="categoriaSeleccionadaId === null"
+        (click)="seleccionarCategoria(null)"
+      >
+        Todas las Categorías
+      </button>
+      <button
+        *ngFor="let cat of categorias()"
+        class="categoria-pill"
+        [class.active]="categoriaSeleccionadaId === cat.id"
+        (click)="seleccionarCategoria(cat.id)"
+      >
+        {{ cat.nombre }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla de Productos -->
+  <div class="tarjeta tabla-card">
+    <div class="tabla-meta">
+      <span class="total-badge">
+        Total encontrados: <strong>{{ totalElementos }}</strong> productos
+      </span>
+      <span *ngIf="authService.isVendedor()" class="role-badge-vendor">
+        <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Vista de Vendedor: Precios de venta al público vigentes
+      </span>
+    </div>
+
+    <div class="table-container" [class.loading]="cargando()">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Producto & Presentación</th>
+            <th>Categoría</th>
+            <th>Laboratorio</th>
+            <th>Prescripción</th>
+            <th class="text-right">Precio Venta</th>
+            <!-- Columnas exclusivas de Administrador -->
+            <th *ngIf="authService.isAdmin()" class="text-right">Costo / Margen</th>
+            <th>Estado</th>
+            <th *ngIf="authService.isAdmin()" class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of productos()" [class.row-inactive]="!p.activo">
+            <!-- Código -->
+            <td>
+              <span class="code-badge">{{ p.codigoBarras }}</span>
+            </td>
+
+            <!-- Producto -->
+            <td>
+              <div class="prod-nombre">{{ p.nombre }}</div>
+              <div class="prod-subinfo">
+                <span>{{ p.presentacion }}</span>
+                <span *ngIf="p.principioActivo" class="subinfo-bullet">·</span>
+                <span *ngIf="p.principioActivo" class="subinfo-activo">
+                  {{ p.principioActivo }} {{ p.concentracion }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Categoría -->
+            <td>
+              <span class="chip-categoria">{{ p.categoria.nombre }}</span>
+            </td>
+
+            <!-- Laboratorio -->
+            <td>
+              <span class="text-secondary">{{ p.laboratorio.nombre }}</span>
+            </td>
+
+            <!-- Requiere Receta -->
+            <td>
+              <span *ngIf="p.requiereReceta" class="badge-receta">
+                <svg class="icon-badge" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                Receta Médica
+              </span>
+              <span *ngIf="!p.requiereReceta" class="badge-libre">
+                Venta Libre
+              </span>
+            </td>
+
+            <!-- Precio Venta -->
+            <td class="text-right">
+              <span class="precio-venta">S/ {{ p.precioVenta | number:'1.2-2' }}</span>
+            </td>
+
+            <!-- Costo y Margen (SOLO ADMIN) -->
+            <td *ngIf="authService.isAdmin()" class="text-right">
+              <div class="costo-val">Costo: S/ {{ (p.precioCosto || 0) | number:'1.2-2' }}</div>
+              <div class="margen-val" *ngIf="p.margenPorcentaje !== null && p.margenPorcentaje !== undefined">
+                <span class="badge-margen">+{{ p.margenPorcentaje | number:'1.1-1' }}%</span>
+              </div>
+            </td>
+
+            <!-- Estado -->
+            <td>
+              <span class="badge-estado" [class.badge-activo]="p.activo" [class.badge-inactivo]="!p.activo">
+                {{ p.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+
+            <!-- Acciones Admin -->
+            <td *ngIf="authService.isAdmin()" class="text-center">
+              <div class="action-buttons">
+                <button
+                  class="btn-icon"
+                  title="Cambiar Precio (Auditable)"
+                  (click)="abrirModalPrecio(p)"
+                >
+                  <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </button>
+                <button
+                  class="btn-icon"
+                  title="Historial de Precios"
+                  (click)="abrirModalHistorial(p)"
+                >
+                  <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </button>
+                <button
+                  class="btn-icon"
+                  [title]="p.activo ? 'Desactivar' : 'Reactivar'"
+                  (click)="toggleEstado(p)"
+                >
+                  <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="productos().length === 0 && !cargando()">
+            <td [attr.colspan]="authService.isAdmin() ? 9 : 7" class="text-center py-8 text-secondary">
+              No se encontraron productos que coincidan con los criterios de búsqueda.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination-footer" *ngIf="totalPaginas > 1">
+      <span class="page-indicator">
+        Página {{ paginaActual + 1 }} de {{ totalPaginas }}
+      </span>
+      <div class="pagination-actions">
+        <button
+          class="btn btn-secondary btn-sm"
+          [disabled]="paginaActual === 0"
+          (click)="cargarProductos(paginaActual - 1)"
+        >
+          Anterior
+        </button>
+        <button
+          class="btn btn-secondary btn-sm"
+          [disabled]="paginaActual >= totalPaginas - 1"
+          (click)="cargarProductos(paginaActual + 1)"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CAMBIO DE PRECIO -->
+  <div class="modal-backdrop" *ngIf="modalPrecioAbierto">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Actualizar Precio de Venta y Costo</h3>
+        <button class="modal-close" (click)="cerrarModalPrecio()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-prod-info" *ngIf="productoSeleccionado">
+          <strong>{{ productoSeleccionado.nombre }}</strong>
+          <span class="text-secondary">{{ productoSeleccionado.presentacion }}</span>
+          <div class="mt-1">
+            Precio de Venta Actual: <strong>S/ {{ productoSeleccionado.precioVenta | number:'1.2-2' }}</strong>
+            <span *ngIf="productoSeleccionado.precioCosto">
+              · Costo Actual: <strong>S/ {{ productoSeleccionado.precioCosto | number:'1.2-2' }}</strong>
+            </span>
+          </div>
+        </div>
+
+        <div class="form-group mt-3">
+          <label>Nuevo Precio de Venta (S/) *</label>
+          <input
+            type="number"
+            step="0.10"
+            class="input"
+            [(ngModel)]="cambioPrecioForm.nuevoPrecioVenta"
+          />
+        </div>
+
+        <div class="form-group mt-2">
+          <label>Nuevo Precio Costo (S/) - Opcional</label>
+          <input
+            type="number"
+            step="0.10"
+            class="input"
+            [(ngModel)]="cambioPrecioForm.nuevoPrecioCosto"
+          />
+        </div>
+
+        <div class="form-group mt-2">
+          <label>Motivo del Cambio (Requerido para Auditoría) *</label>
+          <textarea
+            class="input textarea"
+            rows="2"
+            placeholder="Ej: Actualización de tarifa por proveedor, descuento por volumen..."
+            [(ngModel)]="cambioPrecioForm.motivo"
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalPrecio()">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarCambioPrecio()">Confirmar y Emitir Evento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HISTORIAL DE PRECIOS -->
+  <div class="modal-backdrop" *ngIf="modalHistorialAbierto">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3>Historial de Cambios de Precio</h3>
+        <button class="modal-close" (click)="cerrarModalHistorial()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-secondary mb-3" *ngIf="productoSeleccionado">
+          Registro inmutable de variaciones de precio para: <strong>{{ productoSeleccionado.nombre }}</strong>
+        </p>
+
+        <div class="table-container max-h-64">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>P. Anterior</th>
+                <th>P. Nuevo</th>
+                <th>C. Anterior</th>
+                <th>C. Nuevo</th>
+                <th>Motivo</th>
+                <th>Usuario ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let h of historialPrecios">
+                <td class="text-sm">{{ h.fechaCambio | date:'short' }}</td>
+                <td class="text-sm">S/ {{ h.precioAnterior | number:'1.2-2' }}</td>
+                <td class="text-sm font-bold text-accent">S/ {{ h.precioNuevo | number:'1.2-2' }}</td>
+                <td class="text-sm">S/ {{ h.costoAnterior | number:'1.2-2' }}</td>
+                <td class="text-sm">S/ {{ h.costoNuevo | number:'1.2-2' }}</td>
+                <td class="text-sm">{{ h.motivo }}</td>
+                <td class="text-sm">#{{ h.usuarioId }}</td>
+              </tr>
+              <tr *ngIf="historialPrecios.length === 0">
+                <td colspan="7" class="text-center py-4 text-secondary">
+                  No hay cambios de precio registrados aún para este producto.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalHistorial()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NUEVO PRODUCTO -->
+  <div class="modal-backdrop" *ngIf="modalNuevoAbierto">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3>Registrar Nuevo Medicamento / Producto</h3>
+        <button class="modal-close" (click)="cerrarModalNuevo()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Código de Barras / EAN *</label>
+            <input type="text" class="input" placeholder="775..." [(ngModel)]="nuevoProductoForm.codigoBarras" />
+          </div>
+          <div class="form-group">
+            <label>Nombre Comercial *</label>
+            <input type="text" class="input" placeholder="Ej: Amoxicilina Forte" [(ngModel)]="nuevoProductoForm.nombre" />
+          </div>
+          <div class="form-group">
+            <label>Principio Activo</label>
+            <input type="text" class="input" placeholder="Ej: Amoxicilina" [(ngModel)]="nuevoProductoForm.principioActivo" />
+          </div>
+          <div class="form-group">
+            <label>Concentración</label>
+            <input type="text" class="input" placeholder="Ej: 500 mg" [(ngModel)]="nuevoProductoForm.concentracion" />
+          </div>
+          <div class="form-group">
+            <label>Presentación *</label>
+            <input type="text" class="input" placeholder="Ej: Caja x 30 cápsulas" [(ngModel)]="nuevoProductoForm.presentacion" />
+          </div>
+          <div class="form-group">
+            <label>Categoría *</label>
+            <select class="input" [(ngModel)]="nuevoProductoForm.categoriaId">
+              <option *ngFor="let c of categorias()" [value]="c.id">{{ c.nombre }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Laboratorio *</label>
+            <select class="input" [(ngModel)]="nuevoProductoForm.laboratorioId">
+              <option *ngFor="let l of laboratorios()" [value]="l.id">{{ l.nombre }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Precio Costo (S/) *</label>
+            <input type="number" step="0.10" class="input" [(ngModel)]="nuevoProductoForm.precioCosto" />
+          </div>
+          <div class="form-group">
+            <label>Precio Venta (S/) *</label>
+            <input type="number" step="0.10" class="input" [(ngModel)]="nuevoProductoForm.precioVenta" />
+          </div>
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="nuevoProductoForm.requiereReceta" />
+              <span>Requiere Receta Médica Obligatoria</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalNuevo()">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarNuevoProducto()">Guardar Medicamento</button>
+      </div>
+    </div>
+  </div>
+
+</div>

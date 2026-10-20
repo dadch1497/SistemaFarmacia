@@ -1,0 +1,159 @@
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0B3D38 0%, #154c46 50%, #F3F6F5 100%);
+  padding: 1.5rem;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 440px;
+}
+
+.login-card {
+  padding: 2.5rem 2rem;
+  background: #FFFFFF;
+}
+
+.brand-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.brand-icon {
+  width: 58px;
+  height: 58px;
+  background-color: var(--color-verde-oscuro);
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 4px 12px rgba(11, 61, 56, 0.25);
+}
+
+.brand-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-verde-oscuro);
+  letter-spacing: -0.02em;
+}
+
+.brand-subtitle {
+  font-size: 0.9rem;
+  color: var(--color-texto-secundario);
+  margin-top: 0.25rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon .campo-control {
+  padding-right: 2.75rem;
+}
+
+.icon-suffix {
+  position: absolute;
+  right: 0.9rem;
+  color: var(--color-texto-secundario);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.btn-block {
+  width: 100%;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+}
+
+.alerta-error {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background-color: var(--alerta-vencimiento-bg);
+  color: var(--alerta-vencimiento-text);
+  border: 1px solid rgba(155, 28, 28, 0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.demo-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-borde-tarjeta);
+}
+
+.demo-title {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.demo-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.demo-btn {
+  background-color: var(--color-fondo-app);
+  border: 1px solid var(--color-borde-tarjeta);
+  border-radius: 8px;
+  padding: 0.5rem 0.25rem;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  transition: all 0.2s ease;
+  min-height: 48px;
+}
+
+.demo-btn:hover {
+  background-color: #E3ECE9;
+  border-color: var(--color-verde-medio);
+}
+
+.demo-btn strong {
+  font-size: 0.8125rem;
+  color: var(--color-verde-oscuro);
+}
+
+.demo-btn small {
+  font-size: 0.6875rem;
+  color: var(--color-texto-secundario);
+}
+
+.login-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  font-size: 0.8125rem;
+  color: #E3ECE9;
+}

@@ -1,0 +1,82 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+              - "http://127.0.0.1:4200"
+              - "http://localhost:4250"
+              - "http://127.0.0.1:4250"
+              - "http://localhost:4300"
+              - "http://127.0.0.1:4300"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        - id: ms-auth-route
+          uri: lb://ms-auth
+          predicates:
+            - Path=/api/auth/**
+
+        - id: ms-catalogo-route
+          uri: lb://ms-catalogo
+          predicates:
+            - Path=/api/catalogo/**
+
+        - id: ms-inventario-route
+          uri: lb://ms-inventario
+          predicates:
+            - Path=/api/inventario/**
+
+        - id: ms-compras-route
+          uri: lb://ms-compras
+          predicates:
+            - Path=/api/compras/**
+
+        - id: ms-ventas-route
+          uri: lb://ms-ventas
+          predicates:
+            - Path=/api/ventas/**, /api/caja/**
+
+        - id: ms-reportes-route
+          uri: lb://ms-reportes
+          predicates:
+            - Path=/api/reportes/**
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
+    registerWithEureka: true
+    fetchRegistry: true
+  instance:
+    preferIpAddress: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true

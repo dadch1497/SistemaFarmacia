@@ -1,0 +1,273 @@
+<div class="promociones-page">
+
+  <!-- Encabezado de Gestión de Promociones -->
+  <div class="promociones-header">
+    <div class="header-titles">
+      <div class="header-badge">
+        <span class="pulse-dot"></span>
+        ESTRATEGIA COMERCIAL Y DESCUENTOS · FARMA OCHENTA
+      </div>
+      <h2>Promociones y Descuentos para Clientes</h2>
+      <p class="subtitle">Configura ofertas especiales, descuentos porcentuales, promociones 2x1 y liquidación para que los clientes ahorren en sus compras</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="cargarPromociones()">
+        ↻ Actualizar
+      </button>
+      <button class="btn btn-primary" (click)="abrirModalNuevaPromo()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        + Nueva Promoción Comercial
+      </button>
+    </div>
+  </div>
+
+  <!-- Alertas -->
+  <div *ngIf="mensajeExito()" class="alert alert-success">
+    <span>{{ mensajeExito() }}</span>
+  </div>
+  <div *ngIf="mensajeError()" class="alert alert-danger">
+    <span>{{ mensajeError() }}</span>
+  </div>
+
+  <!-- KPIs de Ofertas -->
+  <div class="kpi-grid-promos">
+    <div class="kpi-card" (click)="filtroEstado = 'ACTIVAS'">
+      <div class="kpi-icon promo-icon">🏷️</div>
+      <div class="kpi-info">
+        <div class="kpi-label">PROMOCIONES ACTIVAS</div>
+        <div class="kpi-value text-teal">{{ contarActivas() }}</div>
+        <div class="kpi-sub">Vigentes en mostrador POS</div>
+      </div>
+    </div>
+
+    <div class="kpi-card" (click)="filtroEstado = 'TODAS'">
+      <div class="kpi-icon total-icon">✨</div>
+      <div class="kpi-info">
+        <div class="kpi-label">TOTAL CONFIGURADAS</div>
+        <div class="kpi-value text-primary">{{ promociones().length }}</div>
+        <div class="kpi-sub">Reglas de descuento en catálogo</div>
+      </div>
+    </div>
+
+    <div class="kpi-card" (click)="filtroEstado = 'ACTIVAS'">
+      <div class="kpi-icon remate-icon">⚡</div>
+      <div class="kpi-info">
+        <div class="kpi-label">LIQUIDACIÓN VENCIMIENTO</div>
+        <div class="kpi-value text-warning">{{ contarPorVencimiento() }}</div>
+        <div class="kpi-sub">Descuentos por próximo a vencer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros -->
+  <div class="tarjeta filtro-bar">
+    <div class="filtro-group">
+      <label>Estado:</label>
+      <select [(ngModel)]="filtroEstado" class="form-select">
+        <option value="TODAS">Todas las promociones</option>
+        <option value="ACTIVAS">Solo Activas (Disponibles para compras)</option>
+        <option value="PAUSADAS">Solo Pausadas</option>
+      </select>
+    </div>
+
+    <div class="filtro-group search-group">
+      <label>Buscar promoción:</label>
+      <input 
+        type="text" 
+        [(ngModel)]="busqueda" 
+        placeholder="Ej. 2x1, Vitaminas, Descuento, Paracetamol..."
+        class="form-input search-input" />
+    </div>
+  </div>
+
+  <!-- Tabla de Promociones -->
+  <div class="tarjeta tabla-container">
+    <div *ngIf="cargando()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Consultando catálogo de promociones comerciales...</p>
+    </div>
+
+    <div *ngIf="!cargando()" class="table-responsive">
+      <table class="tabla-farmagest">
+        <thead>
+          <tr>
+            <th>Promoción Comercial</th>
+            <th>Tipo de Oferta</th>
+            <th>Beneficio para el Cliente</th>
+            <th>Vigencia</th>
+            <th>Condición</th>
+            <th>Estado</th>
+            <th class="text-right">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of promocionesFiltradas()" [class.fila-pausada]="!p.activo">
+            <td>
+              <div class="promo-nombre-box">
+                <span class="promo-emoji">🎉</span>
+                <div>
+                  <strong>{{ p.nombre }}</strong>
+                  <span *ngIf="p.aplicaPorVencimiento" class="tag-vence">⚡ Remate FEFO</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge badge-alcance">
+                {{ p.tipoAlcance === 'POR_PRODUCTO' ? 'Por Medicamento' : (p.tipoAlcance === 'POR_CATEGORIA' ? 'Por Categoría' : 'Por Monto Total') }}
+              </span>
+            </td>
+            <td>
+              <div class="beneficio-tag" *ngIf="p.tipoDescuento === 'PORCENTAJE'">
+                <strong>{{ p.valorDescuento }}% de Descuento</strong>
+              </div>
+              <div class="beneficio-tag" *ngIf="p.tipoDescuento === 'MONTO_FIJO'">
+                <strong>S/ {{ p.valorDescuento | number:'1.2-2' }} de rebaja</strong>
+              </div>
+              <div class="beneficio-tag nxm" *ngIf="p.tipoDescuento === 'N_X_M'">
+                <strong>Lleva {{ p.cantidadCondicion }} y Paga {{ p.cantidadPagada }}</strong>
+              </div>
+            </td>
+            <td class="text-sm text-muted">
+              {{ p.fechaInicio | date:'dd/MM/yyyy' }} al {{ p.fechaFin | date:'dd/MM/yyyy' }}
+            </td>
+            <td>
+              <span class="text-sm text-muted">
+                {{ p.cantidadCondicion ? 'Mínimo ' + p.cantidadCondicion + ' u.' : 'Automático' }}
+              </span>
+            </td>
+            <td>
+              <span class="chip-estado" [class.activo]="p.activo" [class.pausado]="!p.activo">
+                <span class="dot" [class.green]="p.activo" [class.gray]="!p.activo"></span>
+                {{ p.activo ? 'DISPONIBLE' : 'PAUSADA' }}
+              </span>
+            </td>
+            <td class="text-right">
+              <button 
+                type="button" 
+                class="btn-toggle-promo"
+                [class.btn-pausar]="p.activo"
+                [class.btn-activar]="!p.activo"
+                (click)="alternarEstadoPromocion(p)">
+                <span *ngIf="p.activo">⏸ Pausar Oferta</span>
+                <span *ngIf="!p.activo">▶ Activar Oferta</span>
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="!promocionesFiltradas().length">
+            <td colspan="7" class="text-center text-muted p-4">
+              No se encontraron promociones registradas con el criterio de búsqueda.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal para Crear Nueva Promoción Comercial -->
+  <div *ngIf="modalNuevaPromoAbierto" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-header-icon">🏷️</div>
+        <div>
+          <h3>Crear Nueva Promoción Comercial</h3>
+          <p class="text-muted">Configura el beneficio que los clientes recibirán en caja</p>
+        </div>
+        <button class="btn-close" (click)="cerrarModalNuevaPromo()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form (ngSubmit)="guardarNuevaPromocion()" class="form-promo">
+          
+          <div class="form-group">
+            <label>Nombre de la Promoción: *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="nuevaPromo.nombre" 
+              name="nombre" 
+              class="form-control" 
+              placeholder="Ej. 20% de Descuento en Analgésicos o Promoción 2x1" 
+              required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Tipo de Alcance: *</label>
+              <select [(ngModel)]="nuevaPromo.tipoAlcance" name="tipoAlcance" class="form-control">
+                <option value="POR_PRODUCTO">Por Medicamento Específico</option>
+                <option value="POR_CATEGORIA">Por Categoría Completa</option>
+                <option value="POR_MONTO_TOTAL">Por Monto Total de Compra</option>
+                <option value="POR_VENCIMIENTO_PROXIMO">Por Próximo a Vencer (Remate)</option>
+              </select>
+            </div>
+
+            <div class="form-group flex-1">
+              <label>Mecanismo de Descuento: *</label>
+              <select [(ngModel)]="nuevaPromo.tipoDescuento" name="tipoDescuento" class="form-control">
+                <option value="PORCENTAJE">Porcentaje (%)</option>
+                <option value="MONTO_FIJO">Monto Fijo en Soles (S/)</option>
+                <option value="N_X_M">Promoción N x M (ej. 2x1, 3x2)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Campos dinámicos según el tipo de descuento -->
+          <div class="form-row" *ngIf="nuevaPromo.tipoDescuento === 'PORCENTAJE'">
+            <div class="form-group flex-1">
+              <label>Porcentaje de Descuento (%): *</label>
+              <input type="number" [(ngModel)]="nuevaPromo.valorDescuento" name="valorDescuento" class="form-control" min="1" max="100" placeholder="Ej. 15" required />
+            </div>
+          </div>
+
+          <div class="form-row" *ngIf="nuevaPromo.tipoDescuento === 'MONTO_FIJO'">
+            <div class="form-group flex-1">
+              <label>Monto de Rebaja en Soles (S/): *</label>
+              <input type="number" step="0.5" [(ngModel)]="nuevaPromo.valorDescuento" name="valorDescuento" class="form-control" min="0.5" placeholder="Ej. 5.00" required />
+            </div>
+          </div>
+
+          <div class="form-row" *ngIf="nuevaPromo.tipoDescuento === 'N_X_M'">
+            <div class="form-group flex-1">
+              <label>Cantidad que Lleva (N): *</label>
+              <input type="number" [(ngModel)]="nuevaPromo.cantidadCondicion" name="cantidadCondicion" class="form-control" min="2" placeholder="Ej. 2 para 2x1" required />
+            </div>
+            <div class="form-group flex-1">
+              <label>Cantidad que Paga (M): *</label>
+              <input type="number" [(ngModel)]="nuevaPromo.cantidadPagada" name="cantidadPagada" class="form-control" min="1" placeholder="Ej. 1 para 2x1" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Fecha de Inicio: *</label>
+              <input type="date" [(ngModel)]="nuevaPromo.fechaInicio" name="fechaInicio" class="form-control" required />
+            </div>
+            <div class="form-group flex-1">
+              <label>Fecha de Vencimiento de la Oferta: *</label>
+              <input type="date" [(ngModel)]="nuevaPromo.fechaFin" name="fechaFin" class="form-control" required />
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="nuevaPromo.aplicaPorVencimiento" name="aplicaPorVencimiento" />
+              <span>Aplica prioritariamente a lotes próximos a vencer (Estrategia FEFO)</span>
+            </label>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="cerrarModalNuevaPromo()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="guardandoPromo">
+              <span *ngIf="!guardandoPromo">Publicar Promoción para Clientes</span>
+              <span *ngIf="guardandoPromo">Guardando...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>

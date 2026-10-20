@@ -1,0 +1,197 @@
+export type EstadoSesionCaja = 'ABIERTA' | 'CERRADA' | 'ARQUEADA';
+export type TipoDocumento = 'DNI' | 'RUC' | 'CE' | 'PASAPORTE' | 'SIN_DOCUMENTO';
+export type TipoComprobante = 'BOLETA' | 'FACTURA' | 'NOTA_VENTA';
+export type MedioPago = 'EFECTIVO' | 'TARJETA' | 'YAPE_PLIN';
+export type EstadoVenta = 'COMPLETADA' | 'ANULADA';
+
+export interface Caja {
+  id: number;
+  sucursalId: number;
+  nombre: string;
+  codigo: string;
+  activo: boolean;
+}
+
+export interface SesionCaja {
+  id: number;
+  cajaId: number;
+  nombreCaja: string;
+  codigoCaja: string;
+  usuarioId: number;
+  sucursalId: number;
+  montoApertura: number;
+  montoCierreSistema?: number;
+  montoCierreReal?: number;
+  diferencia?: number;
+  estado: EstadoSesionCaja;
+  fechaApertura: string;
+  fechaCierre?: string;
+  observaciones?: string;
+  totalVentasEfectivo?: number;
+  totalVentasTarjeta?: number;
+  totalVentasBilletera?: number;
+  totalVentasGeneral?: number;
+  cantidadTransacciones?: number;
+}
+
+export interface AperturaCajaRequest {
+  cajaId: number;
+  sucursalId?: number;
+  montoApertura: number;
+  observaciones?: string;
+}
+
+export interface CierreCajaRequest {
+  montoCierreReal: number;
+  observaciones?: string;
+}
+
+export interface Cliente {
+  id: number;
+  tipoDocumento: TipoDocumento;
+  numeroDocumento: string;
+  nombresORazonSocial: string;
+  direccion?: string;
+  telefono?: string;
+  email?: string;
+  activo: boolean;
+}
+
+export interface CrearClienteRequest {
+  tipoDocumento: TipoDocumento;
+  numeroDocumento: string;
+  nombresORazonSocial: string;
+  direccion?: string;
+  telefono?: string;
+  email?: string;
+}
+
+export interface Promocion {
+  id: number;
+  nombre: string;
+  tipoAlcance: 'POR_PRODUCTO' | 'POR_CATEGORIA' | 'POR_MONTO_TOTAL' | 'POR_VENCIMIENTO_PROXIMO';
+  tipoDescuento: 'PORCENTAJE' | 'MONTO_FIJO' | 'N_X_M';
+  valorDescuento?: number;
+  cantidadCondicion?: number;
+  cantidadPagada?: number;
+  fechaInicio: string;
+  fechaFin: string;
+  aplicaPorVencimiento: boolean;
+  activo: boolean;
+}
+
+export interface CrearPromocionForm {
+  nombre: string;
+  tipoAlcance: 'POR_PRODUCTO' | 'POR_CATEGORIA' | 'POR_MONTO_TOTAL' | 'POR_VENCIMIENTO_PROXIMO';
+  tipoDescuento: 'PORCENTAJE' | 'MONTO_FIJO' | 'N_X_M';
+  valorDescuento?: number;
+  cantidadCondicion?: number;
+  cantidadPagada?: number;
+  fechaInicio: string;
+  fechaFin: string;
+  aplicaPorVencimiento: boolean;
+}
+
+export interface ValidarCuponRequest {
+  codigo: string;
+  montoVenta: number;
+  productosIds?: number[];
+}
+
+export interface ValidarCuponResponse {
+  valido: boolean;
+  cuponId?: number;
+  codigo?: string;
+  mensaje: string;
+  porcentajeDescuento?: number;
+  montoDescuentoCalculado?: number;
+  nuevoTotal?: number;
+}
+
+export interface ItemVentaRequest {
+  productoId: number;
+  loteId?: number;
+  numeroLote?: string;
+  cantidad: number;
+  precioUnitario: number;
+  costoUnitario?: number;
+  descuento?: number;
+}
+
+export interface RegistrarVentaRequest {
+  sucursalId?: number;
+  sesionCajaId?: number;
+  clienteId?: number;
+  clienteTipoDocumento?: string;
+  clienteNumeroDocumento?: string;
+  clienteNombre?: string;
+  clienteDireccion?: string;
+  tipoComprobante: TipoComprobante;
+  medioPago: MedioPago;
+  montoRecibido?: number;
+  promocionId?: number;
+  cuponId?: number;
+  cuponCodigo?: string;
+  descuentoManual?: number;
+  observaciones?: string;
+  items: ItemVentaRequest[];
+}
+
+export interface DetalleVenta {
+  id: number;
+  productoId: number;
+  nombreProducto?: string;
+  loteId?: number;
+  numeroLote?: string;
+  cantidad: number;
+  precioUnitario: number;
+  costoUnitario: number;
+  descuentoLinea: number;
+  subtotalLinea: number;
+}
+
+export interface Venta {
+  id: number;
+  sucursalId: number;
+  sesionCajaId: number;
+  cliente?: Cliente;
+  usuarioVendedorId: number;
+  nombreVendedor?: string;
+  tipoComprobante: TipoComprobante;
+  serieComprobante: string;
+  numeroComprobante: string;
+  subtotal: number;
+  montoDescuento: number;
+  igv: number;
+  total: number;
+  medioPago: MedioPago;
+  montoRecibido?: number;
+  vuelto?: number;
+  promocionId?: number;
+  promocionNombre?: string;
+  cuponId?: number;
+  cuponCodigo?: string;
+  estado: EstadoVenta;
+  fechaHora: string;
+  observaciones?: string;
+  detalles: DetalleVenta[];
+}
+
+export interface VentaEspera {
+  id: number;
+  usuarioId: number;
+  sucursalId: number;
+  codigoEspera: string;
+  nombreReferencia: string;
+  datosJson: string;
+  fechaHora: string;
+}
+
+export interface GuardarVentaEsperaRequest {
+  nombreReferencia?: string;
+  datosJson: string;
+}
+
+export interface AnularVentaRequest {
+  motivo: string;
+}

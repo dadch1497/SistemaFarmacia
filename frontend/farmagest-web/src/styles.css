@@ -1,0 +1,159 @@
+/* FarmaGest — Sistema de Gestión Farmacéutica */
+:root {
+  --font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Paleta FarmaGest */
+  --color-verde-oscuro: #0B3D38;
+  --color-verde-medio: #2A9D8F;
+  --color-verde-accion: #0F766E;
+  --color-verde-claro: #A8D8D1;
+  --color-fondo-app: #F3F6F5;
+  --color-tarjeta-bg: #FFFFFF;
+  --color-borde-tarjeta: #DCE6E3;
+  --color-texto-principal: #12302C;
+  --color-texto-secundario: #4F6B66;
+
+  /* Alertas y estados */
+  --alerta-stock-bg: #FFF4E5;
+  --alerta-stock-text: #8A3B00;
+  --alerta-vencimiento-bg: #FDECEC;
+  --alerta-vencimiento-text: #9B1C1C;
+  --etiqueta-receta-bg: #EFE8FA;
+  --etiqueta-receta-text: #4B2E83;
+
+  /* Dimensiones mínimas de accesibilidad táctil */
+  --min-touch-height: 44px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-fondo-app);
+  color: var(--color-texto-principal);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Clases utilitarias estándar FarmaGest */
+.tarjeta {
+  background-color: var(--color-tarjeta-bg);
+  border: 1px solid var(--color-borde-tarjeta);
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(11, 61, 56, 0.04);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--min-touch-height);
+  padding: 0 1.25rem;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-primario {
+  background-color: var(--color-verde-oscuro);
+  color: #FFFFFF;
+}
+
+.btn-primario:hover:not(:disabled) {
+  background-color: #082d29;
+}
+
+.btn-accion {
+  background-color: var(--color-verde-accion);
+  color: #FFFFFF;
+  border-color: #0F766E;
+}
+
+.btn-accion:hover:not(:disabled) {
+  background-color: #0b5953;
+}
+
+.btn-secundario {
+  background-color: #FFFFFF;
+  color: var(--color-verde-oscuro);
+  border-color: var(--color-borde-tarjeta);
+}
+
+.btn-secundario:hover:not(:disabled) {
+  background-color: var(--color-fondo-app);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.campo-control {
+  min-height: var(--min-touch-height);
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--color-borde-tarjeta);
+  border-radius: 10px;
+  background-color: #FFFFFF;
+  color: var(--color-texto-principal);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.campo-control:focus {
+  outline: none;
+  border-color: var(--color-verde-medio);
+  box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.2);
+}
+
+.label-campo {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+  margin-bottom: 0.35rem;
+}
+
+/* Badges / Chips */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border-radius: 6px;
+  line-height: 1.2;
+}
+
+.chip-stock-bajo {
+  background-color: var(--alerta-stock-bg);
+  color: var(--alerta-stock-text);
+}
+
+.chip-vencimiento {
+  background-color: var(--alerta-vencimiento-bg);
+  color: var(--alerta-vencimiento-text);
+}
+
+.chip-receta {
+  background-color: var(--etiqueta-receta-bg);
+  color: var(--etiqueta-receta-text);
+}
+
+.chip-promo {
+  background-color: var(--color-verde-claro);
+  color: var(--color-verde-oscuro);
+}

@@ -1,0 +1,130 @@
+<div class="login-wrapper">
+  <div class="login-container">
+    
+    <!-- Tarjeta Principal de Login -->
+    <div class="tarjeta login-card">
+      
+      <!-- Encabezado con Identidad de Marca -->
+      <div class="brand-header">
+        <div class="brand-icon">
+          <!-- SVG Cruz Farmacéutica -->
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 4v16m-8-8h16"/>
+          </svg>
+        </div>
+        <h1 class="brand-title">FarmaGest</h1>
+        <p class="brand-subtitle">Botica Farma Ochenta · Ate, Lima</p>
+      </div>
+
+      <!-- Alerta de Error -->
+      <div *ngIf="errorMensaje" class="alerta-error" role="alert">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMensaje }}</span>
+      </div>
+
+      <!-- Formulario de Acceso -->
+      <form (ngSubmit)="onSubmit()" class="login-form">
+        <div class="form-group">
+          <label for="username" class="label-campo">Usuario</label>
+          <div class="input-with-icon">
+            <input 
+              id="username"
+              name="username"
+              type="text" 
+              class="campo-control" 
+              placeholder="Ingresa tu usuario"
+              [(ngModel)]="username"
+              required
+              autocomplete="username"
+            />
+            <span class="icon-suffix">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="label-campo">Contraseña</label>
+          <div class="input-with-icon">
+            <input 
+              id="password"
+              name="password"
+              type="password" 
+              class="campo-control" 
+              placeholder="Ingresa tu contraseña"
+              [(ngModel)]="password"
+              required
+              autocomplete="current-password"
+            />
+            <span class="icon-suffix">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          class="btn btn-primario btn-block" 
+          [disabled]="cargando"
+        >
+          <span *ngIf="!cargando">Iniciar Sesión</span>
+          <span *ngIf="cargando">Verificando...</span>
+        </button>
+      </form>
+
+      <!-- Accesos Rápidos de Demostración para Pruebas de Roles -->
+      <div class="demo-section">
+        <span class="demo-title">Acceso rápido para evaluación de roles:</span>
+        <div class="demo-buttons">
+          <button 
+            type="button" 
+            class="demo-btn" 
+            (click)="cargarCredencialDemo('admin', 'AdminSecure2026!')"
+          >
+            <strong>Admin</strong>
+            <small>Acceso total</small>
+          </button>
+
+          <button 
+            type="button" 
+            class="demo-btn" 
+            (click)="cargarCredencialDemo('vendedor1', 'Vendedor1Secure2026!')"
+          >
+            <strong>Vendedor 1</strong>
+            <small>POS / Mostrador</small>
+          </button>
+
+          <button 
+            type="button" 
+            class="demo-btn" 
+            (click)="cargarCredencialDemo('almacenero', 'AlmaceneroSecure2026!')"
+          >
+            <strong>Almacenero</strong>
+            <small>Inventario / Kardex</small>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Pie de Seguridad -->
+    <div class="login-footer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <span>Conexión cifrada con JWT & Spring Security · FarmaGest v1.0</span>
+    </div>
+
+  </div>
+</div>

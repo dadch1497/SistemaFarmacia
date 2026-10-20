@@ -1,0 +1,164 @@
+<div class="reportes-page">
+  
+  <!-- Encabezado con Botón de Exportación SUNAT -->
+  <div class="reportes-header">
+    <div class="header-titles">
+      <div class="header-badge">
+        <span class="pulse-dot"></span>
+        REGISTRO TRIBUTARIO DE VENTAS E INGRESOS (SUNAT)
+      </div>
+      <h2>Reporte de Ventas y Comprobantes</h2>
+      <p class="subtitle">Consolidado oficial de Facturas, Boletas, RUC, series, base imponible e IGV (18%)</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="cargarVentas()">
+        ↻ Actualizar
+      </button>
+      <button class="btn btn-sunat" (click)="descargarCsvSunat()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Descargar CSV para SUNAT
+      </button>
+    </div>
+  </div>
+
+  <!-- Tarjetas Resumen de Impuestos y Facturación -->
+  <div class="kpi-grid-sunat">
+    <div class="kpi-card">
+      <div class="kpi-label">TOTAL OPERACIONES GRAVADAS</div>
+      <div class="kpi-value text-dark">S/ {{ totalOperacionesGravadas() | number:'1.2-2' }}</div>
+      <div class="kpi-sub">Base imponible antes de IGV</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-label">I.G.V. RECAUDADO (18%)</div>
+      <div class="kpi-value text-teal">S/ {{ totalIgv() | number:'1.2-2' }}</div>
+      <div class="kpi-sub">Crédito / Débito fiscal SUNAT</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-label">DESCUENTOS OTORGADOS</div>
+      <div class="kpi-value text-warning">- S/ {{ totalDescuentos() | number:'1.2-2' }}</div>
+      <div class="kpi-sub">Cupones y promociones de línea</div>
+    </div>
+
+    <div class="kpi-card destaque">
+      <div class="kpi-label">IMPORTE TOTAL FACTURADO</div>
+      <div class="kpi-value text-primary">S/ {{ totalImporteFacturado() | number:'1.2-2' }}</div>
+      <div class="kpi-sub">{{ ventasFiltradas().length }} comprobante(s) emitido(s)</div>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros y Búsqueda -->
+  <div class="tarjeta filtro-bar">
+    <div class="filtro-group">
+      <label>Comprobante:</label>
+      <select [(ngModel)]="filtroComprobante" class="form-select">
+        <option value="TODOS">Todos (Boletas y Facturas)</option>
+        <option value="BOLETA">Solo Boletas (B001)</option>
+        <option value="FACTURA">Solo Facturas (F001 con RUC)</option>
+        <option value="NOTA_VENTA">Notas de Venta</option>
+      </select>
+    </div>
+
+    <div class="filtro-group">
+      <label>Desde:</label>
+      <input type="date" [(ngModel)]="filtroFechaDesde" class="form-input" />
+    </div>
+
+    <div class="filtro-group">
+      <label>Hasta:</label>
+      <input type="date" [(ngModel)]="filtroFechaHasta" class="form-input" />
+    </div>
+
+    <div class="filtro-group search-group">
+      <label>Buscar cliente o comprobante:</label>
+      <input 
+        type="text" 
+        [(ngModel)]="busquedaTexto" 
+        placeholder="RUC, DNI, Serie (B001), Nombre..."
+        class="form-input search-input" />
+    </div>
+  </div>
+
+  <!-- Tabla Detallada con Información Tributaria SUNAT -->
+  <div class="tarjeta tabla-container">
+    <div *ngIf="cargando()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando información de ventas y comprobantes...</p>
+    </div>
+
+    <div *ngIf="errorMensaje()" class="alert alert-danger">
+      {{ errorMensaje() }}
+    </div>
+
+    <div *ngIf="!cargando() && !errorMensaje()" class="table-responsive">
+      <table class="tabla-farmagest">
+        <thead>
+          <tr>
+            <th>Fecha / Hora</th>
+            <th>Tipo</th>
+            <th>Comprobante</th>
+            <th>Doc. Cliente (RUC / DNI)</th>
+            <th>Razón Social / Cliente</th>
+            <th class="text-right">Base Imponible</th>
+            <th class="text-right">IGV (18%)</th>
+            <th class="text-right">Total Facturado</th>
+            <th>Pago</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of ventasFiltradas()">
+            <td class="text-sm text-muted">
+              {{ v.fechaHora | date:'dd/MM/yyyy HH:mm' }}
+            </td>
+            <td>
+              <span class="badge" [class.badge-factura]="v.tipoComprobante === 'FACTURA'" [class.badge-boleta]="v.tipoComprobante === 'BOLETA'">
+                {{ v.tipoComprobante }}
+              </span>
+            </td>
+            <td>
+              <strong class="comprobante-tag">{{ v.serieComprobante }}-{{ v.numeroComprobante }}</strong>
+            </td>
+            <td>
+              <span class="tipo-doc-badge">{{ v.cliente?.tipoDocumento || 'DNI' }}</span>
+              <code>{{ v.cliente?.numeroDocumento || '00000000' }}</code>
+            </td>
+            <td>
+              <div class="cliente-nombre">{{ v.cliente?.nombresORazonSocial || 'CLIENTE GENÉRICO' }}</div>
+            </td>
+            <td class="text-right font-mono font-bold">
+              S/ {{ v.subtotal | number:'1.2-2' }}
+            </td>
+            <td class="text-right font-mono text-teal font-bold">
+              S/ {{ v.igv | number:'1.2-2' }}
+            </td>
+            <td class="text-right font-mono font-bold text-dark">
+              S/ {{ v.total | number:'1.2-2' }}
+            </td>
+            <td>
+              <span class="chip-pago">{{ v.medioPago }}</span>
+            </td>
+            <td>
+              <span class="chip-estado" [class.estado-completado]="v.estado === 'COMPLETADA'" [class.estado-anulado]="v.estado === 'ANULADA'">
+                {{ v.estado }}
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="!ventasFiltradas().length">
+            <td colspan="10" class="text-center text-muted p-4">
+              No se encontraron ventas registradas con los filtros seleccionados.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

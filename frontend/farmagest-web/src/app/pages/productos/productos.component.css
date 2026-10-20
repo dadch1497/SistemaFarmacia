@@ -1,0 +1,490 @@
+.productos-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1200px;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-verde-oscuro);
+  margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+  font-size: 0.95rem;
+  color: var(--color-texto-secundario);
+}
+
+/* Alertas */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.alert-success {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  border-left: 4px solid #2E7D32;
+}
+
+.alert-danger {
+  background-color: #FFEBEE;
+  color: #C62828;
+  border-left: 4px solid #C62828;
+}
+
+/* Filtros */
+.filtros-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.filtros-grid {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 280px;
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-texto-secundario);
+  pointer-events: none;
+}
+
+.search-input {
+  padding-left: 2.75rem;
+  flex: 1;
+}
+
+.btn-buscar {
+  min-width: 100px;
+}
+
+.receta-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 220px;
+}
+
+.filtro-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+  text-transform: uppercase;
+}
+
+.select-filtro {
+  cursor: pointer;
+}
+
+/* Píldoras de Categoría */
+.categorias-scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.categoria-pill {
+  padding: 0.5rem 1rem;
+  background-color: #F0F4F3;
+  border: 1px solid #D1DDD9;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-texto-principal);
+  white-space: nowrap;
+  cursor: pointer;
+  min-height: 38px;
+  transition: all 0.2s ease;
+}
+
+.categoria-pill:hover {
+  background-color: #E2ECE9;
+}
+
+.categoria-pill.active {
+  background-color: var(--color-verde-oscuro);
+  color: #FFFFFF;
+  border-color: var(--color-verde-oscuro);
+}
+
+/* Tabla */
+.tabla-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tabla-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background-color: #FAFBFB;
+  border-bottom: 1px solid var(--color-borde-tarjeta);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.total-badge {
+  font-size: 0.9rem;
+  color: var(--color-texto-secundario);
+}
+
+.role-badge-vendor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--color-verde-oscuro);
+  font-weight: 600;
+  background-color: #E8F4F1;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+}
+
+.code-badge {
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+  background-color: #F1F4F3;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.prod-nombre {
+  font-weight: 600;
+  color: var(--color-texto-principal);
+  font-size: 0.95rem;
+}
+
+.prod-subinfo {
+  font-size: 0.8rem;
+  color: var(--color-texto-secundario);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.subinfo-activo {
+  font-style: italic;
+  color: var(--color-verde-accion);
+}
+
+.subinfo-bullet {
+  color: #CBD5E1;
+}
+
+.chip-categoria {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background-color: #F0F4F8;
+  color: #2D3748;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+/* Badges */
+.badge-receta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #D32F2F;
+  background-color: #FFEBEE;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid #FFCDD2;
+}
+
+.badge-libre {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2E7D32;
+  background-color: #E8F5E9;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+}
+
+.precio-venta {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-verde-oscuro);
+}
+
+.costo-val {
+  font-size: 0.8rem;
+  color: var(--color-texto-secundario);
+}
+
+.margen-val {
+  margin-top: 0.15rem;
+}
+
+.badge-margen {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-verde-accion);
+  background-color: #E8F4F1;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.badge-estado {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.badge-activo {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+}
+
+.badge-inactivo {
+  background-color: #EEEEEE;
+  color: #757575;
+}
+
+.row-inactive {
+  opacity: 0.6;
+}
+
+/* Acciones */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.btn-icon {
+  background: none;
+  border: 1px solid #D1DDD9;
+  border-radius: 6px;
+  padding: 0.4rem;
+  cursor: pointer;
+  color: var(--color-texto-secundario);
+  transition: all 0.2s ease;
+  min-height: 36px;
+  min-width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background-color: #F0F4F3;
+  color: var(--color-verde-oscuro);
+  border-color: var(--color-verde-oscuro);
+}
+
+.icon {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon-badge {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+/* Paginación */
+.pagination-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid var(--color-borde-tarjeta);
+  background-color: #FAFBFB;
+}
+
+.page-indicator {
+  font-size: 0.85rem;
+  color: var(--color-texto-secundario);
+}
+
+.pagination-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.85rem;
+  min-height: 36px;
+  font-size: 0.85rem;
+}
+
+/* Modales */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(11, 61, 56, 0.4);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-box {
+  background: #FFFFFF;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-box-lg {
+  max-width: 780px;
+}
+
+.modal-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--color-borde-tarjeta);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-verde-oscuro);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  max-height: 75vh;
+}
+
+.modal-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--color-borde-tarjeta);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background-color: #FAFBFB;
+}
+
+.modal-prod-info {
+  background-color: #F8FAF9;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--color-verde-accion);
+  font-size: 0.9rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.checkbox-group {
+  grid-column: span 2;
+  margin-top: 0.5rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-texto-principal);
+}
+
+.text-accent {
+  color: var(--color-verde-accion);
+}
+
+.max-h-64 {
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+.py-8 { padding-top: 2rem; padding-bottom: 2rem; }

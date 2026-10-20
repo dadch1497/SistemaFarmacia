@@ -1,0 +1,456 @@
+.usuarios-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Header */
+.usuarios-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  background-color: #FFFFFF;
+  padding: 1.5rem 1.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-borde-tarjeta);
+}
+
+.header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-verde-oscuro);
+  background-color: var(--color-verde-claro);
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-verde-accion);
+  border-radius: 50%;
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.usuarios-header h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-verde-oscuro);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: var(--color-texto-secundario);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* KPIs de Personal */
+.kpi-grid-usuarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.kpi-card {
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-borde-tarjeta);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-verde-accion);
+  box-shadow: 0 4px 14px rgba(11, 61, 56, 0.08);
+}
+
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.vendedor-icon { background-color: #E6FFFA; }
+.almacenero-icon { background-color: #EBF8FF; }
+.inactivos-icon { background-color: #FFF5F5; }
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.kpi-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-texto-secundario);
+  letter-spacing: 0.05em;
+}
+
+.kpi-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.kpi-sub {
+  font-size: 0.75rem;
+  color: var(--color-texto-secundario);
+}
+
+.text-teal { color: #0F766E; }
+.text-primary { color: #0B3D38; }
+.text-danger { color: #C53030; }
+
+/* Filtros */
+.filtro-bar {
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-borde-tarjeta);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.filtro-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.filtro-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-texto-secundario);
+}
+
+.form-select, .form-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #D1DDD9;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background-color: #FFFFFF;
+  font-family: inherit;
+}
+
+.search-group {
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-input {
+  width: 100%;
+}
+
+/* Tabla */
+.tabla-container {
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-borde-tarjeta);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.tabla-farmagest {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.tabla-farmagest th {
+  background-color: #F8FAF9;
+  color: var(--color-texto-secundario);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  padding: 0.85rem 1rem;
+  border-bottom: 2px solid #E5ECE9;
+  text-align: left;
+}
+
+.tabla-farmagest td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #EDF2F0;
+  vertical-align: middle;
+}
+
+.fila-bloqueada {
+  background-color: #FFFBFB;
+  opacity: 0.8;
+}
+
+.usuario-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.user-avatar-mini {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-verde-oscuro);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.badge-admin {
+  background-color: #F3E8FF;
+  color: #6B21A8;
+}
+
+.badge-vendedor {
+  background-color: #E0F2FE;
+  color: #0369A1;
+}
+
+.badge-almacenero {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.chip-permiso {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.chip-permiso.autorizado {
+  background-color: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #BBF7D0;
+}
+
+.chip-permiso.bloqueado {
+  background-color: #FEE2E2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.dot.green { background-color: #15803D; }
+.dot.red { background-color: #B91C1C; }
+
+/* Botones de acción */
+.btn-toggle-permiso {
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-quitar-permiso {
+  background-color: #FFF5F5;
+  color: #C53030;
+  border-color: #FEB2B2;
+}
+
+.btn-quitar-permiso:hover {
+  background-color: #FEB2B2;
+  color: #9B2C2C;
+}
+
+.btn-dar-permiso {
+  background-color: #F0FDF4;
+  color: #15803D;
+  border-color: #86EFAC;
+}
+
+.btn-dar-permiso:hover {
+  background-color: #86EFAC;
+  color: #14532D;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 540px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: modalEnter 0.2s ease-out;
+}
+
+@keyframes modalEnter {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #EDF2F0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #F8FAF9;
+}
+
+.modal-header-icon {
+  font-size: 1.5rem;
+}
+
+.modal-header h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-verde-oscuro);
+}
+
+.btn-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.form-usuario {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.flex-1 { flex: 1; }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-texto-principal);
+}
+
+.form-control {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #D1DDD9;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-verde-accion);
+}
+
+.select-rol {
+  background-color: #F0FDF4;
+  border-color: #86EFAC;
+  font-weight: 600;
+}
+
+.modal-footer {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--color-texto-secundario);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #E5ECE9;
+  border-top-color: var(--color-verde-accion);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,607 @@
+<div class="pos-container">
+
+  <!-- ========================================================================= -->
+  <!-- BARRA SUPERIOR: ESTADO DEL TURNO Y ACCIONES RÁPIDAS -->
+  <!-- ========================================================================= -->
+  <header class="pos-header">
+    <div class="pos-header-left">
+      <div class="brand-badge">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+        </svg>
+        <span>FarmaGest POS — Botica Farma Ochenta</span>
+      </div>
+
+      <!-- Estado de Caja -->
+      <div *ngIf="cajaActiva()" class="caja-status-chip activa">
+        <span class="status-dot green"></span>
+        <span><strong>{{ cajaActiva()?.nombreCaja }}</strong> (Turno Abierto)</span>
+      </div>
+
+      <div *ngIf="!cajaActiva()" class="caja-status-chip inactiva">
+        <span class="status-dot red"></span>
+        <span>Caja Cerrada</span>
+      </div>
+    </div>
+
+    <div class="pos-header-right">
+      <button *ngIf="!cajaActiva()" class="btn btn-primary btn-sm" (click)="abrirModalApertura()">
+        <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+        </svg>
+        Abrir Turno de Caja
+      </button>
+
+      <button *ngIf="cajaActiva()" class="btn btn-outline btn-sm" (click)="abrirModalCierre()">
+        <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+        Cierre de Turno / Arqueo
+      </button>
+
+      <button class="btn btn-outline btn-sm" (click)="abrirModalVentasEspera()">
+        <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        En Espera ({{ ventasEspera().length }})
+      </button>
+
+      <button *ngIf="carrito().length > 0" class="btn btn-outline-danger btn-sm" (click)="limpiarCarrito()">
+        Vaciar Carrito
+      </button>
+    </div>
+  </header>
+
+  <!-- Mensajes de Notificación -->
+  <div *ngIf="mensajeExito()" class="alert alert-success mt-1">
+    <span>{{ mensajeExito() }}</span>
+  </div>
+  <div *ngIf="mensajeError()" class="alert alert-danger mt-1">
+    <span>{{ mensajeError() }}</span>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- CUERPO PRINCIPAL DEL POS: CATÁLOGO Y TICKET -->
+  <!-- ========================================================================= -->
+  <div class="pos-workspace">
+
+    <!-- COLUMNA IZQUIERDA: BUSCADOR Y CATÁLOGO DE MEDICAMENTOS -->
+    <div class="catalogo-pane">
+      <div class="search-bar-pos">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input 
+          type="text" 
+          [(ngModel)]="busquedaProducto" 
+          placeholder="Escanear código de barras o buscar medicamento (ej. Paracetamol, Amoxicilina)..."
+          class="input-search-pos" 
+          autofocus/>
+      </div>
+
+      <!-- Grid de Productos -->
+      <div class="productos-grid">
+        <div *ngFor="let prod of productosFiltrados()" 
+             class="producto-card" 
+             [class.sin-stock]="obtenerStockProducto(prod.id) <= 0">
+          
+          <div class="prod-card-top">
+            <span class="lab-pill">{{ prod.laboratorio?.nombre || prod.laboratorio }}</span>
+            <span *ngIf="prod.requiereReceta" class="receta-pill" title="Medicamento bajo receta médica">
+              Rx Receta
+            </span>
+          </div>
+
+          <div class="prod-card-nombre">{{ prod.nombre }}</div>
+          <div class="prod-card-desc">{{ prod.principioActivo }} · {{ prod.presentacion }}</div>
+
+          <!-- Opciones de Precios según Fracción (Unidad, Tableta, Caja) -->
+          <div class="prod-fracciones-box">
+            <!-- Botón 1: Unidad -->
+            <button type="button" 
+                    class="btn-fraccion"
+                    [disabled]="obtenerStockProducto(prod.id) < 1"
+                    (click)="agregarAlCarrito(prod, 'UNIDAD')">
+              <span class="frac-label">Unidad:</span>
+              <span class="frac-precio">S/ {{ obtenerPrecioUnidad(prod) | number:'1.2-2' }}</span>
+            </button>
+
+            <!-- Botón 2: Tableta / Blíster (si aplica) -->
+            <button *ngIf="esMedicamentoOral(prod)" 
+                    type="button" 
+                    class="btn-fraccion"
+                    [disabled]="obtenerStockProducto(prod.id) < 10"
+                    (click)="agregarAlCarrito(prod, 'TABLETA')">
+              <span class="frac-label">Tableta (x10):</span>
+              <span class="frac-precio">S/ {{ obtenerPrecioTableta(prod) | number:'1.2-2' }}</span>
+            </button>
+
+            <!-- Botón 3: Caja (si aplica) -->
+            <button *ngIf="esMedicamentoOral(prod)" 
+                    type="button" 
+                    class="btn-fraccion btn-caja"
+                    [disabled]="obtenerStockProducto(prod.id) < 100"
+                    (click)="agregarAlCarrito(prod, 'CAJA')">
+              <span class="frac-label">Caja (x100):</span>
+              <span class="frac-precio">S/ {{ obtenerPrecioCaja(prod) | number:'1.2-2' }}</span>
+            </button>
+          </div>
+
+          <div class="prod-card-bottom">
+            <div class="stock-pill" 
+                 [class.stock-ok]="obtenerStockProducto(prod.id) > 10"
+                 [class.stock-warn]="obtenerStockProducto(prod.id) > 0 && obtenerStockProducto(prod.id) <= 10"
+                 [class.stock-zero]="obtenerStockProducto(prod.id) <= 0">
+              Stock: {{ obtenerStockProducto(prod.id) }} u.
+            </div>
+            <button type="button" 
+                    class="btn-add-quick" 
+                    [disabled]="obtenerStockProducto(prod.id) <= 0"
+                    (click)="agregarAlCarrito(prod, 'UNIDAD')">
+              + Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: TICKET DE VENTA Y CAJA -->
+    <div class="ticket-pane">
+
+      <!-- Cabecera del Ticket: Comprobante y Cliente -->
+      <div class="ticket-header-box">
+        <div class="comprobante-toggle">
+          <button 
+            type="button"
+            class="toggle-btn" 
+            [class.active]="tipoComprobante === 'BOLETA'"
+            (click)="tipoComprobante = 'BOLETA'">
+            BOLETA (B001)
+          </button>
+          <button 
+            type="button"
+            class="toggle-btn" 
+            [class.active]="tipoComprobante === 'FACTURA'"
+            (click)="tipoComprobante = 'FACTURA'">
+            FACTURA (F001)
+          </button>
+        </div>
+
+        <!-- Sección de Cliente -->
+        <div class="cliente-selector">
+          <div *ngIf="clienteSeleccionado()" class="cliente-info">
+            <div>
+              <span class="tipo-doc-badge">{{ clienteSeleccionado()?.tipoDocumento }}</span>
+              <strong>{{ clienteSeleccionado()?.numeroDocumento }}</strong> - {{ clienteSeleccionado()?.nombresORazonSocial }}
+            </div>
+            <button class="btn-link" (click)="clienteSeleccionado.set(null)">Cambiar</button>
+          </div>
+
+          <div *ngIf="!clienteSeleccionado()" class="cliente-search-row">
+            <input 
+              type="text" 
+              [(ngModel)]="docBusqueda" 
+              (keyup.enter)="buscarCliente()"
+              placeholder="DNI o RUC del cliente..."
+              class="input-doc"/>
+            <button class="btn btn-outline btn-sm" (click)="buscarCliente()">Buscar</button>
+            <button class="btn btn-link btn-sm" (click)="seleccionarClienteGenerico()">Varios</button>
+          </div>
+        </div>
+
+        <!-- Alerta Receta Médica -->
+        <div *ngIf="carritoTieneMedicamentosConReceta()" class="alerta-receta-ticket">
+          <svg class="icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <span><strong>Exige Receta Médica:</strong> Validar prescripción física firmada por médico colegiado.</span>
+        </div>
+      </div>
+
+      <!-- Lista de Ítems en Carrito -->
+      <div class="ticket-items-container">
+        <div *ngIf="carrito().length === 0" class="carrito-vacio">
+          <svg class="icon-large" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <p>El carrito está vacío</p>
+          <small class="text-muted">Seleccione medicamentos del catálogo a la izquierda para iniciar la venta</small>
+        </div>
+
+        <div *ngFor="let it of carrito(); let i = index" class="ticket-item-row">
+          <div class="item-desc-col">
+            <div class="item-name">{{ it.producto.nombre }}</div>
+            <div class="item-sub">
+              <!-- Selector o insignia de Fracción -->
+              <span class="fraccion-tag" [class.caja]="it.fraccion === 'CAJA'" [class.tab]="it.fraccion === 'TABLETA'">
+                {{ it.fraccion === 'CAJA' ? '📦 CAJA (x100)' : (it.fraccion === 'TABLETA' ? '💊 TABLETA (x10)' : '🔹 UNIDAD') }}
+              </span>
+              · S/ {{ it.precioUnitario | number:'1.2-2' }} c/u
+            </div>
+          </div>
+
+          <div class="item-qty-col">
+            <button class="qty-btn" (click)="modificarCantidad(i, -1)">-</button>
+            <span class="qty-num">{{ it.cantidad }}</span>
+            <button class="qty-btn" (click)="modificarCantidad(i, 1)">+</button>
+          </div>
+
+          <div class="item-subtotal-col">
+            S/ {{ it.subtotal | number:'1.2-2' }}
+          </div>
+
+          <button class="btn-del" (click)="eliminarDelCarrito(i)">&times;</button>
+        </div>
+      </div>
+
+      <!-- Sección de Descuentos y Cupones -->
+      <div class="descuentos-box">
+        <div class="cupon-row">
+          <input 
+            type="text" 
+            [(ngModel)]="cuponCodigo" 
+            placeholder="Código de cupón (ej. BIENVENIDA2026)..."
+            class="input-cupon"/>
+          <button *ngIf="!cuponAplicado()" class="btn btn-outline btn-sm" (click)="aplicarCupon()">Aplicar</button>
+          <button *ngIf="cuponAplicado()" class="btn btn-outline-danger btn-sm" (click)="quitarCupon()">Quitar</button>
+        </div>
+
+        <div *ngIf="cuponAplicado()" class="cupon-badge-applied">
+          <span>Cupón <strong>{{ cuponAplicado()?.codigo }}</strong>: Descuento S/ {{ cuponAplicado()?.montoDescuentoCalculado | number:'1.2-2' }}</span>
+        </div>
+
+        <!-- Descuento manual del vendedor (hasta 5%) -->
+        <div *ngIf="authService.isVendedor() || authService.isAdmin()" class="desc-manual-row">
+          <label>Descuento manual vendedor (máx. 5%):</label>
+          <select [(ngModel)]="descuentoManualPct" (change)="recalcularTotales()" class="select-pct">
+            <option [value]="0">0%</option>
+            <option [value]="2">2%</option>
+            <option [value]="3">3%</option>
+            <option [value]="5">5% (Límite vendedor)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Resumen Financiero y Medios de Pago -->
+      <div class="ticket-footer-box">
+        <div class="totales-resumen">
+          <div class="fila-resumen">
+            <span>Subtotal (Base Imponible):</span>
+            <span>S/ {{ calcularBaseImponible() | number:'1.2-2' }}</span>
+          </div>
+          <div *ngIf="calcularTotalDescuento() > 0" class="fila-resumen text-danger">
+            <span>Descuento aplicado:</span>
+            <span>- S/ {{ calcularTotalDescuento() | number:'1.2-2' }}</span>
+          </div>
+          <div class="fila-resumen">
+            <span>IGV (18%):</span>
+            <span>S/ {{ calcularIgv() | number:'1.2-2' }}</span>
+          </div>
+          <div class="fila-resumen total-final">
+            <span>TOTAL A PAGAR:</span>
+            <span class="monto-total">S/ {{ calcularTotalPagar() | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <!-- Selector de Medio de Pago -->
+        <div class="medios-pago-selector">
+          <button 
+            type="button" 
+            class="medio-btn" 
+            [class.active]="medioPago === 'EFECTIVO'"
+            (click)="medioPago = 'EFECTIVO'; recalcularTotales()">
+            💵 Efectivo
+          </button>
+          <button 
+            type="button" 
+            class="medio-btn" 
+            [class.active]="medioPago === 'TARJETA'"
+            (click)="medioPago = 'TARJETA'">
+            💳 Tarjeta
+          </button>
+          <button 
+            type="button" 
+            class="medio-btn" 
+            [class.active]="medioPago === 'YAPE_PLIN'"
+            (click)="medioPago = 'YAPE_PLIN'">
+            📱 Yape / Plin
+          </button>
+        </div>
+
+        <!-- Efectivo y Vuelto -->
+        <div *ngIf="medioPago === 'EFECTIVO'" class="efectivo-vuelto-row">
+          <div class="form-group">
+            <label>Efectivo Recibido S/:</label>
+            <input 
+              type="number" 
+              [(ngModel)]="montoRecibido" 
+              step="0.50"
+              class="input-efectivo"/>
+          </div>
+          <div class="form-group vuelto-group">
+            <label>Vuelto a entregar:</label>
+            <div class="vuelto-destacado">S/ {{ calcularVuelto() | number:'1.2-2' }}</div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción Final -->
+        <div class="checkout-actions">
+          <button class="btn btn-outline" (click)="ponerEnEspera()" [disabled]="carrito().length === 0">
+            Poner en Espera
+          </button>
+          <button class="btn btn-checkout" (click)="procesarCobro()" [disabled]="carrito().length === 0 || !cajaActiva()">
+            COBRAR E IMPRIMIR (F10)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: APERTURA DE CAJA -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalAperturaAbierto" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Apertura de Turno de Caja</h3>
+        <button class="modal-close" (click)="modalAperturaAbierto = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-instruction">
+          Seleccione la caja física asignada e ingrese el saldo inicial en efectivo para el fondo de cambio.
+        </p>
+        <div class="form-group mb-3">
+          <label>Monto Inicial en Efectivo (PEN) *</label>
+          <input type="number" [(ngModel)]="montoAperturaInput" step="10.00" min="0" class="input font-bold"/>
+        </div>
+        <div class="form-group">
+          <label>Observaciones de Apertura</label>
+          <input type="text" [(ngModel)]="observacionesCajaInput" class="input" placeholder="Fondo inicial verificado"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="modalAperturaAbierto = false">Cancelar</button>
+        <button class="btn btn-primary" (click)="confirmarAperturaCaja()">Confirmar Apertura</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: CIERRE DE CAJA Y ARQUEO -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalCierreAbierto && cajaActiva()" class="modal-backdrop">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3>Cierre de Turno y Arqueo — {{ cajaActiva()?.nombreCaja }}</h3>
+        <button class="modal-close" (click)="modalCierreAbierto = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="cierre-grid-totales mb-3">
+          <div class="cierre-card">
+            <span>Fondo Inicial:</span>
+            <strong>S/ {{ cajaActiva()?.montoApertura | number:'1.2-2' }}</strong>
+          </div>
+          <div class="cierre-card">
+            <span>Ventas en Efectivo:</span>
+            <strong>S/ {{ cajaActiva()?.totalVentasEfectivo || 0 | number:'1.2-2' }}</strong>
+          </div>
+          <div class="cierre-card">
+            <span>Ventas Tarjeta:</span>
+            <strong>S/ {{ cajaActiva()?.totalVentasTarjeta || 0 | number:'1.2-2' }}</strong>
+          </div>
+          <div class="cierre-card">
+            <span>Ventas Yape/Plin:</span>
+            <strong>S/ {{ cajaActiva()?.totalVentasBilletera || 0 | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <div class="total-sistema-box mb-3">
+          <span>Efectivo Total Esperado en Gaveta (Fondo + Ventas Efectivo):</span>
+          <strong class="text-accent font-bold">
+            S/ {{ ((cajaActiva()?.montoApertura || 0) + (cajaActiva()?.totalVentasEfectivo || 0)) | number:'1.2-2' }}
+          </strong>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Arqueo Físico — Efectivo Real Recontado en Caja (S/) *</label>
+          <input type="number" [(ngModel)]="montoArqueoFisicoInput" step="0.50" min="0" class="input font-bold text-lg"/>
+        </div>
+
+        <div class="form-group">
+          <label>Observaciones de Arqueo</label>
+          <input type="text" [(ngModel)]="observacionesCajaInput" class="input" placeholder="Arqueo conforme al cierre del turno"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="modalCierreAbierto = false">Cancelar</button>
+        <button class="btn btn-primary" (click)="confirmarCierreCaja()">Confirmar Cierre y Arqueo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: VENTAS EN ESPERA -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalEsperaAbierto" class="modal-backdrop">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3>Ventas en Espera</h3>
+        <button class="modal-close" (click)="modalEsperaAbierto = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="ventasEspera().length === 0" class="text-center py-4 text-muted">
+          No tiene ventas en espera actualmente.
+        </div>
+        <table *ngIf="ventasEspera().length > 0" class="table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Referencia</th>
+              <th>Hora</th>
+              <th class="text-center">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ve of ventasEspera()">
+              <td><span class="code-badge">{{ ve.codigoEspera }}</span></td>
+              <td><strong>{{ ve.nombreReferencia }}</strong></td>
+              <td>{{ ve.fechaHora | date:'mediumTime' }}</td>
+              <td class="text-center">
+                <button class="btn btn-primary btn-sm" (click)="recuperarVentaEspera(ve)">
+                  Recuperar al POS
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="modalEsperaAbierto = false">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: REGISTRAR NUEVO CLIENTE -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalNuevoClienteAbierto" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Registrar Nuevo Cliente</h3>
+        <button class="modal-close" (click)="modalNuevoClienteAbierto = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Tipo Documento *</label>
+            <select [(ngModel)]="nuevoClienteForm.tipoDocumento" class="input">
+              <option value="DNI">DNI</option>
+              <option value="RUC">RUC</option>
+              <option value="CE">Carnet de Extranjería</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Número Documento *</label>
+            <input type="text" [(ngModel)]="nuevoClienteForm.numeroDocumento" class="input"/>
+          </div>
+          <div class="form-group full-width">
+            <label>Nombres / Razón Social *</label>
+            <input type="text" [(ngModel)]="nuevoClienteForm.nombresORazonSocial" class="input" placeholder="Nombre completo o empresa"/>
+          </div>
+          <div class="form-group full-width">
+            <label>Dirección</label>
+            <input type="text" [(ngModel)]="nuevoClienteForm.direccion" class="input" placeholder="Av. o Jr."/>
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" [(ngModel)]="nuevoClienteForm.telefono" class="input"/>
+          </div>
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" [(ngModel)]="nuevoClienteForm.email" class="input"/>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="modalNuevoClienteAbierto = false">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarNuevoCliente()">Guardar y Asignar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: COMPROBANTE DE PAGO (TICKET TÉRMICO) -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalTicketAbierto && ultimaVenta()" class="modal-backdrop">
+    <div class="modal-box modal-ticket-box">
+      <div class="modal-header">
+        <h3>Comprobante de Venta Emitido</h3>
+        <button class="modal-close" (click)="modalTicketAbierto = false">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="ticket-recibo" id="printSection">
+          <div class="ticket-recibo-header">
+            <h4>BOTICA FARMA OCHENTA</h4>
+            <p>RUC: 20601234567</p>
+            <p>Av. Nicolás Ayllón 1497, Ate - Lima</p>
+            <div class="ticket-divider"></div>
+            <h5>{{ ultimaVenta()?.tipoComprobante }} ELECTRÓNICA</h5>
+            <h4>{{ ultimaVenta()?.serieComprobante }}-{{ ultimaVenta()?.numeroComprobante }}</h4>
+            <p>Fecha: {{ ultimaVenta()?.fechaHora | date:'dd/MM/yyyy HH:mm' }}</p>
+            <p>Caja: CAJA-01 | Atendido por: {{ authService.currentUser()?.nombres }} {{ authService.currentUser()?.apellidos }}</p>
+            <div class="ticket-divider"></div>
+            <div class="ticket-cliente-info">
+              <p>Cliente: {{ ultimaVenta()?.cliente?.nombresORazonSocial }}</p>
+              <p>{{ ultimaVenta()?.cliente?.tipoDocumento }}: {{ ultimaVenta()?.cliente?.numeroDocumento }}</p>
+            </div>
+            <div class="ticket-divider"></div>
+          </div>
+
+          <table class="ticket-table">
+            <thead>
+              <tr>
+                <th>Cant.</th>
+                <th>Descripción</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let det of ultimaVenta()?.detalles">
+                <td>{{ det.cantidad }}</td>
+                <td>{{ det.nombreProducto || 'Medicamento #' + det.productoId }}</td>
+                <td class="text-right">S/ {{ det.subtotalLinea | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="ticket-divider"></div>
+
+          <div class="ticket-totales">
+            <div class="fila">
+              <span>Op. Gravada:</span>
+              <span>S/ {{ ultimaVenta()?.subtotal | number:'1.2-2' }}</span>
+            </div>
+            <div *ngIf="ultimaVenta()?.montoDescuento! > 0" class="fila">
+              <span>Descuento:</span>
+              <span>- S/ {{ ultimaVenta()?.montoDescuento | number:'1.2-2' }}</span>
+            </div>
+            <div class="fila">
+              <span>I.G.V. (18%):</span>
+              <span>S/ {{ ultimaVenta()?.igv | number:'1.2-2' }}</span>
+            </div>
+            <div class="fila total-final">
+              <span>IMPORTE TOTAL:</span>
+              <strong>S/ {{ ultimaVenta()?.total | number:'1.2-2' }}</strong>
+            </div>
+            <div class="fila">
+              <span>Medio de Pago:</span>
+              <span>{{ ultimaVenta()?.medioPago }}</span>
+            </div>
+            <div *ngIf="ultimaVenta()?.medioPago === 'EFECTIVO'" class="fila">
+              <span>Efectivo Recibido:</span>
+              <span>S/ {{ ultimaVenta()?.montoRecibido | number:'1.2-2' }}</span>
+            </div>
+            <div *ngIf="ultimaVenta()?.medioPago === 'EFECTIVO'" class="fila">
+              <span>Vuelto Entregado:</span>
+              <strong>S/ {{ ultimaVenta()?.vuelto | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <div class="ticket-footer-text">
+            <p>¡Gracias por su compra en Botica Farma Ochenta!</p>
+            <small>Conserve su comprobante para cualquier reclamo o devolución</small>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="modalTicketAbierto = false">Cerrar</button>
+        <button class="btn btn-primary" (click)="imprimirTicket()">
+          <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+          </svg>
+          Imprimir Ticket
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
