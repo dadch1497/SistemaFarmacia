@@ -57,6 +57,10 @@ export class PosComponent implements OnInit {
   // Carrito de compras / POS Ticket
   carrito = signal<CarritoItem[]>([]);
 
+  // Estado visual del panel del carrito
+  ultimoAgregado: CarritoItem | null = null;
+  mostrarDni = false;
+
   // Cliente
   clienteSeleccionado = signal<Cliente | null>(null);
   docBusqueda: string = '';
@@ -249,6 +253,10 @@ export class PosComponent implements OnInit {
       });
     }
 
+    // Nueva referencia para repetir el resaltado al agregar la misma presentación.
+    const agregado = index >= 0 ? index : items.length - 1;
+    items[agregado] = { ...items[agregado] };
+    this.ultimoAgregado = items[agregado];
     this.carrito.set(items);
     this.recalcularTotales();
   }
@@ -317,6 +325,7 @@ export class PosComponent implements OnInit {
   }
 
   limpiarCarrito(): void {
+    this.ultimoAgregado = null;
     this.carrito.set([]);
     this.cuponAplicado.set(null);
     this.cuponCodigo = '';
@@ -386,7 +395,41 @@ export class PosComponent implements OnInit {
   // ==========================================
   // Cliente
   // ==========================================
+  alternarDni(): void {
+    this.mostrarDni = !this.mostrarDni;
+    if (!this.mostrarDni) {
+      this.docBusqueda = '';
+      this.clienteSeleccionado.set(null);
+      this.seleccionarClienteGenerico();
+    }
+  }
+
+  normalizarDocumento(): void {
+    const longitud = this.tipoComprobante === 'FACTURA' ? 11 : 8;
+    this.docBusqueda = this.docBusqueda.replace(/\D/g, '').slice(0, longitud);
+  }
+
+  documentoBusquedaValido(): boolean {
+    return this.tipoComprobante === 'FACTURA'
+      ? /^\d{11}$/.test(this.docBusqueda)
+      : /^\d{8}$/.test(this.docBusqueda) && this.docBusqueda !== '00000000';
+  }
+
+  mensajeDocumento(): string {
+    const factura = this.tipoComprobante === 'FACTURA';
+    if (!factura && this.calcularTotalPagar() <= 700) return '';
+    const cli = this.clienteSeleccionado();
+    const valido = factura
+      ? cli?.tipoDocumento === 'RUC' && /^\d{11}$/.test(cli.numeroDocumento)
+      : cli?.tipoDocumento === 'DNI' && /^\d{8}$/.test(cli.numeroDocumento) && cli.numeroDocumento !== '00000000';
+    if (valido) return '';
+    return factura
+      ? 'Busca y selecciona un cliente con RUC de 11 dígitos para emitir la factura.'
+      : 'La boleta supera S/ 700. Valida un DNI de 8 dígitos para continuar.';
+  }
+
   buscarCliente(): void {
+    if (!this.documentoBusquedaValido()) return;
     const doc = this.docBusqueda.trim();
     if (!doc) return;
 
@@ -479,6 +522,12 @@ export class PosComponent implements OnInit {
     if (!this.cajaActiva()) {
       this.mostrarError('Debe tener un turno de caja abierto para cobrar.');
       this.abrirModalApertura();
+      return;
+    }
+
+    const errorDocumento = this.mensajeDocumento();
+    if (errorDocumento) {
+      this.mostrarError(errorDocumento);
       return;
     }
 

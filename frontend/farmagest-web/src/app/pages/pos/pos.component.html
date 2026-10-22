@@ -146,195 +146,44 @@
     </div>
 
     <!-- COLUMNA DERECHA: TICKET DE VENTA Y CAJA -->
-    <div class="ticket-pane">
-
-      <!-- Cabecera del Ticket: Comprobante y Cliente -->
-      <div class="ticket-header-box">
-        <div class="comprobante-toggle">
-          <button 
-            type="button"
-            class="toggle-btn" 
-            [class.active]="tipoComprobante === 'BOLETA'"
-            (click)="tipoComprobante = 'BOLETA'">
-            BOLETA (B001)
-          </button>
-          <button 
-            type="button"
-            class="toggle-btn" 
-            [class.active]="tipoComprobante === 'FACTURA'"
-            (click)="tipoComprobante = 'FACTURA'">
-            FACTURA (F001)
-          </button>
+      <aside class="ticket-pane" aria-label="Carrito de venta">
+        <div class="cart-heading"><h2>Carrito <span class="cart-count" aria-live="polite">{{ carrito().length }} {{ carrito().length === 1 ? 'producto' : 'productos' }}</span></h2><button type="button" class="cart-clear" (click)="limpiarCarrito()" [disabled]="!carrito().length">Vaciar</button></div>
+        <div class="comprobante-toggle" role="group" aria-label="Tipo de comprobante">
+          <button type="button" class="toggle-btn" [class.active]="tipoComprobante === 'BOLETA'" [attr.aria-pressed]="tipoComprobante === 'BOLETA'" (click)="tipoComprobante = 'BOLETA'">Boleta (B001)</button>
+          <button type="button" class="toggle-btn" [class.active]="tipoComprobante === 'FACTURA'" [attr.aria-pressed]="tipoComprobante === 'FACTURA'" (click)="tipoComprobante = 'FACTURA'">Factura (F001)</button>
         </div>
-
-        <!-- Sección de Cliente -->
-        <div class="cliente-selector">
-          <div *ngIf="clienteSeleccionado()" class="cliente-info">
-            <div>
-              <span class="tipo-doc-badge">{{ clienteSeleccionado()?.tipoDocumento }}</span>
-              <strong>{{ clienteSeleccionado()?.numeroDocumento }}</strong> - {{ clienteSeleccionado()?.nombresORazonSocial }}
-            </div>
-            <button class="btn-link" (click)="clienteSeleccionado.set(null)">Cambiar</button>
+        <div class="cart-client">
+          <div *ngIf="tipoComprobante === 'BOLETA'" class="client-card">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>
+            <div><strong>{{ clienteSeleccionado()?.numeroDocumento !== '00000000' && clienteSeleccionado()?.tipoDocumento === 'DNI' ? clienteSeleccionado()?.nombresORazonSocial : 'Cliente genérico' }}</strong><small>{{ clienteSeleccionado()?.numeroDocumento !== '00000000' && clienteSeleccionado()?.tipoDocumento === 'DNI' ? 'DNI · ' + clienteSeleccionado()?.numeroDocumento : 'Sin DNI · opcional hasta S/ 700' }}</small></div>
+            <button type="button" class="cart-outline" (click)="alternarDni()" [attr.aria-expanded]="mostrarDni || calcularTotalPagar() > 700" aria-controls="cart-dni">{{ mostrarDni ? 'Quitar DNI' : 'Agregar DNI' }}</button>
           </div>
-
-          <div *ngIf="!clienteSeleccionado()" class="cliente-search-row">
-            <input 
-              type="text" 
-              [(ngModel)]="docBusqueda" 
-              (keyup.enter)="buscarCliente()"
-              placeholder="DNI o RUC del cliente..."
-              class="input-doc"/>
-            <button class="btn btn-outline btn-sm" (click)="buscarCliente()">Buscar</button>
-            <button class="btn btn-link btn-sm" (click)="seleccionarClienteGenerico()">Varios</button>
+          <div *ngIf="tipoComprobante === 'FACTURA' || mostrarDni || calcularTotalPagar() > 700" class="client-document" id="cart-dni">
+            <label for="cart-document">{{ tipoComprobante === 'FACTURA' ? 'RUC del cliente (obligatorio)' : 'DNI del cliente' }}</label>
+            <div class="document-row"><input id="cart-document" type="text" inputmode="numeric" [attr.maxlength]="tipoComprobante === 'FACTURA' ? 11 : 8" [attr.pattern]="tipoComprobante === 'FACTURA' ? '[0-9]{11}' : '[0-9]{8}'" [(ngModel)]="docBusqueda" (input)="normalizarDocumento()" (keyup.enter)="buscarCliente()" [placeholder]="tipoComprobante === 'FACTURA' ? '11 dígitos' : '8 dígitos'" [attr.aria-invalid]="!!mensajeDocumento()" aria-describedby="cart-document-help"/><button type="button" class="cart-outline" (click)="buscarCliente()" [disabled]="!documentoBusquedaValido()">{{ tipoComprobante === 'FACTURA' ? 'Buscar' : 'Validar' }}</button></div>
+            <p *ngIf="mensajeDocumento()" id="cart-document-help" class="document-error" role="status">{{ mensajeDocumento() }}</p>
+            <p *ngIf="tipoComprobante === 'FACTURA' && !mensajeDocumento()" class="client-found">{{ clienteSeleccionado()?.nombresORazonSocial }} · {{ clienteSeleccionado()?.numeroDocumento }}</p>
           </div>
+          <div *ngIf="carritoTieneMedicamentosConReceta()" class="alerta-receta-ticket"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3Z M12 9v4m0 3v1"/></svg><span><strong>Exige receta médica.</strong> Validar la prescripción física firmada.</span></div>
         </div>
-
-        <!-- Alerta Receta Médica -->
-        <div *ngIf="carritoTieneMedicamentosConReceta()" class="alerta-receta-ticket">
-          <svg class="icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-          </svg>
-          <span><strong>Exige Receta Médica:</strong> Validar prescripción física firmada por médico colegiado.</span>
+        <div class="ticket-items-container" aria-label="Productos del carrito">
+          <div *ngIf="!carrito().length" class="carrito-vacio"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M2 3h3l3 13h11l3-10H6 M9 20h.01M18 20h.01" stroke-linecap="round"/></svg><strong>El carrito está vacío</strong><p>Escanea un código o busca un medicamento y toca + Agregar</p></div>
+          <article *ngFor="let it of carrito(); let i = index" class="ticket-item-row" [class.just-added]="ultimoAgregado === it" [style.order]="ultimoAgregado === it ? -1 : 0">
+            <span *ngIf="ultimoAgregado === it" class="recent-badge">Recién agregado</span>
+            <div class="item-top"><div class="item-desc-col"><h3 class="item-name">{{ it.producto.nombre }}</h3><div class="item-sub"><span class="fraccion-tag">{{ it.fraccion === 'CAJA' ? 'Caja (x100)' : it.fraccion === 'TABLETA' ? 'Tableta (x10)' : 'Unidad' }}</span><span>S/ {{ it.precioUnitario | number:'1.2-2' }} c/u</span></div></div><button type="button" class="btn-del" (click)="eliminarDelCarrito(i)" [attr.aria-label]="'Quitar ' + it.producto.nombre"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></svg></button></div>
+            <div class="item-bottom"><div class="item-qty-col"><button type="button" class="qty-btn" [disabled]="it.cantidad <= 1" (click)="modificarCantidad(i, -1)" [attr.aria-label]="'Reducir cantidad de ' + it.producto.nombre">−</button><span class="qty-num">{{ it.cantidad }}</span><button type="button" class="qty-btn" (click)="modificarCantidad(i, 1)" [attr.aria-label]="'Aumentar cantidad de ' + it.producto.nombre">+</button></div><strong class="item-subtotal-col">S/ {{ it.subtotal | number:'1.2-2' }}</strong></div>
+          </article>
         </div>
-      </div>
-
-      <!-- Lista de Ítems en Carrito -->
-      <div class="ticket-items-container">
-        <div *ngIf="carrito().length === 0" class="carrito-vacio">
-          <svg class="icon-large" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-          </svg>
-          <p>El carrito está vacío</p>
-          <small class="text-muted">Seleccione medicamentos del catálogo a la izquierda para iniciar la venta</small>
+        <details class="descuentos-box"><summary>Cupón o descuento <span class="collapse-sign" aria-hidden="true"></span></summary><div class="discount-content"><div class="cupon-row"><input type="text" aria-label="Código de cupón" [(ngModel)]="cuponCodigo" placeholder="Código de cupón" class="input-cupon"/><button *ngIf="!cuponAplicado()" type="button" class="cart-outline" (click)="aplicarCupon()">Aplicar</button><button *ngIf="cuponAplicado()" type="button" class="cart-clear" (click)="quitarCupon()">Quitar</button></div><p *ngIf="cuponAplicado()" class="cupon-badge-applied">Cupón {{ cuponAplicado()?.codigo }} · − S/ {{ cuponAplicado()?.montoDescuentoCalculado | number:'1.2-2' }}</p><div *ngIf="authService.isVendedor() || authService.isAdmin()" class="desc-manual-row"><label for="cart-discount">Descuento manual (máx. 5%)</label><select id="cart-discount" [(ngModel)]="descuentoManualPct" (change)="recalcularTotales()"><option [value]="0">0%</option><option [value]="2">2%</option><option [value]="3">3%</option><option [value]="5">5%</option></select></div></div></details>
+        <div class="totales-resumen"><div class="fila-resumen"><span>Subtotal (base imponible)</span><span>S/ {{ calcularBaseImponible() | number:'1.2-2' }}</span></div><div class="fila-resumen"><span>IGV (18%)</span><span>S/ {{ calcularIgv() | number:'1.2-2' }}</span></div><div *ngIf="calcularTotalDescuento() > 0" class="fila-resumen cart-discount"><span>Descuento</span><span>− S/ {{ calcularTotalDescuento() | number:'1.2-2' }}</span></div><div class="fila-resumen total-final"><span>TOTAL A PAGAR</span><strong class="monto-total">S/ {{ calcularTotalPagar() | number:'1.2-2' }}</strong></div></div>
+        <div class="medios-pago-selector" role="group" aria-label="Método de pago">
+          <button type="button" class="medio-btn" [class.active]="medioPago === 'EFECTIVO'" [attr.aria-pressed]="medioPago === 'EFECTIVO'" (click)="medioPago = 'EFECTIVO'; recalcularTotales()"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M5 12h1m12 0h1"/></svg>Efectivo</button>
+          <button type="button" class="medio-btn" [class.active]="medioPago === 'TARJETA'" [attr.aria-pressed]="medioPago === 'TARJETA'" (click)="medioPago = 'TARJETA'"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 10h20M6 16h4"/></svg>Tarjeta</button>
+          <button type="button" class="medio-btn" [class.active]="medioPago === 'YAPE_PLIN'" [attr.aria-pressed]="medioPago === 'YAPE_PLIN'" (click)="medioPago = 'YAPE_PLIN'"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4m-3 14h2"/></svg>Yape / Plin</button>
         </div>
-
-        <div *ngFor="let it of carrito(); let i = index" class="ticket-item-row">
-          <div class="item-desc-col">
-            <div class="item-name">{{ it.producto.nombre }}</div>
-            <div class="item-sub">
-              <!-- Selector o insignia de Fracción -->
-              <span class="fraccion-tag" [class.caja]="it.fraccion === 'CAJA'" [class.tab]="it.fraccion === 'TABLETA'">
-                {{ it.fraccion === 'CAJA' ? '📦 CAJA (x100)' : (it.fraccion === 'TABLETA' ? '💊 TABLETA (x10)' : '🔹 UNIDAD') }}
-              </span>
-              · S/ {{ it.precioUnitario | number:'1.2-2' }} c/u
-            </div>
-          </div>
-
-          <div class="item-qty-col">
-            <button class="qty-btn" (click)="modificarCantidad(i, -1)">-</button>
-            <span class="qty-num">{{ it.cantidad }}</span>
-            <button class="qty-btn" (click)="modificarCantidad(i, 1)">+</button>
-          </div>
-
-          <div class="item-subtotal-col">
-            S/ {{ it.subtotal | number:'1.2-2' }}
-          </div>
-
-          <button class="btn-del" (click)="eliminarDelCarrito(i)">&times;</button>
-        </div>
-      </div>
-
-      <!-- Sección de Descuentos y Cupones -->
-      <div class="descuentos-box">
-        <div class="cupon-row">
-          <input 
-            type="text" 
-            [(ngModel)]="cuponCodigo" 
-            placeholder="Código de cupón (ej. BIENVENIDA2026)..."
-            class="input-cupon"/>
-          <button *ngIf="!cuponAplicado()" class="btn btn-outline btn-sm" (click)="aplicarCupon()">Aplicar</button>
-          <button *ngIf="cuponAplicado()" class="btn btn-outline-danger btn-sm" (click)="quitarCupon()">Quitar</button>
-        </div>
-
-        <div *ngIf="cuponAplicado()" class="cupon-badge-applied">
-          <span>Cupón <strong>{{ cuponAplicado()?.codigo }}</strong>: Descuento S/ {{ cuponAplicado()?.montoDescuentoCalculado | number:'1.2-2' }}</span>
-        </div>
-
-        <!-- Descuento manual del vendedor (hasta 5%) -->
-        <div *ngIf="authService.isVendedor() || authService.isAdmin()" class="desc-manual-row">
-          <label>Descuento manual vendedor (máx. 5%):</label>
-          <select [(ngModel)]="descuentoManualPct" (change)="recalcularTotales()" class="select-pct">
-            <option [value]="0">0%</option>
-            <option [value]="2">2%</option>
-            <option [value]="3">3%</option>
-            <option [value]="5">5% (Límite vendedor)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Resumen Financiero y Medios de Pago -->
-      <div class="ticket-footer-box">
-        <div class="totales-resumen">
-          <div class="fila-resumen">
-            <span>Subtotal (Base Imponible):</span>
-            <span>S/ {{ calcularBaseImponible() | number:'1.2-2' }}</span>
-          </div>
-          <div *ngIf="calcularTotalDescuento() > 0" class="fila-resumen text-danger">
-            <span>Descuento aplicado:</span>
-            <span>- S/ {{ calcularTotalDescuento() | number:'1.2-2' }}</span>
-          </div>
-          <div class="fila-resumen">
-            <span>IGV (18%):</span>
-            <span>S/ {{ calcularIgv() | number:'1.2-2' }}</span>
-          </div>
-          <div class="fila-resumen total-final">
-            <span>TOTAL A PAGAR:</span>
-            <span class="monto-total">S/ {{ calcularTotalPagar() | number:'1.2-2' }}</span>
-          </div>
-        </div>
-
-        <!-- Selector de Medio de Pago -->
-        <div class="medios-pago-selector">
-          <button 
-            type="button" 
-            class="medio-btn" 
-            [class.active]="medioPago === 'EFECTIVO'"
-            (click)="medioPago = 'EFECTIVO'; recalcularTotales()">
-            💵 Efectivo
-          </button>
-          <button 
-            type="button" 
-            class="medio-btn" 
-            [class.active]="medioPago === 'TARJETA'"
-            (click)="medioPago = 'TARJETA'">
-            💳 Tarjeta
-          </button>
-          <button 
-            type="button" 
-            class="medio-btn" 
-            [class.active]="medioPago === 'YAPE_PLIN'"
-            (click)="medioPago = 'YAPE_PLIN'">
-            📱 Yape / Plin
-          </button>
-        </div>
-
-        <!-- Efectivo y Vuelto -->
-        <div *ngIf="medioPago === 'EFECTIVO'" class="efectivo-vuelto-row">
-          <div class="form-group">
-            <label>Efectivo Recibido S/:</label>
-            <input 
-              type="number" 
-              [(ngModel)]="montoRecibido" 
-              step="0.50"
-              class="input-efectivo"/>
-          </div>
-          <div class="form-group vuelto-group">
-            <label>Vuelto a entregar:</label>
-            <div class="vuelto-destacado">S/ {{ calcularVuelto() | number:'1.2-2' }}</div>
-          </div>
-        </div>
-
-        <!-- Botones de Acción Final -->
-        <div class="checkout-actions">
-          <button class="btn btn-outline" (click)="ponerEnEspera()" [disabled]="carrito().length === 0">
-            Poner en Espera
-          </button>
-          <button class="btn btn-checkout" (click)="procesarCobro()" [disabled]="carrito().length === 0 || !cajaActiva()">
-            COBRAR E IMPRIMIR (F10)
-          </button>
-        </div>
-      </div>
-    </div>
+        <div *ngIf="medioPago === 'EFECTIVO'" class="efectivo-vuelto-row"><div><label for="cart-cash">Efectivo recibido (S/)</label><input id="cart-cash" type="number" [(ngModel)]="montoRecibido" step="0.50" class="input-efectivo"/></div><div class="vuelto-group"><span>Vuelto</span><strong>S/ {{ calcularVuelto() | number:'1.2-2' }}</strong></div></div>
+        <div class="checkout-actions"><button type="button" class="cart-hold" (click)="ponerEnEspera()" [disabled]="!carrito().length">Poner en espera</button><button type="button" class="btn-checkout" (click)="procesarCobro()" [disabled]="!carrito().length || !cajaActiva() || !!mensajeDocumento() || cargando()">Cobrar S/ {{ calcularTotalPagar() | number:'1.2-2' }}</button></div>
+      </aside>
   </div>
 
   <!-- ========================================================================= -->
