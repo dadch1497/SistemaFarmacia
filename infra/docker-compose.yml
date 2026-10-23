@@ -275,6 +275,7 @@ services:
       RABBITMQ_PASS: ${RABBITMQ_DEFAULT_PASS:-farmagest_rabbit_123}
       EUREKA_URI: http://eureka-server:8761/eureka/
       JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      SUNAT_PHP_URL: http://ms-sunat-php:80
     depends_on:
       mysql:
         condition: service_healthy
@@ -325,6 +326,25 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - farmagest-net
+
+  ms-sunat-php:
+    build:
+      context: ../backend/ms-sunat-php
+      dockerfile: Dockerfile
+    image: farmagest-ms-sunat-php:latest
+    container_name: farmagest-ms-sunat-php
+    restart: unless-stopped
+    ports:
+      - "8087:80"
+    environment:
+      SUNAT_RUC: ${SUNAT_RUC:-20000000001}
+      SUNAT_USUARIO_SOL: ${SUNAT_USUARIO_SOL:-MODDATOS}
+      SUNAT_CLAVE_SOL: ${SUNAT_CLAVE_SOL:-moddatos}
+      SUNAT_ENV: ${SUNAT_ENV:-BETA}
+      EMPRESA_RAZON_SOCIAL: ${EMPRESA_RAZON_SOCIAL:-FARMACIA FARMAGEST S.A.C.}
+      EMPRESA_NOMBRE_COMERCIAL: ${EMPRESA_NOMBRE_COMERCIAL:-FARMAGEST}
     networks:
       - farmagest-net
 

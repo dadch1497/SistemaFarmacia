@@ -26,6 +26,11 @@ node_modules/
 dist/
 .angular/
 
+# PHP / Composer
+vendor/
+backend/ms-sunat-php/vendor/
+*.pfx
+
 # Logs y SO
 *.log
 Thumbs.db

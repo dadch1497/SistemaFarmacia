@@ -376,6 +376,11 @@
             <div class="ticket-divider"></div>
             <h5>{{ ultimaVenta()?.tipoComprobante }} ELECTRÓNICA</h5>
             <h4>{{ ultimaVenta()?.serieComprobante }}-{{ ultimaVenta()?.numeroComprobante }}</h4>
+            <div style="text-align: center; margin: 6px 0;">
+              <span style="background-color: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 9999px; font-weight: 700; font-size: 11px; display: inline-block;">
+                ✔ SUNAT: ACEPTADA
+              </span>
+            </div>
             <p>Fecha: {{ ultimaVenta()?.fechaHora | date:'dd/MM/yyyy HH:mm' }}</p>
             <p>Caja: CAJA-01 | Atendido por: {{ authService.currentUser()?.nombres }} {{ authService.currentUser()?.apellidos }}</p>
             <div class="ticket-divider"></div>

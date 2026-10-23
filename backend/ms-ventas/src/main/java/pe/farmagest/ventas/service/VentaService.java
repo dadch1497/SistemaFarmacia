@@ -26,6 +26,7 @@ public class VentaService {
     private final VentaEsperaRepository ventaEsperaRepository;
     private final PromocionService promocionService;
     private final VentasEventPublisher eventPublisher;
+    private final SunatPhpClient sunatPhpClient;
 
     public VentaService(VentaRepository ventaRepository,
                         DetalleVentaRepository detalleVentaRepository,
@@ -35,7 +36,8 @@ public class VentaService {
                         CuponRepository cuponRepository,
                         VentaEsperaRepository ventaEsperaRepository,
                         PromocionService promocionService,
-                        VentasEventPublisher eventPublisher) {
+                        VentasEventPublisher eventPublisher,
+                        SunatPhpClient sunatPhpClient) {
         this.ventaRepository = ventaRepository;
         this.detalleVentaRepository = detalleVentaRepository;
         this.sesionCajaRepository = sesionCajaRepository;
@@ -45,6 +47,7 @@ public class VentaService {
         this.ventaEsperaRepository = ventaEsperaRepository;
         this.promocionService = promocionService;
         this.eventPublisher = eventPublisher;
+        this.sunatPhpClient = sunatPhpClient;
     }
 
     @Transactional
@@ -208,6 +211,13 @@ public class VentaService {
 
         // 6. Publicar evento RabbitMQ asíncrono hacia ms-inventario y ms-reportes
         eventPublisher.publicarVentaRegistrada(guardada);
+        // Envío de factura a SUNAT mediante el micro‑servicio PHP
+        try {
+            sunatPhpClient.enviarFactura(guardada);
+        } catch (Exception e) {
+            // Logueamos pero no impedimos la finalización de la venta
+            org.slf4j.LoggerFactory.getLogger(VentaService.class).warn("Error al enviar factura a SUNAT vía PHP: {}", e.getMessage());
+        }
 
         return mapearADto(guardada, nombreVendedor);
     }
