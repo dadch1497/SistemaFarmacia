@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -37,6 +37,11 @@ export class HomeComponent implements OnInit {
   misVentas = signal<Venta[]>([]);
   miTurnoCaja = signal<SesionCaja | null>(null);
   filtroBusquedaVenta: string = '';
+  filtroTipoComprobante = signal<'TODOS' | 'BOLETA' | 'FACTURA'>('TODOS');
+
+  // Modal para ver Comprobante (Boleta / Factura)
+  comprobanteSeleccionado = signal<Venta | null>(null);
+  modalComprobanteAbierto = signal<boolean>(false);
 
   totalAcumuladoVendedor = signal<number>(0);
   cantidadTotalVentasVendedor = signal<number>(0);
@@ -258,16 +263,46 @@ export class HomeComponent implements OnInit {
     return Math.round((monto / max) * 100);
   }
 
-  obtenerMisVentasFiltradas(): Venta[] {
-    const txt = (this.filtroBusquedaVenta || '').toLowerCase().trim();
-    if (!txt) return this.misVentas().slice(0, 15);
+  cambiarFiltroTipo(tipo: 'TODOS' | 'BOLETA' | 'FACTURA'): void {
+    this.filtroTipoComprobante.set(tipo);
+  }
 
-    return this.misVentas().filter(v => {
-      const comprobante = `${v.serieComprobante}-${v.numeroComprobante}`.toLowerCase();
-      const clienteNom = (v.cliente?.nombresORazonSocial || '').toLowerCase();
-      const clienteDoc = (v.cliente?.numeroDocumento || '').toLowerCase();
-      const medio = (v.medioPago || '').toLowerCase();
-      return comprobante.includes(txt) || clienteNom.includes(txt) || clienteDoc.includes(txt) || medio.includes(txt);
-    }).slice(0, 20);
+  obtenerMisVentasFiltradas(): Venta[] {
+    let lista = this.misVentas();
+
+    const tipo = this.filtroTipoComprobante();
+    if (tipo !== 'TODOS') {
+      lista = lista.filter(v => v.tipoComprobante === tipo);
+    }
+
+    const txt = (this.filtroBusquedaVenta || '').toLowerCase().trim();
+    if (txt) {
+      lista = lista.filter(v => {
+        const comprobante = `${v.serieComprobante}-${v.numeroComprobante}`.toLowerCase();
+        const clienteNom = (v.cliente?.nombresORazonSocial || '').toLowerCase();
+        const clienteDoc = (v.cliente?.numeroDocumento || '').toLowerCase();
+        const medio = (v.medioPago || '').toLowerCase();
+        return comprobante.includes(txt) || clienteNom.includes(txt) || clienteDoc.includes(txt) || medio.includes(txt);
+      });
+    }
+
+    return lista;
+  }
+
+  // ==========================================
+  // Ver e Imprimir Comprobante (Boleta / Factura)
+  // ==========================================
+  abrirComprobante(v: Venta): void {
+    this.comprobanteSeleccionado.set(v);
+    this.modalComprobanteAbierto.set(true);
+  }
+
+  cerrarModalComprobante(): void {
+    this.modalComprobanteAbierto.set(false);
+    this.comprobanteSeleccionado.set(null);
+  }
+
+  imprimirComprobante(): void {
+    window.print();
   }
 }

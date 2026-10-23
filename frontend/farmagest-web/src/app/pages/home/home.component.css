@@ -563,3 +563,318 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* ==========================================
+   Pestañas y Filtros de Comprobantes
+   ========================================== */
+.filtros-comprobantes-nav {
+  display: flex;
+  gap: 0.4rem;
+  background: #F1F5F3;
+  padding: 0.3rem;
+  border-radius: 8px;
+}
+
+.tab-filtro {
+  background: transparent;
+  border: none;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-filtro.tab-activo {
+  background: #FFFFFF;
+  color: var(--color-verde-oscuro);
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cursor-pointer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.comp-click-hint {
+  font-size: 0.72rem;
+  color: var(--color-verde-accion);
+  font-weight: 600;
+  display: block;
+  margin-top: 0.3rem;
+}
+
+/* Botón Ver Comprobante */
+.btn-ver-comprobante {
+  background-color: #0F766E;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.15s ease;
+}
+
+.btn-ver-comprobante:hover {
+  background-color: #0B3D38;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.3);
+}
+
+.fila-venta-hover:hover {
+  background-color: #F8FAF9;
+}
+
+/* Badges oficiales de tipo comprobante (Idénticos al screenshot) */
+.badge-boleta {
+  background-color: #FEF3C7;
+  color: #92400E;
+  font-weight: 800;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  display: inline-block;
+  letter-spacing: 0.04em;
+}
+
+.badge-factura {
+  background-color: #E0F2FE;
+  color: #0369A1;
+  font-weight: 800;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  display: inline-block;
+  letter-spacing: 0.04em;
+}
+
+.comprobante-tag {
+  color: var(--color-verde-oscuro);
+  letter-spacing: 0.03em;
+  font-size: 0.9rem;
+}
+
+.tipo-doc-badge {
+  background-color: #F1F5F9;
+  color: #475569;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-right: 0.35rem;
+}
+
+.cliente-nombre {
+  font-weight: 700;
+  color: #1F2937;
+  font-size: 0.85rem;
+}
+
+.font-mono {
+  font-family: monospace;
+  font-size: 0.92rem;
+}
+
+.chip-pago {
+  background-color: #F3F4F6;
+  color: #374151;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.chip-estado {
+  padding: 0.2rem 0.55rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.estado-completado {
+  background-color: #DCFCE7;
+  color: #15803D;
+}
+
+.estado-anulado {
+  background-color: #FEE2E2;
+  color: #B91C1C;
+}
+
+/* ==========================================
+   Modal de Ticket de Comprobante
+   ========================================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(11, 61, 56, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.modal-ticket-box {
+  background: #FFFFFF;
+  border-radius: 12px;
+  max-width: 440px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-borde-tarjeta);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-verde-oscuro);
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #9CA3AF;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 1.25rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--color-borde-tarjeta);
+  background: #F9FAFB;
+  border-radius: 0 0 12px 12px;
+}
+
+.ticket-recibo {
+  background: #FFFFFF;
+  padding: 1.25rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+  color: #111111;
+  border: 1px dashed #CBD5E1;
+  border-radius: 6px;
+}
+
+.ticket-recibo-header {
+  text-align: center;
+}
+
+.ticket-recibo-header h4 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 0.2rem 0;
+}
+
+.ticket-recibo-header h5 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0.2rem 0;
+}
+
+.ticket-recibo-header p {
+  margin: 0.15rem 0;
+  font-size: 0.75rem;
+}
+
+.ticket-divider {
+  border-top: 1px dashed #CBD5E1;
+  margin: 0.6rem 0;
+}
+
+.ticket-cliente-info p {
+  margin: 0.15rem 0;
+  font-size: 0.8rem;
+}
+
+.ticket-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin: 0.4rem 0;
+}
+
+.ticket-table th {
+  text-align: left;
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed #CBD5E1;
+  font-weight: 700;
+}
+
+.ticket-table td {
+  padding: 0.25rem 0;
+}
+
+.ticket-totales {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.ticket-totales .fila {
+  display: flex;
+  justify-content: space-between;
+}
+
+.ticket-totales .total-final {
+  font-weight: 800;
+  color: #111827;
+  margin-top: 0.3rem;
+  border-top: 1px dashed #CBD5E1;
+  border-bottom: 1px dashed #CBD5E1;
+  padding: 0.45rem 0;
+  font-size: 1.05rem;
+}
+
+.ticket-footer-text {
+  text-align: center;
+  margin-top: 0.85rem;
+  font-size: 0.75rem;
+}
+
+.ticket-footer-text p {
+  margin: 0.2rem 0;
+  font-weight: 700;
+}
+
+.ticket-hash {
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  color: #64748B;
+}

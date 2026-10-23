@@ -8,7 +8,7 @@
         SISTEMA EN LÍNEA · FARMA OCHENTA (SUCURSAL #1)
       </div>
       <h2>{{ authService.isAdmin() ? 'Panel de Control y Reportes' : (authService.isVendedor() ? 'Mi Dashboard de Ventas' : 'Panel de Inicio') }}</h2>
-      <p class="subtitle">{{ authService.isAdmin() ? 'Visión ejecutiva de ventas, rentabilidad, rotación de productos y auditoría' : (authService.isVendedor() ? 'Resumen acumulado de mis ventas personales, métricas del día y arqueo de turno' : 'Accesos operativos y módulos asignados') }}</p>
+      <p class="subtitle">{{ authService.isAdmin() ? 'Visión ejecutiva de ventas, rentabilidad, rotación de productos y auditoría' : (authService.isVendedor() ? 'Resumen acumulado de mis ventas personales, consulta de comprobantes emitidos y estado de caja' : 'Accesos operativos y módulos asignados') }}</p>
     </div>
 
     <!-- Controles de Periodo (Admin) -->
@@ -117,7 +117,7 @@
 
     </div>
 
-    <!-- 2. Segunda Fila: Desglose por Medio de Pago y Tipos de Comprobante -->
+    <!-- 2. Segunda Fila: Desglose por Medio de Pago y Comprobantes -->
     <div class="dashboard-grid-2cols">
       
       <!-- Distribución por Medio de Pago -->
@@ -172,29 +172,31 @@
         </div>
       </div>
 
-      <!-- Resumen de Comprobantes Emitidos -->
+      <!-- Resumen de Comprobantes Emitidos con Filtros Rápidos -->
       <div class="tarjeta card-comprobantes">
         <div class="card-header-clean">
           <h4>Comprobantes Electrónicos Emitidos</h4>
-          <p class="text-muted">Desglose de Boletas y Facturas emitidas por mí</p>
+          <p class="text-muted">Total de Boletas y Facturas emitidas por mí</p>
         </div>
 
         <div class="comprobantes-summary-grid">
-          <div class="comp-box boleta-box">
+          <div class="comp-box boleta-box cursor-pointer" (click)="cambiarFiltroTipo('BOLETA')">
             <div class="comp-icon">🧾</div>
             <div class="comp-data">
               <span class="comp-label">Boletas de Venta (B001)</span>
               <h3>{{ cantidadBoletasVendedor() }} emitidas</h3>
               <p class="comp-total">S/ {{ totalBoletasVendedor() | number:'1.2-2' }}</p>
+              <small class="comp-click-hint">Click para filtrar boletas ↓</small>
             </div>
           </div>
 
-          <div class="comp-box factura-box">
+          <div class="comp-box factura-box cursor-pointer" (click)="cambiarFiltroTipo('FACTURA')">
             <div class="comp-icon">📑</div>
             <div class="comp-data">
               <span class="comp-label">Facturas con RUC (F001)</span>
               <h3>{{ cantidadFacturasVendedor() }} emitidas</h3>
               <p class="comp-total">S/ {{ totalFacturasVendedor() | number:'1.2-2' }}</p>
+              <small class="comp-click-hint">Click para filtrar facturas ↓</small>
             </div>
           </div>
         </div>
@@ -203,7 +205,7 @@
           <div class="sunat-status-icon">✔</div>
           <div>
             <strong>Emisión Electrónica SUNAT Activa</strong>
-            <p class="text-xs text-muted mb-0">Comprobantes firmados digitalmente e integrados con SUNAT UBL 2.1</p>
+            <p class="text-xs text-muted mb-0">Comprobantes válidos con código hash UBL 2.1 y firma electrónica.</p>
           </div>
         </div>
       </div>
@@ -237,72 +239,121 @@
       </div>
     </div>
 
-    <!-- 4. Cuarta Fila: Historial de Mis Ventas Recientes -->
+    <!-- 4. Cuarta Fila: TABLA OFICIAL DE MIS VENTAS (BOLETAS Y FACTURAS) -->
     <div class="tarjeta card-historial mt-3">
+      
+      <!-- Cabecera de la tabla con pestañas de filtro y buscador -->
       <div class="card-header-clean d-flex-between">
         <div>
-          <h4>Historial de Mis Ventas Recientes</h4>
-          <p class="text-muted">Listado detallado de comprobantes registrados por mi usuario</p>
+          <h4>Registro de Comprobantes Emitidos</h4>
+          <p class="text-muted">Visualice e imprima boletas y facturas emitidas por su usuario</p>
         </div>
+
+        <!-- Filtros por tipo de comprobante -->
+        <div class="filtros-comprobantes-nav">
+          <button 
+            type="button" 
+            class="tab-filtro" 
+            [class.tab-activo]="filtroTipoComprobante() === 'TODOS'"
+            (click)="cambiarFiltroTipo('TODOS')">
+            Todos ({{ misVentas().length }})
+          </button>
+          <button 
+            type="button" 
+            class="tab-filtro" 
+            [class.tab-activo]="filtroTipoComprobante() === 'BOLETA'"
+            (click)="cambiarFiltroTipo('BOLETA')">
+            🧾 Boletas ({{ cantidadBoletasVendedor() }})
+          </button>
+          <button 
+            type="button" 
+            class="tab-filtro" 
+            [class.tab-activo]="filtroTipoComprobante() === 'FACTURA'"
+            (click)="cambiarFiltroTipo('FACTURA')">
+            📑 Facturas ({{ cantidadFacturasVendedor() }})
+          </button>
+        </div>
+
+        <!-- Buscador en tiempo real -->
         <div class="search-box-vendedor">
           <input 
             type="text" 
             [(ngModel)]="filtroBusquedaVenta" 
-            placeholder="Buscar por comprobante, cliente o medio de pago..."
+            placeholder="Buscar por comprobante, cliente o DNI/RUC..."
             class="input-search-clean"/>
         </div>
       </div>
 
+      <!-- Tabla idéntica a la vista oficial con columnas SUNAT -->
       <div class="table-responsive">
         <table class="tabla-farmagest">
           <thead>
             <tr>
+              <th>Fecha / Hora</th>
+              <th>Tipo</th>
               <th>Comprobante</th>
-              <th>Fecha y Hora</th>
-              <th>Cliente</th>
-              <th>Medio de Pago</th>
-              <th class="text-right">Total (PEN)</th>
-              <th class="text-center">SUNAT</th>
-              <th class="text-center">Estado</th>
+              <th>Doc. Cliente (RUC / DNI)</th>
+              <th>Razón Social / Cliente</th>
+              <th class="text-right">Base Imponible</th>
+              <th class="text-right">IGV (18%)</th>
+              <th class="text-right">Total Facturado</th>
+              <th>Pago</th>
+              <th>Estado</th>
+              <th class="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let v of obtenerMisVentasFiltradas()">
+            <tr *ngFor="let v of obtenerMisVentasFiltradas()" class="fila-venta-hover">
+              <td class="text-sm text-muted">
+                {{ v.fechaHora | date:'dd/MM/yyyy' }}<br>
+                <small>{{ v.fechaHora | date:'HH:mm' }}</small>
+              </td>
               <td>
-                <span class="badge-comprobante" [class.badge-factura]="v.tipoComprobante === 'FACTURA'">
-                  {{ v.tipoComprobante === 'FACTURA' ? 'FAC' : 'BOL' }} {{ v.serieComprobante }}-{{ v.numeroComprobante }}
+                <span class="badge" [class.badge-factura]="v.tipoComprobante === 'FACTURA'" [class.badge-boleta]="v.tipoComprobante === 'BOLETA'">
+                  {{ v.tipoComprobante }}
                 </span>
               </td>
-              <td class="text-sm text-muted">{{ v.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
               <td>
-                <div class="cliente-cell">
-                  <strong>{{ v.cliente?.nombresORazonSocial || 'Cliente Mostrador' }}</strong>
-                  <small *ngIf="v.cliente?.numeroDocumento" class="text-muted d-block">
-                    {{ v.cliente?.tipoDocumento }}: {{ v.cliente?.numeroDocumento }}
-                  </small>
-                </div>
+                <strong class="comprobante-tag">{{ v.serieComprobante }}-{{ v.numeroComprobante }}</strong>
               </td>
               <td>
-                <span [ngSwitch]="v.medioPago">
-                  <span *ngSwitchCase="'EFECTIVO'">💵 Efectivo</span>
-                  <span *ngSwitchCase="'TARJETA'">💳 Tarjeta</span>
-                  <span *ngSwitchCase="'YAPE_PLIN'">📱 Yape / Plin</span>
-                  <span *ngSwitchDefault>{{ v.medioPago }}</span>
-                </span>
+                <span class="tipo-doc-badge">{{ v.cliente?.tipoDocumento || 'DNI' }}</span>
+                <code>{{ v.cliente?.numeroDocumento || '00000000' }}</code>
               </td>
-              <td class="text-right font-bold text-teal">
+              <td>
+                <div class="cliente-nombre">{{ v.cliente?.nombresORazonSocial || 'CLIENTE GENÉRICO / VARIOS' }}</div>
+              </td>
+              <td class="text-right font-mono font-bold">
+                S/ {{ v.subtotal | number:'1.2-2' }}
+              </td>
+              <td class="text-right font-mono text-teal font-bold">
+                S/ {{ v.igv | number:'1.2-2' }}
+              </td>
+              <td class="text-right font-mono font-bold text-dark">
                 S/ {{ v.total | number:'1.2-2' }}
               </td>
-              <td class="text-center">
-                <span class="badge-sunat-ok">✔ Aceptada</span>
+              <td>
+                <span class="chip-pago">{{ v.medioPago }}</span>
+              </td>
+              <td>
+                <span class="chip-estado" [class.estado-completado]="v.estado === 'COMPLETADA'" [class.estado-anulado]="v.estado === 'ANULADA'">
+                  {{ v.estado }}
+                </span>
               </td>
               <td class="text-center">
-                <span class="chip chip-optimo">{{ v.estado }}</span>
+                <button 
+                  type="button" 
+                  class="btn-ver-comprobante" 
+                  (click)="abrirComprobante(v)"
+                  title="Ver detalle de Boleta / Factura">
+                  👁 Ver
+                </button>
               </td>
             </tr>
+
             <tr *ngIf="!obtenerMisVentasFiltradas().length">
-              <td colspan="7" class="text-center text-muted py-4">
-                No se encontraron ventas para el criterio de búsqueda.
+              <td colspan="11" class="text-center text-muted py-4">
+                No se encontraron ventas para los filtros seleccionados.
               </td>
             </tr>
           </tbody>
@@ -310,6 +361,116 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: VISOR DE COMPROBANTE ELECTRÓNICO (BOLETA / FACTURA)                -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalComprobanteAbierto() && comprobanteSeleccionado() as venta" class="modal-backdrop" (click)="cerrarModalComprobante()">
+    <div class="modal-box modal-ticket-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Detalle de Comprobante Electrónico</h3>
+        <button type="button" class="modal-close" (click)="cerrarModalComprobante()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="ticket-recibo" id="recibo-imprimible">
+          <div class="ticket-recibo-header">
+            <h4>BOTICA FARMA OCHENTA</h4>
+            <p>FARMAGEST S.A.C.</p>
+            <p>RUC: 20000000001</p>
+            <p>Av. Nicolás Ayllón 1497, Ate - Lima</p>
+            <div class="ticket-divider"></div>
+            <h5>{{ venta.tipoComprobante }} ELECTRÓNICA</h5>
+            <h4>{{ venta.serieComprobante }}-{{ venta.numeroComprobante }}</h4>
+            <div style="text-align: center; margin: 6px 0;">
+              <span class="badge-sunat-ok">
+                ✔ SUNAT: ACEPTADA
+              </span>
+            </div>
+            <p>Fecha: {{ venta.fechaHora | date:'dd/MM/yyyy HH:mm' }}</p>
+            <p>Atendido por: {{ venta.nombreVendedor || authService.currentUser()?.nombres }}</p>
+            <div class="ticket-divider"></div>
+            <div class="ticket-cliente-info">
+              <p><strong>Cliente:</strong> {{ venta.cliente?.nombresORazonSocial || 'CLIENTE GENÉRICO / VARIOS' }}</p>
+              <p><strong>{{ venta.cliente?.tipoDocumento || 'DNI' }}:</strong> {{ venta.cliente?.numeroDocumento || '00000000' }}</p>
+              <p *ngIf="venta.cliente?.direccion"><strong>Dirección:</strong> {{ venta.cliente?.direccion }}</p>
+            </div>
+            <div class="ticket-divider"></div>
+          </div>
+
+          <!-- Tabla de Productos del comprobante -->
+          <table class="ticket-table">
+            <thead>
+              <tr>
+                <th>Cant.</th>
+                <th>Descripción</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let det of venta.detalles">
+                <td>{{ det.cantidad }}</td>
+                <td>{{ det.nombreProducto || 'Medicamento #' + det.productoId }}</td>
+                <td class="text-right">S/ {{ det.subtotalLinea | number:'1.2-2' }}</td>
+              </tr>
+              <tr *ngIf="!venta.detalles || !venta.detalles.length">
+                <td colspan="3" class="text-center text-muted" style="padding: 6px 0;">
+                  Detalle de medicamentos procesados en comprobante.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="ticket-divider"></div>
+
+          <!-- Totales e Impuestos -->
+          <div class="ticket-totales">
+            <div class="fila">
+              <span>Op. Gravada (Base):</span>
+              <span>S/ {{ venta.subtotal | number:'1.2-2' }}</span>
+            </div>
+            <div *ngIf="venta.montoDescuento > 0" class="fila text-danger">
+              <span>Descuento aplicado:</span>
+              <span>- S/ {{ venta.montoDescuento | number:'1.2-2' }}</span>
+            </div>
+            <div class="fila">
+              <span>I.G.V. (18%):</span>
+              <span>S/ {{ venta.igv | number:'1.2-2' }}</span>
+            </div>
+            <div class="fila total-final">
+              <span>TOTAL A PAGAR:</span>
+              <strong>S/ {{ venta.total | number:'1.2-2' }}</strong>
+            </div>
+            <div class="fila">
+              <span>Medio de Pago:</span>
+              <span>{{ venta.medioPago }}</span>
+            </div>
+            <div *ngIf="venta.medioPago === 'EFECTIVO' && venta.montoRecibido" class="fila">
+              <span>Efectivo Recibido:</span>
+              <span>S/ {{ venta.montoRecibido | number:'1.2-2' }}</span>
+            </div>
+            <div *ngIf="venta.medioPago === 'EFECTIVO' && venta.vuelto" class="fila">
+              <span>Vuelto:</span>
+              <strong>S/ {{ venta.vuelto | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <div class="ticket-footer-text">
+            <p>¡Gracias por su compra en Botica Farma Ochenta!</p>
+            <small>Representación impresa de la {{ venta.tipoComprobante }} Electrónica</small>
+            <div class="ticket-hash">
+              <code>HASH: 7a8f9c2d1e0b5a4f</code>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="cerrarModalComprobante()">Cerrar</button>
+        <button type="button" class="btn btn-primary" (click)="imprimirComprobante()">🖨 Imprimir Comprobante</button>
+      </div>
+    </div>
   </div>
 
   <!-- ========================================================================= -->
