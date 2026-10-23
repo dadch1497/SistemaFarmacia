@@ -7,56 +7,342 @@
         <span class="pulse-dot"></span>
         SISTEMA EN LÍNEA · FARMA OCHENTA (SUCURSAL #1)
       </div>
-      <h2>Panel de Control y Reportes</h2>
-      <p class="subtitle">Visión ejecutiva de ventas, rentabilidad, rotación de productos y auditoría</p>
+      <h2>{{ authService.isAdmin() ? 'Panel de Control y Reportes' : (authService.isVendedor() ? 'Mi Dashboard de Ventas' : 'Panel de Inicio') }}</h2>
+      <p class="subtitle">{{ authService.isAdmin() ? 'Visión ejecutiva de ventas, rentabilidad, rotación de productos y auditoría' : (authService.isVendedor() ? 'Resumen acumulado de mis ventas personales, métricas del día y arqueo de turno' : 'Accesos operativos y módulos asignados') }}</p>
     </div>
 
-    <!-- Controles de Periodo -->
+    <!-- Controles de Periodo (Admin) -->
     <div class="periodo-selector" *ngIf="authService.isAdmin()">
+      <button class="btn-periodo" [class.activo]="periodoSeleccionado === 'hoy'" (click)="cambiarPeriodo('hoy')">Hoy</button>
+      <button class="btn-periodo" [class.activo]="periodoSeleccionado === 'semana'" (click)="cambiarPeriodo('semana')">Semana</button>
+      <button class="btn-periodo" [class.activo]="periodoSeleccionado === 'mes'" (click)="cambiarPeriodo('mes')">Mes</button>
+      <button class="btn-periodo" [class.activo]="periodoSeleccionado === 'anio'" (click)="cambiarPeriodo('anio')">Año</button>
       <button class="btn btn-secondary btn-refresh" (click)="cargarDatosDashboard()">
         ↻ Actualizar
       </button>
     </div>
+
+    <!-- Controles Vendedor -->
+    <div class="vendedor-header-actions" *ngIf="authService.isVendedor()">
+      <button class="btn btn-secondary btn-refresh" (click)="actualizarDatos()">
+        ↻ Actualizar
+      </button>
+      <a routerLink="/pos" class="btn btn-primary btn-go-pos">
+        🛒 Ir a Vender (POS)
+      </a>
+    </div>
   </div>
 
-  <!-- Vista para Roles no Administradores (Vendedor / Almacenero) -->
-  <div *ngIf="!authService.isAdmin()" class="non-admin-view">
-    <div class="tarjeta welcome-box">
-      <h3>Bienvenido a FarmaGest, {{ authService.currentUser()?.nombres }}</h3>
-      <p>Has iniciado sesión con el rol <strong>{{ authService.currentUser()?.rolPrincipal }}</strong>.</p>
+  <!-- Estado de Carga / Error General -->
+  <div *ngIf="cargando()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando información y calculando métricas...</p>
+  </div>
+
+  <div *ngIf="errorMensaje()" class="alert-box alert-error">
+    {{ errorMensaje() }}
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- VISTA DEDICADA PARA VENDEDOR: REPORTE Y DASHBOARD PERSONAL ACUMULADO      -->
+  <!-- ========================================================================= -->
+  <div *ngIf="!cargando() && authService.isVendedor()" class="vendedor-dashboard">
+
+    <!-- 1. Fila de KPIs del Vendedor -->
+    <div class="kpis-grid">
+
+      <!-- Ventas Acumuladas -->
+      <div class="tarjeta kpi-card highlight-card">
+        <div class="kpi-top">
+          <span class="kpi-title">MIS VENTAS ACUMULADAS</span>
+          <span class="kpi-tag positive">{{ cantidadTotalVentasVendedor() }} ventas</span>
+        </div>
+        <div class="kpi-main">
+          <h3>S/ {{ totalAcumuladoVendedor() | number:'1.2-2' }}</h3>
+        </div>
+        <div class="kpi-footer">
+          <span>Total acumulado de mis ventas en el sistema</span>
+        </div>
+      </div>
+
+      <!-- Ventas Hoy -->
+      <div class="tarjeta kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-title">MIS VENTAS DE HOY</span>
+          <span class="kpi-tag chip-optimo">{{ cantidadHoyVendedor() }} tickets</span>
+        </div>
+        <div class="kpi-main">
+          <h3>S/ {{ totalHoyVendedor() | number:'1.2-2' }}</h3>
+        </div>
+        <div class="kpi-footer">
+          <span>Facturado por mí en la fecha de hoy</span>
+        </div>
+      </div>
+
+      <!-- Ticket Promedio -->
+      <div class="tarjeta kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-title">TICKET PROMEDIO</span>
+          <span class="kpi-count">Por venta</span>
+        </div>
+        <div class="kpi-main">
+          <h3>S/ {{ ticketPromedioVendedor() | number:'1.2-2' }}</h3>
+        </div>
+        <div class="kpi-footer">
+          <span>Monto promedio por cliente atendido</span>
+        </div>
+      </div>
+
+      <!-- Estado de Turno / Caja -->
+      <div class="tarjeta kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-title">MI TURNO DE CAJA</span>
+          <span class="kpi-tag" [ngClass]="miTurnoCaja() ? 'chip-optimo' : 'chip-critico'">
+            {{ miTurnoCaja() ? 'ABIERTA' : 'CERRADA' }}
+          </span>
+        </div>
+        <div class="kpi-main">
+          <h3 *ngIf="miTurnoCaja() as turno" style="font-size: 1.25rem;">{{ turno.nombreCaja }}</h3>
+          <h3 *ngIf="!miTurnoCaja()" style="font-size: 1.15rem; color: #ef4444;">Sin turno activo</h3>
+        </div>
+        <div class="kpi-footer">
+          <span *ngIf="miTurnoCaja() as turno">
+            Fondo: S/ {{ turno.montoApertura | number:'1.2-2' }} · Cobrado: S/ {{ (turno.totalVentasGeneral || 0) | number:'1.2-2' }}
+          </span>
+          <span *ngIf="!miTurnoCaja()">
+            <a routerLink="/pos" class="text-link">Abrir caja en el POS →</a>
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 2. Segunda Fila: Desglose por Medio de Pago y Tipos de Comprobante -->
+    <div class="dashboard-grid-2cols">
       
-      <div class="operational-shortcuts">
-        <div *ngIf="authService.isVendedor()" class="shortcut-card">
-          <div class="icon-wrap">🛒</div>
-          <h4>Punto de Venta (POS)</h4>
-          <p>Realiza ventas rápidas en mostrador, emisión de boletas/facturas y cobra en efectivo o billetera digital.</p>
-          <a routerLink="/pos" class="btn btn-primary">Ir al POS Mostrador</a>
+      <!-- Distribución por Medio de Pago -->
+      <div class="tarjeta card-pagos">
+        <div class="card-header-clean">
+          <h4>Mis Ventas por Medio de Pago</h4>
+          <p class="text-muted">Total acumulado recaudado por cada modalidad de cobro</p>
         </div>
 
-        <div *ngIf="authService.isAlmacenero()" class="shortcut-card">
+        <div class="pagos-list">
+          <!-- Efectivo -->
+          <div class="pago-item">
+            <div class="pago-info">
+              <div class="pago-badge">💵 Efectivo</div>
+              <strong>S/ {{ ventasEfectivoVendedor() | number:'1.2-2' }}</strong>
+            </div>
+            <div class="pago-bar-track">
+              <div class="pago-bar-fill" [style.width.%]="totalAcumuladoVendedor() > 0 ? (ventasEfectivoVendedor() / totalAcumuladoVendedor()) * 100 : 0"></div>
+            </div>
+            <div class="pago-pct-label">
+              {{ (totalAcumuladoVendedor() > 0 ? (ventasEfectivoVendedor() / totalAcumuladoVendedor()) * 100 : 0) | number:'1.1-1' }}% del total
+            </div>
+          </div>
+
+          <!-- Tarjeta -->
+          <div class="pago-item">
+            <div class="pago-info">
+              <div class="pago-badge">💳 Tarjeta Débito/Crédito</div>
+              <strong>S/ {{ ventasTarjetaVendedor() | number:'1.2-2' }}</strong>
+            </div>
+            <div class="pago-bar-track">
+              <div class="pago-bar-fill" style="background: #3b82f6;" [style.width.%]="totalAcumuladoVendedor() > 0 ? (ventasTarjetaVendedor() / totalAcumuladoVendedor()) * 100 : 0"></div>
+            </div>
+            <div class="pago-pct-label">
+              {{ (totalAcumuladoVendedor() > 0 ? (ventasTarjetaVendedor() / totalAcumuladoVendedor()) * 100 : 0) | number:'1.1-1' }}% del total
+            </div>
+          </div>
+
+          <!-- Yape / Plin -->
+          <div class="pago-item">
+            <div class="pago-info">
+              <div class="pago-badge">📱 Yape / Plin</div>
+              <strong>S/ {{ ventasYapeVendedor() | number:'1.2-2' }}</strong>
+            </div>
+            <div class="pago-bar-track">
+              <div class="pago-bar-fill" style="background: #8b5cf6;" [style.width.%]="totalAcumuladoVendedor() > 0 ? (ventasYapeVendedor() / totalAcumuladoVendedor()) * 100 : 0"></div>
+            </div>
+            <div class="pago-pct-label">
+              {{ (totalAcumuladoVendedor() > 0 ? (ventasYapeVendedor() / totalAcumuladoVendedor()) * 100 : 0) | number:'1.1-1' }}% del total
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de Comprobantes Emitidos -->
+      <div class="tarjeta card-comprobantes">
+        <div class="card-header-clean">
+          <h4>Comprobantes Electrónicos Emitidos</h4>
+          <p class="text-muted">Desglose de Boletas y Facturas emitidas por mí</p>
+        </div>
+
+        <div class="comprobantes-summary-grid">
+          <div class="comp-box boleta-box">
+            <div class="comp-icon">🧾</div>
+            <div class="comp-data">
+              <span class="comp-label">Boletas de Venta (B001)</span>
+              <h3>{{ cantidadBoletasVendedor() }} emitidas</h3>
+              <p class="comp-total">S/ {{ totalBoletasVendedor() | number:'1.2-2' }}</p>
+            </div>
+          </div>
+
+          <div class="comp-box factura-box">
+            <div class="comp-icon">📑</div>
+            <div class="comp-data">
+              <span class="comp-label">Facturas con RUC (F001)</span>
+              <h3>{{ cantidadFacturasVendedor() }} emitidas</h3>
+              <p class="comp-total">S/ {{ totalFacturasVendedor() | number:'1.2-2' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sunat-status-card mt-3">
+          <div class="sunat-status-icon">✔</div>
+          <div>
+            <strong>Emisión Electrónica SUNAT Activa</strong>
+            <p class="text-xs text-muted mb-0">Comprobantes firmados digitalmente e integrados con SUNAT UBL 2.1</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3. Tercera Fila: Gráfico de Mis Ventas en los Últimos 7 Días -->
+    <div class="tarjeta chart-card" *ngIf="ventasUltimos7DiasVendedor().length > 0">
+      <div class="card-header-clean">
+        <div>
+          <h4>Mis Ventas Diarias (Últimos 7 Días)</h4>
+          <p class="text-muted">Evolución de ventas y actividad comercial reciente</p>
+        </div>
+      </div>
+
+      <div class="bar-chart-container">
+        <div class="bar-col" *ngFor="let item of ventasUltimos7DiasVendedor()">
+          <div class="bar-val">S/ {{ item.monto | number:'1.0-0' }}</div>
+          <div class="bar-track">
+            <div 
+              class="bar-fill" 
+              [class.bar-peak]="item.monto > 0"
+              [style.height.%]="getBarHeightPercentageVendedor(item.monto)">
+            </div>
+          </div>
+          <div class="bar-label">
+            {{ item.dia }}<br>
+            <small class="text-muted">{{ item.fecha }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Cuarta Fila: Historial de Mis Ventas Recientes -->
+    <div class="tarjeta card-historial mt-3">
+      <div class="card-header-clean d-flex-between">
+        <div>
+          <h4>Historial de Mis Ventas Recientes</h4>
+          <p class="text-muted">Listado detallado de comprobantes registrados por mi usuario</p>
+        </div>
+        <div class="search-box-vendedor">
+          <input 
+            type="text" 
+            [(ngModel)]="filtroBusquedaVenta" 
+            placeholder="Buscar por comprobante, cliente o medio de pago..."
+            class="input-search-clean"/>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="tabla-farmagest">
+          <thead>
+            <tr>
+              <th>Comprobante</th>
+              <th>Fecha y Hora</th>
+              <th>Cliente</th>
+              <th>Medio de Pago</th>
+              <th class="text-right">Total (PEN)</th>
+              <th class="text-center">SUNAT</th>
+              <th class="text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let v of obtenerMisVentasFiltradas()">
+              <td>
+                <span class="badge-comprobante" [class.badge-factura]="v.tipoComprobante === 'FACTURA'">
+                  {{ v.tipoComprobante === 'FACTURA' ? 'FAC' : 'BOL' }} {{ v.serieComprobante }}-{{ v.numeroComprobante }}
+                </span>
+              </td>
+              <td class="text-sm text-muted">{{ v.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <div class="cliente-cell">
+                  <strong>{{ v.cliente?.nombresORazonSocial || 'Cliente Mostrador' }}</strong>
+                  <small *ngIf="v.cliente?.numeroDocumento" class="text-muted d-block">
+                    {{ v.cliente?.tipoDocumento }}: {{ v.cliente?.numeroDocumento }}
+                  </small>
+                </div>
+              </td>
+              <td>
+                <span [ngSwitch]="v.medioPago">
+                  <span *ngSwitchCase="'EFECTIVO'">💵 Efectivo</span>
+                  <span *ngSwitchCase="'TARJETA'">💳 Tarjeta</span>
+                  <span *ngSwitchCase="'YAPE_PLIN'">📱 Yape / Plin</span>
+                  <span *ngSwitchDefault>{{ v.medioPago }}</span>
+                </span>
+              </td>
+              <td class="text-right font-bold text-teal">
+                S/ {{ v.total | number:'1.2-2' }}
+              </td>
+              <td class="text-center">
+                <span class="badge-sunat-ok">✔ Aceptada</span>
+              </td>
+              <td class="text-center">
+                <span class="chip chip-optimo">{{ v.estado }}</span>
+              </td>
+            </tr>
+            <tr *ngIf="!obtenerMisVentasFiltradas().length">
+              <td colspan="7" class="text-center text-muted py-4">
+                No se encontraron ventas para el criterio de búsqueda.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- VISTA PARA ALMACENERO (ACCESOS OPERATIVOS)                                 -->
+  <!-- ========================================================================= -->
+  <div *ngIf="!cargando() && authService.isAlmacenero()" class="non-admin-view">
+    <div class="tarjeta welcome-box">
+      <h3>Bienvenido a FarmaGest, {{ authService.currentUser()?.nombres }}</h3>
+      <p>Has iniciado sesión con el rol <strong>Almacenero</strong>.</p>
+      
+      <div class="operational-shortcuts">
+        <div class="shortcut-card">
           <div class="icon-wrap">📦</div>
-          <h4>Control de Inventario</h4>
+          <h4>Control de Inventario & FEFO</h4>
           <p>Verifica existencias por lote, control de vencimientos a 30/60/90 días y recepción de mercadería.</p>
           <a routerLink="/inventario" class="btn btn-primary">Ver Inventario & FEFO</a>
+        </div>
+        <div class="shortcut-card">
+          <div class="icon-wrap">🚚</div>
+          <h4>Ingreso de Mercadería</h4>
+          <p>Registra ingresos de órdenes de compra con control de lotes y fechas de expiración.</p>
+          <a routerLink="/compras/ingreso" class="btn btn-secondary">Registrar Ingreso</a>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Vista Ejecutiva de Administrador -->
-  <div *ngIf="authService.isAdmin()">
+  <!-- ========================================================================= -->
+  <!-- VISTA EJECUTIVA DE ADMINISTRADOR                                          -->
+  <!-- ========================================================================= -->
+  <div *ngIf="!cargando() && authService.isAdmin()">
 
-    <!-- Estado de Carga / Error -->
-    <div *ngIf="cargando()" class="loading-state">
-      <div class="spinner"></div>
-      <p>Calculando estadísticas y métricas analíticas...</p>
-    </div>
-
-    <div *ngIf="errorMensaje()" class="alert-box alert-error">
-      {{ errorMensaje() }}
-    </div>
-
-    <div *ngIf="!cargando() && dashboardData() as data" class="dashboard-content">
+    <div *ngIf="dashboardData() as data" class="dashboard-content">
 
       <!-- 1. Tarjetas de KPIs (Fila Superior) -->
       <div class="kpis-grid">

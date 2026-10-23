@@ -27,9 +27,8 @@ export class MainLayoutComponent {
   });
 
   menuPrincipal: MenuItem[] = [
-    { titulo: 'Dashboard', ruta: '/dashboard', icono: 'grid', roles: ['ROLE_ADMINISTRADOR'] },
+    { titulo: 'Dashboard', ruta: '/dashboard', icono: 'grid', roles: ['ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR'] },
     { titulo: 'Ventas (POS)', ruta: '/pos', icono: 'shopping-cart', roles: ['ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR'] },
-    { titulo: 'Mis ventas', ruta: '/pos/mis-ventas', icono: 'file-text', roles: ['ROLE_VENDEDOR'] },
     { titulo: 'Productos', ruta: '/productos', icono: 'package', roles: ['ROLE_ADMINISTRADOR'] },
     { titulo: 'Consultar stock', ruta: '/productos/consulta', icono: 'search', roles: ['ROLE_VENDEDOR'] },
     { titulo: 'Inventario', ruta: '/inventario', icono: 'layers', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO'] },

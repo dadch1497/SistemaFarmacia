@@ -24,7 +24,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: HomeComponent },
       { path: 'pos', component: PosComponent },
-      { path: 'pos/mis-ventas', component: PosComponent },
+      { path: 'pos/mis-ventas', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'productos', component: ProductosComponent },
       { path: 'productos/consulta', component: ProductosComponent },
       { path: 'inventario', component: InventarioComponent },
