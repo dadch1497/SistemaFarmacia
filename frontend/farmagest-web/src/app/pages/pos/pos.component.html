@@ -200,6 +200,14 @@
           Seleccione la caja física asignada e ingrese el saldo inicial en efectivo para el fondo de cambio.
         </p>
         <div class="form-group mb-3">
+          <label>Caja Física Asignada *</label>
+          <select [(ngModel)]="cajaSeleccionadaId" class="input font-bold">
+            <option *ngFor="let c of cajasDisponibles()" [ngValue]="c.id">
+              {{ c.nombre }} ({{ c.codigo }})
+            </option>
+          </select>
+        </div>
+        <div class="form-group mb-3">
           <label>Monto Inicial en Efectivo (PEN) *</label>
           <input type="number" [(ngModel)]="montoAperturaInput" step="10.00" min="0" class="input font-bold"/>
         </div>

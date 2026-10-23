@@ -49,17 +49,22 @@ public class CajaService {
     public SesionCajaDto aperturaCaja(AperturaCajaRequest request, Long usuarioId) {
         Integer sucursalId = request.getSucursalId() != null ? request.getSucursalId() : 1;
 
-        // Validar si el usuario ya tiene un turno abierto
-        sesionCajaRepository.findFirstByUsuarioIdAndSucursalIdAndEstado(usuarioId, sucursalId, EstadoSesionCaja.ABIERTA)
-                .ifPresent(s -> {
-                    throw new IllegalStateException("El usuario ya tiene una sesión de caja abierta (ID: " + s.getId() + ")");
-                });
+        // Si el usuario ya tiene un turno abierto en esta sucursal, devolvemos su sesión activa
+        var sesionUsuario = sesionCajaRepository.findFirstByUsuarioIdAndSucursalIdAndEstado(usuarioId, sucursalId, EstadoSesionCaja.ABIERTA);
+        if (sesionUsuario.isPresent()) {
+            return mapearADtoConResumenVentas(sesionUsuario.get());
+        }
 
-        // Validar si la caja física ya está abierta por otro vendedor
-        sesionCajaRepository.findCajaAbierta(request.getCajaId())
-                .ifPresent(s -> {
-                    throw new IllegalStateException("La caja física '" + s.getCaja().getNombre() + "' ya está abierta por otro vendedor");
-                });
+        // Validar si la caja física seleccionada ya está abierta por otro vendedor
+        var sesionCajaFisica = sesionCajaRepository.findCajaAbierta(request.getCajaId());
+        if (sesionCajaFisica.isPresent()) {
+            SesionCaja abierta = sesionCajaFisica.get();
+            if (abierta.getUsuarioId().equals(usuarioId)) {
+                return mapearADtoConResumenVentas(abierta);
+            } else {
+                throw new IllegalStateException("La caja física '" + abierta.getCaja().getNombre() + "' ya está abierta por otro vendedor");
+            }
+        }
 
         Caja caja = cajaRepository.findById(request.getCajaId())
                 .orElseThrow(() -> new IllegalArgumentException("Caja no encontrada con ID: " + request.getCajaId()));

@@ -48,6 +48,7 @@ export class PosComponent implements OnInit {
   // Caja y turno
   cajaActiva = signal<SesionCaja | null>(null);
   cajasDisponibles = signal<Caja[]>([]);
+  cajaSeleccionadaId: number = 1;
   modalAperturaAbierto: boolean = false;
   modalCierreAbierto: boolean = false;
   montoAperturaInput: number = 100.00;
@@ -662,6 +663,9 @@ export class PosComponent implements OnInit {
   abrirModalApertura(): void {
     this.montoAperturaInput = 100.00;
     this.observacionesCajaInput = '';
+    if (this.cajasDisponibles().length > 0) {
+      this.cajaSeleccionadaId = this.cajasDisponibles()[0].id;
+    }
     this.modalAperturaAbierto = true;
   }
 
@@ -671,7 +675,7 @@ export class PosComponent implements OnInit {
       return;
     }
 
-    const cajaId = this.cajasDisponibles()[0].id;
+    const cajaId = Number(this.cajaSeleccionadaId) || this.cajasDisponibles()[0].id;
 
     this.cargando.set(true);
     this.ventasService.aperturaCaja({
