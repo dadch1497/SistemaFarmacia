@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,29 +14,31 @@ import { AuthService } from '../../core/services/auth.service';
 export class LoginComponent {
   username = '';
   password = '';
-  cargando = false;
-  errorMensaje = '';
+  cargando = signal<boolean>(false);
+  errorMensaje = signal<string>('');
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   onSubmit(): void {
     if (!this.username.trim() || !this.password.trim()) {
-      this.errorMensaje = 'Por favor ingresa usuario y contraseña.';
+      this.errorMensaje.set('Por favor ingresa usuario y contraseña.');
       return;
     }
 
-    this.cargando = true;
-    this.errorMensaje = '';
+    this.cargando.set(true);
+    this.errorMensaje.set('');
 
     this.authService.login({
       username: this.username.trim(),
       password: this.password
     }).subscribe({
       next: (res) => {
-        this.cargando = false;
+        this.cargando.set(false);
+        this.cdr.detectChanges();
         // Redirige según el rol principal
         if (res.usuario.roles.includes('ROLE_ADMINISTRADOR')) {
           this.router.navigate(['/dashboard']);
@@ -49,14 +51,15 @@ export class LoginComponent {
         }
       },
       error: (err) => {
-        this.cargando = false;
+        this.cargando.set(false);
         if (err.status === 401) {
-          this.errorMensaje = 'Usuario o contraseña incorrectos. Verifica tus credenciales.';
+          this.errorMensaje.set('Usuario o contraseña incorrectos. Verifica tus credenciales.');
         } else if (err.status === 0) {
-          this.errorMensaje = 'No se pudo conectar con el servidor (Gateway / ms-auth).';
+          this.errorMensaje.set('No se pudo conectar con el servidor (Gateway / ms-auth).');
         } else {
-          this.errorMensaje = err.error?.message || 'Error al iniciar sesión.';
+          this.errorMensaje.set(err.error?.message || 'Error al iniciar sesión.');
         }
+        this.cdr.detectChanges();
       }
     });
   }
@@ -64,6 +67,7 @@ export class LoginComponent {
   cargarCredencialDemo(user: string, pass: string): void {
     this.username = user;
     this.password = pass;
-    this.errorMensaje = '';
+    this.errorMensaje.set('');
+    this.cdr.detectChanges();
   }
 }
