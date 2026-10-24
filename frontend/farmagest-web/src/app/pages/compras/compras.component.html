@@ -471,10 +471,17 @@
         </div>
 
         <!-- Fila para agregar ítem de recepción -->
+        <app-barcode-photo
+          [puedeRegistrar]="esAdmin"
+          (productoSeleccionado)="seleccionarProductoPorCodigo($event)"
+          (productoEscaneado)="agregarProductoEscaneado($event)"
+          (ocupadoCambio)="leyendoCodigo = $event"/>
+        <p *ngIf="avisoEscaneo()" class="modal-prod-info mb-3" role="status">{{ avisoEscaneo() }}</p>
         <div class="add-item-row-recepcion">
           <div class="form-group flex-2">
             <label>Producto *</label>
             <select [(ngModel)]="itemIngresoTemporal.productoId" (change)="alCambiarProductoIngresoTemporal()" class="input">
+              <option [ngValue]="null">Seleccione un producto</option>
               <option *ngFor="let prod of productos()" [value]="prod.id">
                 {{ prod.nombre }} ({{ prod.presentacion }})
               </option>
@@ -498,7 +505,7 @@
           </div>
           <div class="form-group btn-col">
             <label>&nbsp;</label>
-            <button class="btn btn-primary" (click)="agregarItemIngreso()">+ Agregar</button>
+            <button class="btn btn-primary" (click)="agregarItemIngreso()" [disabled]="leyendoCodigo || !itemIngresoTemporal.productoId">+ Agregar</button>
           </div>
         </div>
 
@@ -544,7 +551,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" (click)="modalIngresoAbierto = false">Cancelar</button>
-        <button class="btn btn-primary" (click)="guardarIngreso()">Confirmar Recepción y Actualizar Stock</button>
+        <button class="btn btn-primary" (click)="guardarIngreso()" [disabled]="leyendoCodigo || cargando()">Confirmar Recepción y Actualizar Stock</button>
       </div>
     </div>
   </div>

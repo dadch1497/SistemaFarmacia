@@ -1,0 +1,37 @@
+<section class="photo-scanner" aria-label="Buscar producto por código de barras" [attr.aria-busy]="ocupado()">
+  <div class="scanner-heading">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 8V4h4m8 0h4v4M4 16v4h4m8 0h4v-4M8 8v8m3-8v8m3-8v8m3-8v8"/></svg>
+    <div><h4>{{ soloCodigo ? 'Completar código de barras' : 'Buscar con código de barras' }}</h4><p>Acerca el código a la cámara para reconocerlo automáticamente, o sube una foto.</p></div>
+  </div>
+  <input #archivo type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="seleccionarFoto($event)" [disabled]="ocupado()" aria-label="Subir foto del código de barras"/>
+  <div class="scanner-actions">
+    <button type="button" class="photo-button primary" (click)="abrirCamara()" [disabled]="ocupado()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 6h4l2-3h4l2 3h4v15H4Z"/><circle cx="12" cy="13" r="4"/></svg>Escanear con cámara</button>
+    <button type="button" class="photo-button" (click)="archivo.click()" [disabled]="ocupado()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 15v6h16v-6"/></svg>Subir foto</button>
+    <button *ngIf="codigo || preview || error()" type="button" class="photo-button clear" (click)="limpiar()">Limpiar</button>
+  </div>
+  <p class="photo-help">La cámara lee el código automáticamente, sin pulsar Capturar. También puedes subir JPG, PNG o WebP de hasta 12 MB.</p>
+  <div class="camera-panel" [hidden]="!camaraAbierta()">
+    <label *ngIf="camaras().length > 1" for="camara-recepcion">Cámara
+      <select id="camara-recepcion" [(ngModel)]="camaraId" (change)="cambiarCamara()" [disabled]="!camaraLista()">
+        <option *ngFor="let camara of camaras(); let i = index" [value]="camara.deviceId">{{ camara.label || 'Cámara ' + (i + 1) }}</option>
+      </select>
+    </label>
+    <video #videoCamara autoplay muted playsinline aria-label="Vista previa del escáner automático de códigos de barras"></video>
+    <div class="camera-actions"><span class="live-status" role="status">{{ camaraLista() ? 'Escaneando automáticamente…' : 'Preparando cámara…' }}</span><button type="button" class="photo-button" (click)="cerrarCamara()">Cerrar cámara</button></div>
+    <p class="photo-help">Mantén visibles los dos extremos del código. Se leerá una sola vez y la cámara se cerrará para evitar duplicados.</p>
+  </div>
+  <div *ngIf="preview" class="photo-preview"><img [src]="preview" alt="Foto seleccionada para leer el código de barras"/><span>{{ nombreFoto }}</span></div>
+  <form *ngIf="!soloCodigo" class="manual-code" (submit)="buscarManual($event)">
+    <label for="codigo-recepcion">Código leído o ingreso manual</label>
+    <div><input id="codigo-recepcion" name="codigo" type="text" [(ngModel)]="codigo" maxlength="128" autocomplete="off" spellcheck="false" [disabled]="ocupado()" placeholder="Ej. 7751234567890"/><button type="submit" class="photo-button" [disabled]="ocupado() || !codigo.trim()">Buscar producto</button></div>
+  </form>
+  <p *ngIf="mensaje()" class="scanner-message" role="status">{{ mensaje() }}</p>
+  <p *ngIf="error()" class="scanner-error" role="alert">{{ error() }}</p>
+  <div *ngIf="producto() as seleccionado" class="scanner-product"><strong>{{ seleccionado.nombre }}</strong><span>{{ seleccionado.presentacion }} · Código {{ seleccionado.codigoBarras }}</span></div>
+  <div *ngIf="noEncontrado()" class="scanner-register">
+    <a *ngIf="puedeRegistrar" [routerLink]="['/productos']" [queryParams]="{ codigoBarras: codigo }" target="_blank" rel="noopener">Registrar este producto (otra pestaña)</a>
+    <p *ngIf="!puedeRegistrar">Solicita a un administrador que registre el producto con este código.</p>
+    <p *ngIf="puedeRegistrar">Al terminar el registro, vuelve aquí y pulsa “Buscar producto”. Tu recepción permanece en esta pestaña.</p>
+  </div>
+  <p class="photo-privacy">La foto se lee en este dispositivo y no se envía al servidor. Escanear no registra productos ni modifica el stock.</p>
+</section>

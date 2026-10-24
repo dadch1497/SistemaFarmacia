@@ -359,10 +359,13 @@
         <button class="modal-close" (click)="cerrarModalNuevo()">&times;</button>
       </div>
       <div class="modal-body">
+        <app-barcode-photo [soloCodigo]="true"
+          (codigoLeido)="nuevoProductoForm.codigoBarras = $event"
+          (ocupadoCambio)="leyendoCodigo = $event" />
         <div class="form-grid">
           <div class="form-group">
-            <label>Código de Barras / EAN *</label>
-            <input type="text" class="input" placeholder="775..." [(ngModel)]="nuevoProductoForm.codigoBarras" />
+            <label for="nuevo-codigo">Código de Barras / EAN *</label>
+            <input id="nuevo-codigo" type="text" maxlength="128" [disabled]="leyendoCodigo" class="input" placeholder="775..." [(ngModel)]="nuevoProductoForm.codigoBarras" />
           </div>
           <div class="form-group">
             <label>Nombre Comercial *</label>
@@ -377,8 +380,13 @@
             <input type="text" class="input" placeholder="Ej: 500 mg" [(ngModel)]="nuevoProductoForm.concentracion" />
           </div>
           <div class="form-group">
-            <label>Presentación *</label>
-            <input type="text" class="input" placeholder="Ej: Caja x 30 cápsulas" [(ngModel)]="nuevoProductoForm.presentacion" />
+            <label for="tipo-presentacion">Presentación *</label>
+            <select id="tipo-presentacion" class="input" [(ngModel)]="tipoPresentacion" (ngModelChange)="actualizarPresentacion()">
+              <option *ngFor="let tipo of presentaciones" [value]="tipo">{{ tipo }}</option>
+            </select>
+            <label for="detalle-presentacion">{{ tipoPresentacion === 'Otra' ? 'Especifica la presentación *' : 'Contenido o detalle (opcional)' }}</label>
+            <input id="detalle-presentacion" type="text" class="input" maxlength="150" placeholder="Ej: 400 ml, x 12 unidades o x 30 tabletas" [(ngModel)]="detallePresentacion" (ngModelChange)="actualizarPresentacion()" />
+            <small>Se registrará: {{ nuevoProductoForm.presentacion || 'Completa la presentación' }}. Los precios corresponden a esta presentación.</small>
           </div>
           <div class="form-group">
             <label>Categoría *</label>
@@ -410,7 +418,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="cerrarModalNuevo()">Cancelar</button>
-        <button class="btn btn-primary" (click)="guardarNuevoProducto()">Guardar Medicamento</button>
+        <button class="btn btn-primary" [disabled]="leyendoCodigo || cargando()" (click)="guardarNuevoProducto()">Guardar Producto</button>
       </div>
     </div>
   </div>

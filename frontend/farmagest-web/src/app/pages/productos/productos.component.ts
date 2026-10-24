@@ -1,6 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { BarcodePhotoComponent } from '../../shared/barcode-photo/barcode-photo.component';
+import { ActivatedRoute } from '@angular/router';
 import { CatalogoService } from '../../core/services/catalogo.service';
 import { AuthService } from '../../core/services/auth.service';
 import {
@@ -15,7 +17,7 @@ import {
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BarcodePhotoComponent],
   templateUrl: './productos.component.html',
   styleUrls: ['./productos.component.css']
 })
@@ -52,13 +54,24 @@ export class ProductosComponent implements OnInit {
     motivo: ''
   };
 
+  leyendoCodigo = false;
+  tipoPresentacion = 'Unidad';
+  detallePresentacion = '';
+  readonly presentaciones = ['Unidad', 'Frasco', 'Botella', 'Tubo', 'Sobre', 'Caja', 'Blíster', 'Tableta', 'Cápsula', 'Otra'];
+
+  actualizarPresentacion(): void {
+    const detalle = this.detallePresentacion.trim();
+    this.nuevoProductoForm.presentacion = this.tipoPresentacion === 'Otra'
+      ? detalle : this.tipoPresentacion + (detalle ? ' · ' + detalle : '');
+  }
+
   // Formulario Nuevo Producto
   nuevoProductoForm: CrearProductoRequest = {
     codigoBarras: '',
     nombre: '',
     principioActivo: '',
     concentracion: '',
-    presentacion: 'Caja x 30 tabletas',
+    presentacion: 'Unidad',
     categoriaId: 1,
     laboratorioId: 1,
     precioVenta: 0,
@@ -68,13 +81,19 @@ export class ProductosComponent implements OnInit {
 
   constructor(
     public catalogoService: CatalogoService,
-    public authService: AuthService
+    public authService: AuthService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.cargarCategorias();
     this.cargarLaboratorios();
     this.cargarProductos();
+    const codigo = this.route.snapshot.queryParamMap.get('codigoBarras');
+    if (this.authService.isAdmin() && codigo && codigo.length <= 128 && /^[\x20-\x7E]+$/.test(codigo)) {
+      this.abrirModalNuevo();
+      this.nuevoProductoForm.codigoBarras = codigo;
+    }
   }
 
   cargarCategorias(): void {
@@ -197,12 +216,15 @@ export class ProductosComponent implements OnInit {
 
   // --- Modal Nuevo Producto ---
   abrirModalNuevo(): void {
+    this.leyendoCodigo = false;
+    this.tipoPresentacion = 'Unidad';
+    this.detallePresentacion = '';
     this.nuevoProductoForm = {
       codigoBarras: '',
       nombre: '',
       principioActivo: '',
       concentracion: '',
-      presentacion: 'Caja x 30 tabletas',
+      presentacion: 'Unidad',
       categoriaId: this.categorias()[0]?.id || 1,
       laboratorioId: this.laboratorios()[0]?.id || 1,
       precioVenta: 0,
@@ -217,6 +239,12 @@ export class ProductosComponent implements OnInit {
   }
 
   guardarNuevoProducto(): void {
+    if (this.leyendoCodigo || this.cargando()) return;
+    this.actualizarPresentacion();
+    if (!this.nuevoProductoForm.presentacion.trim()) {
+      alert('Especifica la presentación del producto');
+      return;
+    }
     if (!this.nuevoProductoForm.nombre.trim() || !this.nuevoProductoForm.codigoBarras.trim()) {
       alert('El código de barras y el nombre son obligatorios');
       return;

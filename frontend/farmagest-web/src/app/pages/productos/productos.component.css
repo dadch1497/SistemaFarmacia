@@ -488,3 +488,14 @@
 .mb-3 { margin-bottom: 0.75rem; }
 .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
 .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+
+/* Product registration: accessible controls and scroll within the dialog. */
+.modal-box { max-height:90dvh; display:flex; flex-direction:column; }
+.modal-body { overflow-y:auto; min-height:0; }
+.modal-header,.modal-footer { flex-shrink:0; }
+.form-grid { margin-top:18px; }
+.form-group .input { width:100%; min-height:44px; box-sizing:border-box; border:1px solid #c9d6d2; border-radius:8px; padding:10px 12px; font:inherit; background:#fff; }
+.form-group small { color:#4f625d; line-height:1.5; }
+.form-group .input:focus-visible { outline:2px solid #0f4f46; outline-offset:2px; }
+
+@media (max-width:600px) { .form-grid { grid-template-columns:1fr; } .modal-backdrop { padding:12px; } }

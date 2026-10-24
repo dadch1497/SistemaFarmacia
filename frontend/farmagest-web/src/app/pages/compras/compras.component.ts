@@ -15,6 +15,7 @@ import {
   RegistrarIngresoRequest
 } from '../../core/models/compras.models';
 import { Producto } from '../../core/models/catalogo.models';
+import { BarcodePhotoComponent } from '../../shared/barcode-photo/barcode-photo.component';
 
 interface DetalleOrdenItemForm {
   productoId: number;
@@ -37,7 +38,7 @@ interface DetalleIngresoItemForm {
 @Component({
   selector: 'app-compras',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BarcodePhotoComponent],
   templateUrl: './compras.component.html',
   styleUrls: ['./compras.component.css']
 })
@@ -113,6 +114,8 @@ export class ComprasComponent implements OnInit {
   // Modal Registrar Ingreso de Mercadería
   // ------------------------------------------
   modalIngresoAbierto: boolean = false;
+  leyendoCodigo = false;
+  avisoEscaneo = signal('');
   ingresoForm: {
     ordenCompraId: number | null;
     numeroGuia: string;
@@ -488,6 +491,7 @@ export class ComprasComponent implements OnInit {
   }
 
   abrirModalNuevoIngreso(): void {
+    this.avisoEscaneo.set('');
     const unAnoDespues = new Date();
     unAnoDespues.setFullYear(unAnoDespues.getFullYear() + 1);
 
@@ -519,7 +523,20 @@ export class ComprasComponent implements OnInit {
     }
   }
 
+  seleccionarProductoPorCodigo(producto: Producto | null): void {
+    this.avisoEscaneo.set('');
+    this.itemIngresoTemporal.productoId = producto?.id ?? null;
+    if (!producto) return;
+    // The lookup searches the entire catalog, including products outside page 1.
+    if (!this.productos().some(p => p.id === producto.id)) {
+      this.productos.update(actuales => [...actuales, producto]);
+    }
+    this.itemIngresoTemporal.costoUnitarioReal = producto.precioCosto ?? 0;
+    // Lot, expiration and quantity still require physical inspection and confirmation.
+  }
+
   agregarItemIngreso(): void {
+    if (this.leyendoCodigo) return;
     if (!this.itemIngresoTemporal.productoId) {
       this.mostrarError('Seleccione un producto para el ingreso');
       return;
@@ -565,6 +582,23 @@ export class ComprasComponent implements OnInit {
       costoUnitarioReal: 10.00
     };
     this.alCambiarProductoIngresoTemporal();
+  }
+
+  agregarProductoEscaneado(producto: Producto): void {
+    const costoIntroducido = this.itemIngresoTemporal.costoUnitarioReal;
+    this.seleccionarProductoPorCodigo(producto);
+    if (Number.isFinite(costoIntroducido) && costoIntroducido > 0) {
+      this.itemIngresoTemporal.costoUnitarioReal = costoIntroducido;
+    }
+    const item = this.itemIngresoTemporal;
+    if (!item.numeroLote.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(item.fechaVencimiento) ||
+        !Number.isInteger(item.cantidadRecibida) || item.cantidadRecibida <= 0 ||
+        !Number.isFinite(item.costoUnitarioReal) || item.costoUnitarioReal <= 0) {
+      this.avisoEscaneo.set(`${producto.nombre} reconocido. Completa lote, vencimiento, cantidad y costo; luego pulsa + Agregar o vuelve a escanear.`);
+      return;
+    }
+    this.agregarItemIngreso();
+    this.avisoEscaneo.set(`${producto.nombre} agregado automáticamente a la recepción. El stock se actualizará al confirmar la recepción.`);
   }
 
   eliminarItemIngreso(index: number): void {

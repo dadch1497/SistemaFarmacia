@@ -53,7 +53,7 @@ export class CatalogoService {
   }
 
   obtenerProductoPorCodigo(codigoBarras: string): Observable<Producto> {
-    return this.http.get<Producto>(`${this.apiUrl}/productos/codigo/${codigoBarras}`);
+    return this.http.get<Producto>(`${this.apiUrl}/productos/codigo/${encodeURIComponent(codigoBarras)}`);
   }
 
   crearProducto(request: CrearProductoRequest): Observable<Producto> {
