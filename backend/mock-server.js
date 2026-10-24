@@ -218,47 +218,68 @@ let VENTAS_ESPERA = [];
 let VENTAS = [
   {
     id: 1,
-    numeroComprobante: 'B001-00001024',
-    tipoComprobante: 'BOLETA',
     sucursalId: 1,
     cajaId: 1,
     sesionCajaId: 1,
     usuarioId: 1,
+    usuarioVendedorId: 1,
     vendedorNombre: 'Administrador Farma Ochenta',
+    nombreVendedor: 'Administrador Farma Ochenta',
     cliente: CLIENTES[1],
-    medioPago: 'EFECTIVO',
-    montoEfectivo: 50.00,
-    montoVuelto: 17.50,
+    tipoComprobante: 'BOLETA',
+    serieComprobante: 'B001',
+    numeroComprobante: '00001024',
     subtotal: 27.54,
+    montoDescuento: 0.00,
+    descuentoTotal: 0.00,
     igv: 4.96,
     total: 32.50,
-    descuentoTotal: 0.00,
+    medioPago: 'EFECTIVO',
+    montoEfectivo: 50.00,
+    montoRecibido: 50.00,
+    montoVuelto: 17.50,
+    vuelto: 17.50,
     estado: 'COMPLETADA',
+    fechaHora: '2026-10-23T14:30:00Z',
     fechaVenta: '2026-10-23T14:30:00Z',
+    detalles: [
+      { id: 1, productoId: 1, nombreProducto: 'Paracetamol 500 mg', loteId: 1, numeroLote: 'L-2024-PAR', cantidad: 10, precioUnitario: 0.50, costoUnitario: 0.22, descuentoLinea: 0.00, subtotalLinea: 5.00 },
+      { id: 2, productoId: 3, nombreProducto: 'Amoxicilina 500 mg', loteId: 4, numeroLote: 'L-2024-AMX', cantidad: 11, precioUnitario: 2.50, costoUnitario: 1.20, descuentoLinea: 0.00, subtotalLinea: 27.50 }
+    ],
     items: [
-      { id: 1, productoId: 1, nombreProducto: 'Paracetamol 500 mg', loteId: 1, numeroLote: 'L-2024-PAR', cantidad: 10, precioUnitario: 0.50, subtotal: 5.00 },
-      { id: 2, productoId: 3, nombreProducto: 'Amoxicilina 500 mg', loteId: 4, numeroLote: 'L-2024-AMX', cantidad: 11, precioUnitario: 2.50, subtotal: 27.50 }
+      { id: 1, productoId: 1, nombreProducto: 'Paracetamol 500 mg', loteId: 1, numeroLote: 'L-2024-PAR', cantidad: 10, precioUnitario: 0.50, costoUnitario: 0.22, descuentoLinea: 0.00, subtotalLinea: 5.00 },
+      { id: 2, productoId: 3, nombreProducto: 'Amoxicilina 500 mg', loteId: 4, numeroLote: 'L-2024-AMX', cantidad: 11, precioUnitario: 2.50, costoUnitario: 1.20, descuentoLinea: 0.00, subtotalLinea: 27.50 }
     ]
   },
   {
     id: 2,
-    numeroComprobante: 'F001-00000412',
-    tipoComprobante: 'FACTURA',
     sucursalId: 1,
     cajaId: 1,
     sesionCajaId: 1,
     usuarioId: 1,
+    usuarioVendedorId: 1,
     vendedorNombre: 'Administrador Farma Ochenta',
+    nombreVendedor: 'Administrador Farma Ochenta',
     cliente: CLIENTES[3],
-    medioPago: 'TARJETA',
+    tipoComprobante: 'FACTURA',
+    serieComprobante: 'F001',
+    numeroComprobante: '00000412',
     subtotal: 101.69,
+    montoDescuento: 0.00,
+    descuentoTotal: 0.00,
     igv: 18.31,
     total: 120.00,
-    descuentoTotal: 0.00,
+    medioPago: 'TARJETA',
+    montoRecibido: 120.00,
+    vuelto: 0.00,
     estado: 'COMPLETADA',
+    fechaHora: '2026-10-23T16:45:00Z',
     fechaVenta: '2026-10-23T16:45:00Z',
+    detalles: [
+      { id: 3, productoId: 7, nombreProducto: 'Alcohol 70° 250 ml', loteId: 8, numeroLote: 'L-2026-ALC', cantidad: 20, precioUnitario: 6.00, costoUnitario: 3.80, descuentoLinea: 0.00, subtotalLinea: 120.00 }
+    ],
     items: [
-      { id: 3, productoId: 7, nombreProducto: 'Alcohol 70° 250 ml', loteId: 8, numeroLote: 'L-2026-ALC', cantidad: 20, precioUnitario: 6.00, subtotal: 120.00 }
+      { id: 3, productoId: 7, nombreProducto: 'Alcohol 70° 250 ml', loteId: 8, numeroLote: 'L-2026-ALC', cantidad: 20, precioUnitario: 6.00, costoUnitario: 3.80, descuentoLinea: 0.00, subtotalLinea: 120.00 }
     ]
   }
 ];
@@ -285,6 +306,10 @@ let ORDENES = [
     fechaEmision: '2026-10-20T10:00:00Z',
     fechaEsperada: '2026-10-27T10:00:00Z',
     observaciones: 'Reposición urgente de stock de seguridad para Ate',
+    detalles: [
+      { id: 1, productoId: 3, nombreProducto: 'Amoxicilina 500 mg', cantidadSolicitada: 50, costoPactado: 1.10, subtotal: 55.00 },
+      { id: 2, productoId: 2, nombreProducto: 'Ibuprofeno 400 mg', cantidadSolicitada: 100, costoPactado: 0.40, subtotal: 40.00 }
+    ],
     items: [
       { id: 1, productoId: 3, nombreProducto: 'Amoxicilina 500 mg', cantidadSolicitada: 50, costoPactado: 1.10, subtotal: 55.00 },
       { id: 2, productoId: 2, nombreProducto: 'Ibuprofeno 400 mg', cantidadSolicitada: 100, costoPactado: 0.40, subtotal: 40.00 }
@@ -293,7 +318,26 @@ let ORDENES = [
 ];
 
 // Ingresos de mercadería
-let INGRESOS = [];
+let INGRESOS = [
+  {
+    id: 1,
+    numeroGuia: 'GR-001-000452',
+    numeroFacturaProveedor: 'F001-0002130',
+    ordenCompraId: 1,
+    numeroOrdenCompra: 'OC-2026-0001',
+    sucursalId: 1,
+    usuarioRecepcionId: 1,
+    fechaRecepcion: '2026-10-22T11:00:00Z',
+    fechaIngreso: '2026-10-22T11:00:00Z',
+    observaciones: 'Recepción conforme en almacén central',
+    detalles: [
+      { id: 1, productoId: 2, nombreProducto: 'Ibuprofeno 400 mg', numeroLote: 'L-2025-IBU2', fechaVencimiento: '2027-05-20', cantidadRecibida: 50, costoUnitarioReal: 0.40 }
+    ],
+    items: [
+      { id: 1, productoId: 2, nombreProducto: 'Ibuprofeno 400 mg', numeroLote: 'L-2025-IBU2', fechaVencimiento: '2027-05-20', cantidadRecibida: 50, costoUnitarioReal: 0.40 }
+    ]
+  }
+];
 
 // Kardex
 let KARDEX = [
@@ -655,19 +699,27 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/inventario/ajustes' && req.method === 'POST') {
       const body = await parseBody(req);
       const st = STOCK.find(s => s.productoId === body.productoId);
-      const delta = body.tipoAjuste === 'MERMA' || body.tipoAjuste === 'ROTURA' ? -body.cantidad : body.cantidad;
-      const saldo = (st ? st.stockActual : 0) + delta;
-      if (st) st.stockActual = Math.max(0, saldo);
+      const isSalida = body.tipoAjuste === 'AJUSTE_MERMA' || body.tipoAjuste === 'AJUSTE_VENCIMIENTO' || body.tipoAjuste === 'MERMA' || body.tipoAjuste === 'ROTURA';
+      const delta = isSalida ? -Math.abs(body.cantidad) : Math.abs(body.cantidad);
+      const saldo = Math.max(0, (st ? st.stockActual : 0) + delta);
+      if (st) st.stockActual = saldo;
+
+      if (body.loteId) {
+        const lote = LOTES.find(l => l.id === body.loteId);
+        if (lote) {
+          lote.cantidadActual = Math.max(0, lote.cantidadActual + delta);
+        }
+      }
 
       const nuevoKardex = {
         id: KARDEX.length + 1,
         productoId: body.productoId,
         loteId: body.loteId,
-        numeroLote: body.numeroLote || 'AJUSTE',
+        numeroLote: body.numeroLote || (LOTES.find(l => l.id === body.loteId)?.numeroLote) || 'AJUSTE',
         sucursalId: 1,
-        tipoMovimiento: delta < 0 ? 'AJUSTE_MERMA' : 'AJUSTE_SOBRANTE',
+        tipoMovimiento: body.tipoAjuste || (delta < 0 ? 'AJUSTE_MERMA' : 'AJUSTE_SOBRANTE'),
         cantidad: delta,
-        saldoResultante: Math.max(0, saldo),
+        saldoResultante: saldo,
         motivo: body.motivo || 'Ajuste manual de inventario',
         usuarioId: 1,
         fechaHora: new Date().toISOString()
@@ -809,15 +861,22 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === '/api/ventas/espera' && req.method === 'POST') {
       const body = await parseBody(req);
+      const ref = body.nombreReferencia || body.referencia || 'Cliente en mostrador';
+      const dJson = body.datosJson || body.datosVentaJson || '{}';
       const nuevaEspera = {
         id: VENTAS_ESPERA.length + 1,
+        usuarioId: 1,
+        sucursalId: 1,
         codigoEspera: `ESP-${Date.now().toString().slice(-4)}`,
-        referencia: body.referencia || 'Cliente en mostrador',
-        subtotal: body.subtotal,
-        igv: body.igv,
-        total: body.total,
+        nombreReferencia: ref,
+        referencia: ref,
+        datosJson: dJson,
+        datosVentaJson: dJson,
+        subtotal: body.subtotal || 0,
+        igv: body.igv || 0,
+        total: body.total || 0,
         descuentoTotal: body.descuentoTotal || 0,
-        datosVentaJson: body.datosVentaJson,
+        fechaHora: new Date().toISOString(),
         creadoEn: new Date().toISOString()
       };
       VENTAS_ESPERA.unshift(nuevaEspera);
@@ -846,13 +905,30 @@ const server = http.createServer(async (req, res) => {
       const v = VENTAS.find(vt => vt.id === id);
       if (v) {
         v.estado = 'ANULADA';
-        // Reponer stock
-        if (v.items) {
-          v.items.forEach(it => {
-            const st = STOCK.find(s => s.productoId === it.productoId);
-            if (st) st.stockActual += it.cantidad;
+        const listaDetalles = v.detalles || v.items || [];
+        listaDetalles.forEach(it => {
+          const st = STOCK.find(s => s.productoId === it.productoId);
+          if (st) st.stockActual += it.cantidad;
+          if (it.loteId) {
+            const lote = LOTES.find(l => l.id === it.loteId);
+            if (lote) lote.cantidadActual += it.cantidad;
+          }
+          KARDEX.unshift({
+            id: KARDEX.length + 1,
+            productoId: it.productoId,
+            loteId: it.loteId,
+            numeroLote: it.numeroLote || 'LOTE',
+            sucursalId: 1,
+            tipoMovimiento: 'DEVOLUCION_CLIENTE',
+            cantidad: it.cantidad,
+            saldoResultante: st ? st.stockActual : it.cantidad,
+            referenciaTipo: 'ANULACION_VENTA',
+            referenciaId: `${v.serieComprobante}-${v.numeroComprobante}`,
+            motivo: 'Anulación de venta y comprobante',
+            usuarioId: 1,
+            fechaHora: new Date().toISOString()
           });
-        }
+        });
         return sendJson(res, 200, v);
       }
       return sendJson(res, 404, { message: 'Venta no encontrada' });
@@ -861,47 +937,122 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/ventas' && req.method === 'POST') {
       const body = await parseBody(req);
       const correlativo = String(VENTAS.length + 1025).padStart(8, '0');
-      const prefix = body.tipoComprobante === 'FACTURA' ? 'F001' : 'B001';
+      const serie = body.tipoComprobante === 'FACTURA' ? 'F001' : (body.tipoComprobante === 'NOTA_VENTA' ? 'NV01' : 'B001');
 
-      // Descontar inventario FEFO
-      if (body.items) {
-        body.items.forEach(it => {
-          const st = STOCK.find(s => s.productoId === it.productoId);
-          if (st) st.stockActual = Math.max(0, st.stockActual - it.cantidad);
+      // Buscar o mapear cliente
+      let clienteVenta = null;
+      if (body.clienteId) {
+        clienteVenta = CLIENTES.find(c => c.id === body.clienteId);
+      } else if (body.clienteNumeroDocumento) {
+        clienteVenta = CLIENTES.find(c => c.numeroDocumento === body.clienteNumeroDocumento) || {
+          id: CLIENTES.length + 1,
+          tipoDocumento: body.clienteTipoDocumento || 'DNI',
+          numeroDocumento: body.clienteNumeroDocumento,
+          nombresORazonSocial: body.clienteNombre || 'CLIENTE',
+          direccion: body.clienteDireccion || '',
+          activo: true
+        };
+      } else if (body.cliente) {
+        clienteVenta = body.cliente;
+      } else {
+        clienteVenta = CLIENTES[0];
+      }
+
+      // Detalle items
+      const inputItems = body.items || body.detalles || [];
+      const detallesVenta = inputItems.map((it, idx) => {
+        const prod = PRODUCTOS.find(p => p.id === it.productoId);
+        const subtotalLinea = Number(((it.cantidad * it.precioUnitario) - (it.descuento || it.descuentoLinea || 0)).toFixed(2));
+
+        // Descontar inventario
+        const st = STOCK.find(s => s.productoId === it.productoId);
+        if (st) st.stockActual = Math.max(0, st.stockActual - it.cantidad);
+        if (it.loteId) {
           const lote = LOTES.find(l => l.id === it.loteId);
           if (lote) lote.cantidadActual = Math.max(0, lote.cantidadActual - it.cantidad);
+        }
+
+        // Kardex
+        KARDEX.unshift({
+          id: KARDEX.length + 1,
+          productoId: it.productoId,
+          loteId: it.loteId,
+          numeroLote: it.numeroLote || 'FEFO',
+          sucursalId: 1,
+          tipoMovimiento: 'SALIDA_VENTA',
+          cantidad: -it.cantidad,
+          saldoResultante: st ? st.stockActual : 0,
+          referenciaTipo: 'VENTA',
+          referenciaId: `${serie}-${correlativo}`,
+          motivo: `Venta ${body.tipoComprobante || 'BOLETA'}`,
+          usuarioId: 1,
+          fechaHora: new Date().toISOString()
         });
-      }
+
+        return {
+          id: idx + 1,
+          productoId: it.productoId,
+          nombreProducto: prod ? prod.nombre : `Producto #${it.productoId}`,
+          loteId: it.loteId,
+          numeroLote: it.numeroLote || 'FEFO-LOTE',
+          cantidad: it.cantidad,
+          precioUnitario: it.precioUnitario,
+          costoUnitario: it.costoUnitario || (prod ? prod.precioCosto : 0),
+          descuentoLinea: it.descuento || it.descuentoLinea || 0,
+          subtotalLinea: subtotalLinea
+        };
+      });
+
+      const totalCalculado = detallesVenta.reduce((acc, d) => acc + d.subtotalLinea, 0);
+      const totalFinal = body.total !== undefined ? body.total : totalCalculado;
+      const subtotalBase = parseFloat((totalFinal / 1.18).toFixed(2));
+      const igv = parseFloat((totalFinal - subtotalBase).toFixed(2));
+      const montoDescuentoTotal = detallesVenta.reduce((acc, d) => acc + d.descuentoLinea, 0) + (body.descuentoManual || 0);
+
+      const montoRecibido = body.montoRecibido || body.montoEfectivo || totalFinal;
+      const vuelto = body.medioPago === 'EFECTIVO' ? Math.max(0, Number((montoRecibido - totalFinal).toFixed(2))) : 0;
 
       // Actualizar turno caja
       if (SESION_CAJA_ACTUAL && SESION_CAJA_ACTUAL.estado === 'ABIERTA') {
         SESION_CAJA_ACTUAL.cantidadTransacciones = (SESION_CAJA_ACTUAL.cantidadTransacciones || 0) + 1;
-        SESION_CAJA_ACTUAL.totalVentasGeneral = (SESION_CAJA_ACTUAL.totalVentasGeneral || 0) + body.total;
-        if (body.medioPago === 'EFECTIVO') SESION_CAJA_ACTUAL.totalVentasEfectivo = (SESION_CAJA_ACTUAL.totalVentasEfectivo || 0) + body.total;
-        else if (body.medioPago === 'TARJETA') SESION_CAJA_ACTUAL.totalVentasTarjeta = (SESION_CAJA_ACTUAL.totalVentasTarjeta || 0) + body.total;
-        else SESION_CAJA_ACTUAL.totalVentasBilletera = (SESION_CAJA_ACTUAL.totalVentasBilletera || 0) + body.total;
+        SESION_CAJA_ACTUAL.totalVentasGeneral = (SESION_CAJA_ACTUAL.totalVentasGeneral || 0) + totalFinal;
+        if (body.medioPago === 'EFECTIVO') SESION_CAJA_ACTUAL.totalVentasEfectivo = (SESION_CAJA_ACTUAL.totalVentasEfectivo || 0) + totalFinal;
+        else if (body.medioPago === 'TARJETA') SESION_CAJA_ACTUAL.totalVentasTarjeta = (SESION_CAJA_ACTUAL.totalVentasTarjeta || 0) + totalFinal;
+        else SESION_CAJA_ACTUAL.totalVentasBilletera = (SESION_CAJA_ACTUAL.totalVentasBilletera || 0) + totalFinal;
       }
 
+      const ahora = new Date().toISOString();
       const nuevaVenta = {
         id: VENTAS.length + 1,
-        numeroComprobante: `${prefix}-${correlativo}`,
-        tipoComprobante: body.tipoComprobante || 'BOLETA',
-        sucursalId: 1,
+        sucursalId: body.sucursalId || 1,
         cajaId: body.cajaId || 1,
         sesionCajaId: SESION_CAJA_ACTUAL ? SESION_CAJA_ACTUAL.id : 1,
         usuarioId: 1,
+        usuarioVendedorId: 1,
         vendedorNombre: 'Administrador Farma Ochenta',
-        cliente: body.cliente || CLIENTES[0],
+        nombreVendedor: 'Administrador Farma Ochenta',
+        cliente: clienteVenta,
+        tipoComprobante: body.tipoComprobante || 'BOLETA',
+        serieComprobante: serie,
+        numeroComprobante: correlativo,
+        subtotal: subtotalBase,
+        montoDescuento: montoDescuentoTotal,
+        descuentoTotal: montoDescuentoTotal,
+        igv: igv,
+        total: totalFinal,
         medioPago: body.medioPago || 'EFECTIVO',
-        montoEfectivo: body.montoEfectivo || body.total,
-        montoVuelto: body.montoVuelto || 0,
-        subtotal: parseFloat((body.total / 1.18).toFixed(2)),
-        igv: parseFloat((body.total - body.total / 1.18).toFixed(2)),
-        total: body.total,
-        descuentoTotal: body.descuentoTotal || 0,
+        montoEfectivo: montoRecibido,
+        montoRecibido: montoRecibido,
+        montoVuelto: vuelto,
+        vuelto: vuelto,
+        promocionId: body.promocionId,
+        cuponCodigo: body.cuponCodigo,
         estado: 'COMPLETADA',
-        fechaVenta: new Date().toISOString(),
-        items: body.items || []
+        fechaHora: ahora,
+        fechaVenta: ahora,
+        observaciones: body.observaciones || '',
+        detalles: detallesVenta,
+        items: detallesVenta
       };
       VENTAS.unshift(nuevaVenta);
       return sendJson(res, 201, nuevaVenta);
@@ -953,13 +1104,14 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/compras/ordenes' && req.method === 'POST') {
       const body = await parseBody(req);
       const prov = PROVEEDORES.find(p => p.id === body.proveedorId) || PROVEEDORES[0];
-      const itemsConSubtotal = (body.detalles || []).map((d, idx) => ({
+      const inputDetalles = body.detalles || body.items || [];
+      const itemsConSubtotal = inputDetalles.map((d, idx) => ({
         id: idx + 1,
         productoId: d.productoId,
         nombreProducto: (PRODUCTOS.find(p => p.id === d.productoId) || {}).nombre || 'Producto',
         cantidadSolicitada: d.cantidadSolicitada,
         costoPactado: d.costoPactado,
-        subtotal: d.cantidadSolicitada * d.costoPactado
+        subtotal: Number((d.cantidadSolicitada * d.costoPactado).toFixed(2))
       }));
       const subtotal = itemsConSubtotal.reduce((acc, it) => acc + it.subtotal, 0);
 
@@ -976,6 +1128,7 @@ const server = http.createServer(async (req, res) => {
         fechaEmision: new Date().toISOString(),
         fechaEsperada: body.fechaEsperada || new Date().toISOString(),
         observaciones: body.observaciones || '',
+        detalles: itemsConSubtotal,
         items: itemsConSubtotal
       };
       ORDENES.unshift(nuevaOrden);
@@ -995,42 +1148,73 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === '/api/compras/ingresos' && req.method === 'POST') {
       const body = await parseBody(req);
+      const inputItems = body.items || body.detalles || [];
+      const detallesIngreso = inputItems.map((it, idx) => {
+        const prod = PRODUCTOS.find(p => p.id === it.productoId);
+        return {
+          id: idx + 1,
+          productoId: it.productoId,
+          nombreProducto: prod ? prod.nombre : `Producto #${it.productoId}`,
+          numeroLote: it.numeroLote,
+          fechaVencimiento: it.fechaVencimiento,
+          cantidadRecibida: it.cantidadRecibida,
+          costoUnitarioReal: it.costoUnitarioReal || it.costoUnitario || 1.0
+        };
+      });
+
       const nuevoIngreso = {
         id: INGRESOS.length + 1,
-        numeroGuia: body.numeroGuiaRemision || `GR-${Date.now().toString().slice(-6)}`,
+        numeroGuia: body.numeroGuia || body.numeroGuiaRemision || `GR-${Date.now().toString().slice(-6)}`,
+        numeroFacturaProveedor: body.numeroFacturaProveedor || '',
         ordenCompraId: body.ordenCompraId,
+        numeroOrdenCompra: body.ordenCompraId ? `OC-2026-${String(body.ordenCompraId).padStart(4, '0')}` : undefined,
         sucursalId: 1,
-        usuarioReceptorId: 1,
+        usuarioRecepcionId: 1,
+        fechaRecepcion: new Date().toISOString(),
         fechaIngreso: new Date().toISOString(),
         observaciones: body.observaciones || '',
-        items: body.items || []
+        detalles: detallesIngreso,
+        items: detallesIngreso
       };
 
-      // Registrar los lotes nuevos en inventario
-      if (body.items) {
-        body.items.forEach(it => {
-          const nuevoLote = {
-            id: LOTES.length + 1,
-            productoId: it.productoId,
-            sucursalId: 1,
-            numeroLote: it.numeroLote,
-            fechaVencimiento: it.fechaVencimiento,
-            cantidadInicial: it.cantidadRecibida,
-            cantidadActual: it.cantidadRecibida,
-            costoUnitario: it.costoUnitario || 1.0,
-            estado: 'DISPONIBLE',
-            diasRestantes: Math.max(1, Math.round((new Date(it.fechaVencimiento) - new Date()) / (1000 * 60 * 60 * 24))),
-            semaforoVencimiento: 'VERDE'
-          };
-          LOTES.push(nuevoLote);
+      // Registrar los lotes nuevos en inventario y Kardex
+      detallesIngreso.forEach(it => {
+        const nuevoLote = {
+          id: LOTES.length + 1,
+          productoId: it.productoId,
+          sucursalId: 1,
+          numeroLote: it.numeroLote,
+          fechaVencimiento: it.fechaVencimiento,
+          cantidadInicial: it.cantidadRecibida,
+          cantidadActual: it.cantidadRecibida,
+          costoUnitario: it.costoUnitarioReal,
+          estado: 'DISPONIBLE',
+          diasRestantes: Math.max(1, Math.round((new Date(it.fechaVencimiento) - new Date()) / (1000 * 60 * 60 * 24))),
+          semaforoVencimiento: 'VERDE'
+        };
+        LOTES.push(nuevoLote);
 
-          // Actualizar stock
-          const st = STOCK.find(s => s.productoId === it.productoId);
-          if (st) {
-            st.stockActual += it.cantidadRecibida;
-          }
+        const st = STOCK.find(s => s.productoId === it.productoId);
+        if (st) {
+          st.stockActual += it.cantidadRecibida;
+        }
+
+        KARDEX.unshift({
+          id: KARDEX.length + 1,
+          productoId: it.productoId,
+          loteId: nuevoLote.id,
+          numeroLote: it.numeroLote,
+          sucursalId: 1,
+          tipoMovimiento: 'INGRESO_COMPRA',
+          cantidad: it.cantidadRecibida,
+          saldoResultante: st ? st.stockActual : it.cantidadRecibida,
+          referenciaTipo: 'GUIA_REMISION',
+          referenciaId: nuevoIngreso.numeroGuia,
+          motivo: 'Ingreso físico de mercadería',
+          usuarioId: 1,
+          fechaHora: new Date().toISOString()
         });
-      }
+      });
 
       INGRESOS.unshift(nuevoIngreso);
       return sendJson(res, 201, nuevoIngreso);
