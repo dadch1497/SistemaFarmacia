@@ -1,0 +1,810 @@
+/**
+ * FarmaGest — Mock API Gateway & Microservices Server
+ * Servidor HTTP nativo en Node.js que emula el API Gateway (puerto 8080)
+ * y los microservicios: ms-auth, ms-catalogo, ms-inventario, ms-ventas, ms-compras, ms-reportes
+ */
+
+const http = require('http');
+const url = require('url');
+
+const PORT = 8080;
+
+// Permisos según V2__seed_roles_and_permissions.sql
+const PERMISOS_ADMIN = [
+  'VENTA_CREAR', 'VENTA_LISTAR_PROPIAS', 'VENTA_LISTAR_TODAS', 'VENTA_ANULAR', 'VENTA_DEVOLUCION', 'CUPON_APLICAR', 'DESCUENTO_AUTORIZAR',
+  'CAJA_APERTURA', 'CAJA_CIERRE_PROPIO', 'CAJA_CIERRE_TODOS',
+  'PRODUCTO_CONSULTAR', 'PRODUCTO_CREAR', 'PRODUCTO_EDITAR', 'PRODUCTO_PRECIO_CAMBIAR', 'COSTO_VER',
+  'STOCK_CONSULTAR', 'STOCK_AJUSTAR', 'ALERTA_VENCIMIENTO_VER', 'KARDEX_CONSULTAR',
+  'PROVEEDOR_GESTIONAR', 'ORDEN_COMPRA_GESTIONAR', 'MERCADERIA_INGRESAR',
+  'CLIENTE_GESTIONAR', 'PROMOCION_GESTIONAR',
+  'DASHBOARD_VER', 'REPORTES_VENTAS_VER', 'AUDITORIA_VER'
+];
+
+const PERMISOS_VENDEDOR = [
+  'VENTA_CREAR', 'VENTA_LISTAR_PROPIAS', 'CUPON_APLICAR',
+  'CAJA_APERTURA', 'CAJA_CIERRE_PROPIO',
+  'PRODUCTO_CONSULTAR',
+  'STOCK_CONSULTAR',
+  'CLIENTE_GESTIONAR'
+];
+
+const PERMISOS_ALMACENERO = [
+  'PRODUCTO_CONSULTAR', 'STOCK_CONSULTAR', 'STOCK_AJUSTAR', 'ALERTA_VENCIMIENTO_VER', 'KARDEX_CONSULTAR',
+  'PROVEEDOR_GESTIONAR', 'ORDEN_COMPRA_GESTIONAR', 'MERCADERIA_INGRESAR'
+];
+
+// Usuarios válidos
+const USUARIOS = {
+  admin: {
+    id: 1,
+    username: 'admin',
+    password: 'AdminSecure2026!',
+    nombres: 'Administrador',
+    apellidos: 'Farma Ochenta',
+    email: 'admin@farmaochenta.pe',
+    rolPrincipal: 'ROLE_ADMINISTRADOR',
+    sucursalId: 1,
+    roles: ['ROLE_ADMINISTRADOR'],
+    permisos: PERMISOS_ADMIN,
+    activo: true,
+    creadoEn: '2026-01-01T08:00:00Z'
+  },
+  vendedor1: {
+    id: 2,
+    username: 'vendedor1',
+    password: 'Vendedor1Secure2026!',
+    nombres: 'Carlos',
+    apellidos: 'Gómez Soto',
+    email: 'carlos.gomez@farmaochenta.pe',
+    rolPrincipal: 'ROLE_VENDEDOR',
+    sucursalId: 1,
+    roles: ['ROLE_VENDEDOR'],
+    permisos: PERMISOS_VENDEDOR,
+    activo: true,
+    creadoEn: '2026-01-15T08:00:00Z'
+  },
+  vendedor2: {
+    id: 3,
+    username: 'vendedor2',
+    password: 'Vendedor2Secure2026!',
+    nombres: 'Lucía',
+    apellidos: 'Morales Rivas',
+    email: 'lucia.morales@farmaochenta.pe',
+    rolPrincipal: 'ROLE_VENDEDOR',
+    sucursalId: 1,
+    roles: ['ROLE_VENDEDOR'],
+    permisos: PERMISOS_VENDEDOR,
+    activo: true,
+    creadoEn: '2026-02-01T08:00:00Z'
+  },
+  almacenero: {
+    id: 4,
+    username: 'almacenero',
+    password: 'AlmaceneroSecure2026!',
+    nombres: 'Roberto',
+    apellidos: 'Quispe Tello',
+    email: 'roberto.quispe@farmaochenta.pe',
+    rolPrincipal: 'ROLE_ALMACENERO',
+    sucursalId: 1,
+    roles: ['ROLE_ALMACENERO'],
+    permisos: PERMISOS_ALMACENERO,
+    activo: true,
+    creadoEn: '2026-01-10T08:00:00Z'
+  }
+};
+
+// Categorías
+const CATEGORIAS = [
+  { id: 1, nombre: 'Analgésicos', descripcion: 'Medicamentos para el alivio del dolor y fiebre', activo: true },
+  { id: 2, nombre: 'Antibióticos', descripcion: 'Fármacos para combatir infecciones bacterianas', activo: true },
+  { id: 3, nombre: 'Antialérgicos', descripcion: 'Antihistamínicos para alergias respiratorias y dérmicas', activo: true },
+  { id: 4, nombre: 'Gastrointestinal', descripcion: 'Protectores gástricos, antiácidos y digestivos', activo: true },
+  { id: 5, nombre: 'Vitaminas', descripcion: 'Suplementos nutricionales y multivitamínicos', activo: true },
+  { id: 6, nombre: 'Cuidado personal', descripcion: 'Higiene, antisépticos y primeros auxilios', activo: true }
+];
+
+// Laboratorios
+const LABORATORIOS = [
+  { id: 1, nombre: 'Medifarma', paisOrigen: 'Perú', activo: true },
+  { id: 2, nombre: 'Laboratorios Portugal', paisOrigen: 'Perú', activo: true },
+  { id: 3, nombre: 'IQ Farma', paisOrigen: 'Perú', activo: true },
+  { id: 4, nombre: 'Bayer', paisOrigen: 'Alemania', activo: true },
+  { id: 5, nombre: 'Pfizer', paisOrigen: 'Estados Unidos', activo: true },
+  { id: 6, nombre: 'Farmindustria', paisOrigen: 'Perú', activo: true }
+];
+
+// Productos
+let PRODUCTOS = [
+  {
+    id: 1,
+    codigoBarras: '7751234567890',
+    nombre: 'Paracetamol 500 mg',
+    principioActivo: 'Paracetamol',
+    concentracion: '500 mg',
+    presentacion: 'Tableta',
+    categoria: CATEGORIAS[0],
+    laboratorio: LABORATORIOS[1],
+    precioVenta: 0.50,
+    precioCosto: 0.22,
+    margenPorcentaje: 56.0,
+    requiereReceta: false,
+    activo: true,
+    creadoEn: '2026-01-01T10:00:00Z'
+  },
+  {
+    id: 2,
+    codigoBarras: '7751234567891',
+    nombre: 'Ibuprofeno 400 mg',
+    principioActivo: 'Ibuprofeno',
+    concentracion: '400 mg',
+    presentacion: 'Tableta',
+    categoria: CATEGORIAS[0],
+    laboratorio: LABORATORIOS[0],
+    precioVenta: 0.90,
+    precioCosto: 0.40,
+    margenPorcentaje: 55.5,
+    requiereReceta: false,
+    activo: true,
+    creadoEn: '2026-01-01T10:00:00Z'
+  },
+  {
+    id: 3,
+    codigoBarras: '7751234567892',
+    nombre: 'Amoxicilina 500 mg',
+    principioActivo: 'Amoxicilina',
+    concentracion: '500 mg',
+    presentacion: 'Cápsula',
+    categoria: CATEGORIAS[1],
+    laboratorio: LABORATORIOS[5],
+    precioVenta: 2.50,
+    precioCosto: 1.20,
+    margenPorcentaje: 52.0,
+    requiereReceta: true,
+    activo: true,
+    creadoEn: '2026-01-01T10:00:00Z'
+  },
+  {
+    id: 4,
+    codigoBarras: '7751234567893',
+    nombre: 'Loratadina 10 mg',
+    principioActivo: 'Loratadina',
+    concentracion: '10 mg',
+    presentacion: 'Tableta',
+    categoria: CATEGORIAS[2],
+    laboratorio: LABORATORIOS[1],
+    precioVenta: 0.70,
+    precioCosto: 0.30,
+    margenPorcentaje: 57.1,
+    requiereReceta: false,
+    activo: true,
+    creadoEn: '2026-01-01T10:00:00Z'
+  },
+  {
+    id: 5,
+    codigoBarras: '7751234567894',
+    nombre: 'Omeprazol 20 mg',
+    principioActivo: 'Omeprazol',
+    concentracion: '20 mg',
+    presentacion: 'Cápsula',
+    categoria: CATEGORIAS[3],
+    laboratorio: LABORATORIOS[2],
+    precioVenta: 1.50,
+    precioCosto: 0.65,
+    margenPorcentaje: 56.6,
+    requiereReceta: false,
+    activo: true,
+    creadoEn: '2026-01-01T10:00:00Z'
+  },
+  {
+    id: 6,
+    codigoBarras: '7751234567895',
+    nombre: 'Vitamina C 1 g',
+    principioActivo: 'Ácido Ascórbico',
+    concentracion: '1 g',
+    presentacion: 'Tableta efervescente',
+    categoria: CATEGORIAS[4],
+    laboratorio: LABORATORIOS[3],
+    precioVenta: 2.00,
+    precioCosto: 0.90,
+    margenPorcentaje: 55.0,
+    requiereReceta: false,
+    activo: true,
+    creadoEn: '2026-01-01T10:00:00Z'
+  },
+  {
+    id: 7,
+    codigoBarras: '7751234567896',
+    nombre: 'Alcohol 70° 250 ml',
+    principioActivo: 'Alcohol Etílico 70°',
+    concentracion: '70°',
+    presentacion: 'Frasco 250 ml',
+    categoria: CATEGORIAS[5],
+    laboratorio: LABORATORIOS[1],
+    precioVenta: 6.00,
+    precioCosto: 3.80,
+    margenPorcentaje: 36.6,
+    requiereReceta: false,
+    activo: true,
+    creadoEn: '2026-01-01T10:00:00Z'
+  }
+];
+
+// Stock por producto
+let STOCK = [
+  { id: 1, productoId: 1, sucursalId: 1, stockActual: 50, stockMinimo: 15, stockMaximo: 150, estadoStock: 'OPTIMO', actualizadoEn: '2026-10-24T00:00:00Z', nombreProducto: 'Paracetamol 500 mg', codigoBarras: '7751234567890', presentacion: 'Tableta' },
+  { id: 2, productoId: 2, sucursalId: 1, stockActual: 80, stockMinimo: 20, stockMaximo: 200, estadoStock: 'OPTIMO', actualizadoEn: '2026-10-24T00:00:00Z', nombreProducto: 'Ibuprofeno 400 mg', codigoBarras: '7751234567891', presentacion: 'Tableta' },
+  { id: 3, productoId: 3, sucursalId: 1, stockActual: 8, stockMinimo: 20, stockMaximo: 100, estadoStock: 'BAJO', actualizadoEn: '2026-10-24T00:00:00Z', nombreProducto: 'Amoxicilina 500 mg', codigoBarras: '7751234567892', presentacion: 'Cápsula' },
+  { id: 4, productoId: 4, sucursalId: 1, stockActual: 120, stockMinimo: 25, stockMaximo: 300, estadoStock: 'OPTIMO', actualizadoEn: '2026-10-24T00:00:00Z', nombreProducto: 'Loratadina 10 mg', codigoBarras: '7751234567893', presentacion: 'Tableta' },
+  { id: 5, productoId: 5, sucursalId: 1, stockActual: 40, stockMinimo: 15, stockMaximo: 100, estadoStock: 'OPTIMO', actualizadoEn: '2026-10-24T00:00:00Z', nombreProducto: 'Omeprazol 20 mg', codigoBarras: '7751234567894', presentacion: 'Cápsula' },
+  { id: 6, productoId: 6, sucursalId: 1, stockActual: 60, stockMinimo: 20, stockMaximo: 150, estadoStock: 'OPTIMO', actualizadoEn: '2026-10-24T00:00:00Z', nombreProducto: 'Vitamina C 1 g', codigoBarras: '7751234567895', presentacion: 'Tableta efervescente' },
+  { id: 7, productoId: 7, sucursalId: 1, stockActual: 200, stockMinimo: 50, stockMaximo: 500, estadoStock: 'OPTIMO', actualizadoEn: '2026-10-24T00:00:00Z', nombreProducto: 'Alcohol 70° 250 ml', codigoBarras: '7751234567896', presentacion: 'Frasco 250 ml' }
+];
+
+// Lotes FEFO
+let LOTES = [
+  { id: 1, productoId: 1, sucursalId: 1, numeroLote: 'L-2024-PAR', fechaVencimiento: '2027-06-30', cantidadInicial: 50, cantidadActual: 50, costoUnitario: 0.22, estado: 'DISPONIBLE', diasRestantes: 614, semaforoVencimiento: 'VERDE' },
+  { id: 2, productoId: 2, sucursalId: 1, numeroLote: 'L-2024-IBU1', fechaVencimiento: '2026-11-15', cantidadInicial: 30, cantidadActual: 30, costoUnitario: 0.40, estado: 'DISPONIBLE', diasRestantes: 22, semaforoVencimiento: 'ROJO' },
+  { id: 3, productoId: 2, sucursalId: 1, numeroLote: 'L-2025-IBU2', fechaVencimiento: '2027-05-20', cantidadInicial: 50, cantidadActual: 50, costoUnitario: 0.40, estado: 'DISPONIBLE', diasRestantes: 573, semaforoVencimiento: 'VERDE' },
+  { id: 4, productoId: 3, sucursalId: 1, numeroLote: 'L-2024-AMX', fechaVencimiento: '2026-12-08', cantidadInicial: 50, cantidadActual: 8, costoUnitario: 1.20, estado: 'DISPONIBLE', diasRestantes: 45, semaforoVencimiento: 'AMARILLO' },
+  { id: 5, productoId: 4, sucursalId: 1, numeroLote: 'L-2025-LOR', fechaVencimiento: '2027-10-24', cantidadInicial: 120, cantidadActual: 120, costoUnitario: 0.30, estado: 'DISPONIBLE', diasRestantes: 730, semaforoVencimiento: 'VERDE' },
+  { id: 6, productoId: 5, sucursalId: 1, numeroLote: 'L-2024-OME', fechaVencimiento: '2027-01-08', cantidadInicial: 40, cantidadActual: 40, costoUnitario: 0.65, estado: 'DISPONIBLE', diasRestantes: 75, semaforoVencimiento: 'AMARILLO' },
+  { id: 7, productoId: 6, sucursalId: 1, numeroLote: 'L-2025-VIT', fechaVencimiento: '2027-08-20', cantidadInicial: 60, cantidadActual: 60, costoUnitario: 0.90, estado: 'DISPONIBLE', diasRestantes: 665, semaforoVencimiento: 'VERDE' },
+  { id: 8, productoId: 7, sucursalId: 1, numeroLote: 'L-2026-ALC', fechaVencimiento: '2028-10-14', cantidadInicial: 200, cantidadActual: 200, costoUnitario: 3.80, estado: 'DISPONIBLE', diasRestantes: 1086, semaforoVencimiento: 'VERDE' }
+];
+
+// Alertas de inventario
+let ALERTAS = [
+  { id: 1, productoId: 2, loteId: 2, numeroLote: 'L-2024-IBU1', sucursalId: 1, tipoAlerta: 'VENCIMIENTO_30_DIAS', mensaje: 'Lote L-2024-IBU1 de Ibuprofeno 400 mg vence en 22 días (Crítico FEFO)', nivelUrgencia: 3, atendida: false, fechaAlerta: '2026-10-24T00:00:00Z' },
+  { id: 2, productoId: 3, loteId: 4, numeroLote: 'L-2024-AMX', sucursalId: 1, tipoAlerta: 'STOCK_MINIMO', mensaje: 'Stock de Amoxicilina 500 mg (8 un.) por debajo del mínimo de seguridad (20 un.)', nivelUrgencia: 2, atendida: false, fechaAlerta: '2026-10-24T00:00:00Z' },
+  { id: 3, productoId: 5, loteId: 6, numeroLote: 'L-2024-OME', sucursalId: 1, tipoAlerta: 'VENCIMIENTO_90_DIAS', mensaje: 'Lote L-2024-OME de Omeprazol 20 mg vence en 75 días', nivelUrgencia: 1, atendida: false, fechaAlerta: '2026-10-24T00:00:00Z' }
+];
+
+// Cajas
+let CAJAS = [
+  { id: 1, sucursalId: 1, nombre: 'Caja Principal POS 01', codigo: 'CAJA-01', activo: true },
+  { id: 2, sucursalId: 1, nombre: 'Caja Rápida POS 02', codigo: 'CAJA-02', activo: true }
+];
+
+// Turno de caja actual para el vendedor
+let SESION_CAJA_ACTUAL = {
+  id: 1,
+  cajaId: 1,
+  nombreCaja: 'Caja Principal POS 01',
+  codigoCaja: 'CAJA-01',
+  usuarioId: 1,
+  sucursalId: 1,
+  montoApertura: 200.00,
+  montoCierreSistema: null,
+  montoCierreReal: null,
+  diferencia: null,
+  estado: 'ABIERTA',
+  fechaApertura: new Date().toISOString(),
+  observaciones: 'Turno abierto automáticamente',
+  totalVentasEfectivo: 350.00,
+  totalVentasTarjeta: 220.00,
+  totalVentasBilletera: 140.00,
+  totalVentasGeneral: 710.00,
+  cantidadTransacciones: 18
+};
+
+// Clientes
+let CLIENTES = [
+  { id: 1, tipoDocumento: 'DNI', numeroDocumento: '00000000', nombresORazonSocial: 'CLIENTE GENÉRICO / VARIOS', direccion: 'Mostrador Farmacia', telefono: '000000000', email: 'sin_correo@farmagest.pe', activo: true },
+  { id: 2, tipoDocumento: 'DNI', numeroDocumento: '10485923', nombresORazonSocial: 'Juan Carlos Pérez Morales', direccion: 'Jr. Las Begonias 342, Ate, Lima', telefono: '987654321', email: 'jperez@gmail.com', activo: true },
+  { id: 3, tipoDocumento: 'DNI', numeroDocumento: '45892314', nombresORazonSocial: 'María Elena Flores Ramos', direccion: 'Av. José Carlos Mariátegui 128, Ate', telefono: '998877665', email: 'mflores@outlook.com', activo: true },
+  { id: 4, tipoDocumento: 'RUC', numeroDocumento: '20601234567', nombresORazonSocial: 'Botica Popular Ate S.A.C.', direccion: 'Av. Nicolás Ayllón 4500, Ate, Lima', telefono: '013567890', email: 'facturacion@boticapopular.pe', activo: true }
+];
+
+// Promociones y Cupones
+let PROMOCIONES = [
+  { id: 1, nombre: '10% de Descuento en Vitaminas', tipoAlcance: 'POR_CATEGORIA', tipoDescuento: 'PORCENTAJE', valorDescuento: 10.00, fechaInicio: '2026-01-01', fechaFin: '2027-12-31', aplicaPorVencimiento: false, activo: true },
+  { id: 2, nombre: 'Promoción 2x1 en Paracetamol 500mg', tipoAlcance: 'POR_PRODUCTO', tipoDescuento: 'N_X_M', cantidadCondicion: 2, cantidadPagada: 1, fechaInicio: '2026-01-01', fechaFin: '2027-12-31', aplicaPorVencimiento: false, activo: true }
+];
+
+let CUPONES = [
+  { id: 1, codigo: 'BIENVENIDA2026', porcentajeDescuento: 15.00, montoFijoDescuento: 0.00, usosPermitidos: 500, usosActuales: 12, fechaExpiracion: '2027-12-31', activo: true },
+  { id: 2, codigo: 'FARMA10', porcentajeDescuento: 10.00, montoFijoDescuento: 0.00, usosPermitidos: 200, usosActuales: 45, fechaExpiracion: '2027-12-31', activo: true },
+  { id: 3, codigo: 'BOTICA5', porcentajeDescuento: 5.00, montoFijoDescuento: 0.00, usosPermitidos: 1000, usosActuales: 80, fechaExpiracion: '2027-12-31', activo: true }
+];
+
+// Ventas registradas
+let VENTAS = [
+  {
+    id: 1,
+    numeroComprobante: 'B001-00001024',
+    tipoComprobante: 'BOLETA',
+    sucursalId: 1,
+    cajaId: 1,
+    sesionCajaId: 1,
+    usuarioId: 1,
+    vendedorNombre: 'Administrador Farma Ochenta',
+    cliente: CLIENTES[1],
+    medioPago: 'EFECTIVO',
+    montoEfectivo: 50.00,
+    montoVuelto: 17.50,
+    subtotal: 27.54,
+    igv: 4.96,
+    total: 32.50,
+    descuentoTotal: 0.00,
+    estado: 'COMPLETADA',
+    fechaVenta: '2026-10-23T14:30:00Z',
+    items: [
+      { id: 1, productoId: 1, nombreProducto: 'Paracetamol 500 mg', loteId: 1, numeroLote: 'L-2024-PAR', cantidad: 10, precioUnitario: 0.50, subtotal: 5.00 },
+      { id: 2, productoId: 3, nombreProducto: 'Amoxicilina 500 mg', loteId: 4, numeroLote: 'L-2024-AMX', cantidad: 11, precioUnitario: 2.50, subtotal: 27.50 }
+    ]
+  },
+  {
+    id: 2,
+    numeroComprobante: 'F001-00000412',
+    tipoComprobante: 'FACTURA',
+    sucursalId: 1,
+    cajaId: 1,
+    sesionCajaId: 1,
+    usuarioId: 1,
+    vendedorNombre: 'Administrador Farma Ochenta',
+    cliente: CLIENTES[3],
+    medioPago: 'TARJETA',
+    subtotal: 101.69,
+    igv: 18.31,
+    total: 120.00,
+    descuentoTotal: 0.00,
+    estado: 'COMPLETADA',
+    fechaVenta: '2026-10-23T16:45:00Z',
+    items: [
+      { id: 3, productoId: 7, nombreProducto: 'Alcohol 70° 250 ml', loteId: 8, numeroLote: 'L-2026-ALC', cantidad: 20, precioUnitario: 6.00, subtotal: 120.00 }
+    ]
+  }
+];
+
+// Proveedores
+let PROVEEDORES = [
+  { id: 1, ruc: '20100055230', razonSocial: 'Droguería Los Andes S.A.C.', nombreContacto: 'Juan Pérez', telefono: '01-456-7890', email: 'ventas@droguerialosandes.pe', direccion: 'Av. Elmer Faucett 1920, Callao', activo: true, creadoEn: '2026-01-01T00:00:00Z' },
+  { id: 2, ruc: '20549812401', razonSocial: 'Distribuidora Farmacéutica del Perú S.A.', nombreContacto: 'María Rojas', telefono: '01-321-6540', email: 'pedidos@difarpe.com.pe', direccion: 'Av. Venezuela 2400, Lima', activo: true, creadoEn: '2026-01-01T00:00:00Z' },
+  { id: 3, ruc: '20489123091', razonSocial: 'Consorcio Médico Quirúrgico S.R.L.', nombreContacto: 'Carlos Mendoza', telefono: '01-789-1234', email: 'contacto@consorciomedico.pe', direccion: 'Av. Javier Prado Este 4500, Ate', activo: true, creadoEn: '2026-01-01T00:00:00Z' }
+];
+
+// Órdenes de compra
+let ORDENES = [
+  {
+    id: 1,
+    numeroOrden: 'OC-2026-0001',
+    proveedor: PROVEEDORES[0],
+    sucursalId: 1,
+    estado: 'APROBADA',
+    subtotal: 100.00,
+    igv: 18.00,
+    total: 118.00,
+    usuarioCreadorId: 1,
+    fechaEmision: '2026-10-20T10:00:00Z',
+    fechaEsperada: '2026-10-27T10:00:00Z',
+    observaciones: 'Reposición urgente de stock de seguridad para Ate',
+    items: [
+      { id: 1, productoId: 3, nombreProducto: 'Amoxicilina 500 mg', cantidadSolicitada: 50, costoPactado: 1.10, subtotal: 55.00 },
+      { id: 2, productoId: 2, nombreProducto: 'Ibuprofeno 400 mg', cantidadSolicitada: 100, costoPactado: 0.40, subtotal: 40.00 }
+    ]
+  }
+];
+
+// Kardex
+let KARDEX = [
+  { id: 1, productoId: 1, loteId: 1, numeroLote: 'L-2024-PAR', sucursalId: 1, tipoMovimiento: 'INGRESO_INICIAL', cantidad: 50, saldoResultante: 50, referenciaTipo: 'INICIAL', referenciaId: 'INI-001', motivo: 'Carga inicial de inventario', usuarioId: 1, fechaHora: '2026-10-23T08:00:00Z' },
+  { id: 2, productoId: 2, loteId: 2, numeroLote: 'L-2024-IBU1', sucursalId: 1, tipoMovimiento: 'INGRESO_INICIAL', cantidad: 30, saldoResultante: 30, referenciaTipo: 'INICIAL', referenciaId: 'INI-001', motivo: 'Carga inicial de inventario', usuarioId: 1, fechaHora: '2026-10-23T08:00:00Z' },
+  { id: 3, productoId: 3, loteId: 4, numeroLote: 'L-2024-AMX', sucursalId: 1, tipoMovimiento: 'INGRESO_INICIAL', cantidad: 50, saldoResultante: 50, referenciaTipo: 'INICIAL', referenciaId: 'INI-001', motivo: 'Carga inicial de inventario', usuarioId: 1, fechaHora: '2026-10-23T08:00:00Z' },
+  { id: 4, productoId: 3, loteId: 4, numeroLote: 'L-2024-AMX', sucursalId: 1, tipoMovimiento: 'SALIDA_VENTA', cantidad: -11, saldoResultante: 8, referenciaTipo: 'VENTA', referenciaId: 'B001-00001024', motivo: 'Venta Boleta POS', usuarioId: 1, fechaHora: '2026-10-23T14:30:00Z' }
+];
+
+// Helper para enviar JSON con CORS
+function sendJson(res, statusCode, data) {
+  const payload = JSON.stringify(data);
+  res.writeHead(statusCode, {
+    'Content-Type': 'application/json',
+    'Content-Length': Buffer.byteLength(payload),
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-Requested-With'
+  });
+  res.end(payload);
+}
+
+function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (err) {
+        resolve({});
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+// Servidor HTTP
+const server = http.createServer(async (req, res) => {
+  // Manejo de CORS Preflight
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-Requested-With'
+    });
+    return res.end();
+  }
+
+  const parsedUrl = url.parse(req.url, true);
+  const pathname = parsedUrl.pathname;
+  const query = parsedUrl.query;
+
+  console.log(`[${req.method}] ${pathname}`);
+
+  try {
+    // ==========================================
+    // 1. AUTH (ms-auth)
+    // ==========================================
+    if (pathname === '/api/auth/login' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const user = USUARIOS[body.username];
+
+      if (user && user.password === body.password) {
+        return sendJson(res, 200, {
+          token: `mock-jwt-token-farmagest-${user.username}-${Date.now()}`,
+          tipo: 'Bearer',
+          expiracionMs: 86400000,
+          usuario: {
+            id: user.id,
+            username: user.username,
+            nombres: user.nombres,
+            apellidos: user.apellidos,
+            email: user.email,
+            rolPrincipal: user.rolPrincipal,
+            sucursalId: user.sucursalId,
+            roles: user.roles,
+            permisos: user.permisos
+          }
+        });
+      } else {
+        return sendJson(res, 401, {
+          timestamp: new Date().toISOString(),
+          status: 401,
+          error: 'Unauthorized',
+          message: 'Usuario o contraseña incorrectos. Verifica tus credenciales.'
+        });
+      }
+    }
+
+    if (pathname === '/api/auth/me' && req.method === 'GET') {
+      const user = USUARIOS.admin;
+      return sendJson(res, 200, {
+        id: user.id,
+        username: user.username,
+        nombres: user.nombres,
+        apellidos: user.apellidos,
+        email: user.email,
+        sucursalId: user.sucursalId,
+        activo: user.activo,
+        creadoEn: user.creadoEn,
+        roles: user.roles,
+        permisos: user.permisos
+      });
+    }
+
+    if (pathname === '/api/auth/usuarios' && req.method === 'GET') {
+      const lista = Object.values(USUARIOS).map(u => ({
+        id: u.id,
+        username: u.username,
+        nombres: u.nombres,
+        apellidos: u.apellidos,
+        email: u.email,
+        sucursalId: u.sucursalId,
+        activo: u.activo,
+        creadoEn: u.creadoEn,
+        roles: u.roles,
+        permisos: u.permisos
+      }));
+      return sendJson(res, 200, {
+        content: lista,
+        totalElements: lista.length,
+        totalPages: 1,
+        size: 50,
+        number: 0,
+        first: true,
+        last: true,
+        empty: false
+      });
+    }
+
+    // ==========================================
+    // 2. REPORTES & DASHBOARD (ms-reportes)
+    // ==========================================
+    if (pathname === '/api/reportes/dashboard' && req.method === 'GET') {
+      return sendJson(res, 200, {
+        periodo: query.periodo || 'mes',
+        kpis: {
+          ventasHoy: { monto: 1450.00, variacionPorcentual: 12.5 },
+          ventasMes: { monto: 38920.00, variacionPorcentual: 8.3 },
+          ventasAnio: { monto: 342150.00, variacionPorcentual: 15.2 },
+          utilidadMes: { monto: 14250.00, margenPorcentual: 36.6 },
+          ticketPromedio: { monto: 28.50, totalTransaccionesDia: 42 }
+        },
+        productosMasVendidos: [
+          { rank: 1, productoId: 1, producto: 'Paracetamol 500 mg', unidades: 450, monto: 225.00 },
+          { rank: 2, productoId: 2, producto: 'Ibuprofeno 400 mg', unidades: 320, monto: 288.00 },
+          { rank: 3, productoId: 7, producto: 'Alcohol 70° 250 ml', unidades: 180, monto: 1080.00 },
+          { rank: 4, productoId: 3, producto: 'Amoxicilina 500 mg', unidades: 140, monto: 350.00 },
+          { rank: 5, productoId: 6, producto: 'Vitamina C 1 g', unidades: 110, monto: 220.00 }
+        ],
+        ventasPorMedioPago: [
+          { medioPago: 'EFECTIVO', porcentaje: 52, total: 20238.40 },
+          { medioPago: 'TARJETA', porcentaje: 31, total: 12065.20 },
+          { medioPago: 'YAPE_PLIN', porcentaje: 17, total: 6616.40 }
+        ],
+        ventasPorVendedor: [
+          { usuarioId: 2, vendedor: 'Carlos Gómez Soto', monto: 21450.00, totalVentas: 750 },
+          { usuarioId: 3, vendedor: 'Lucía Morales Rivas', monto: 17470.00, totalVentas: 612 }
+        ]
+      });
+    }
+
+    if (pathname === '/api/reportes/ventas/por-dia-semana' && req.method === 'GET') {
+      return sendJson(res, 200, [
+        { dia: 'Lunes', montoPromedio: 1250.00, esMayor: false },
+        { dia: 'Martes', montoPromedio: 1180.00, esMayor: false },
+        { dia: 'Miércoles', montoPromedio: 1420.00, esMayor: false },
+        { dia: 'Jueves', montoPromedio: 1390.00, esMayor: false },
+        { dia: 'Viernes', montoPromedio: 1890.00, esMayor: true },
+        { dia: 'Sábado', montoPromedio: 2150.00, esMayor: true },
+        { dia: 'Domingo', montoPromedio: 980.00, esMayor: false }
+      ]);
+    }
+
+    if (pathname === '/api/reportes/auditoria' && req.method === 'GET') {
+      return sendJson(res, 200, {
+        content: [
+          { id: 1, evento: 'VENTA_REGISTRADA', servicio: 'ms-ventas', payloadResumen: 'Boleta B001-00001024 emitida por S/ 32.50', usuarioId: 1, usuarioUsername: 'admin', sucursalId: 1, fechaHora: '2026-10-23T14:30:00Z' },
+          { id: 2, evento: 'STOCK_DESCONTADO_FEFO', servicio: 'ms-inventario', payloadResumen: 'Descuento de lote L-2024-PAR (-10 un.) y L-2024-AMX (-11 un.)', usuarioId: 1, usuarioUsername: 'admin', sucursalId: 1, fechaHora: '2026-10-23T14:30:05Z' },
+          { id: 3, evento: 'CAJA_APERTURADA', servicio: 'ms-ventas', payloadResumen: 'Apertura de turno Caja Principal POS 01 con S/ 200.00', usuarioId: 1, usuarioUsername: 'admin', sucursalId: 1, fechaHora: '2026-10-23T08:00:00Z' },
+          { id: 4, evento: 'ORDEN_COMPRA_APROBADA', servicio: 'ms-compras', payloadResumen: 'Orden OC-2026-0001 aprobada por S/ 118.00', usuarioId: 1, usuarioUsername: 'admin', sucursalId: 1, fechaHora: '2026-10-20T10:00:00Z' }
+        ],
+        totalElements: 4,
+        totalPages: 1,
+        size: 20,
+        number: 0
+      });
+    }
+
+    // ==========================================
+    // 3. CATALOGO (ms-catalogo)
+    // ==========================================
+    if (pathname === '/api/catalogo/productos' && req.method === 'GET') {
+      return sendJson(res, 200, {
+        content: PRODUCTOS,
+        totalElements: PRODUCTOS.length,
+        totalPages: 1,
+        size: 50,
+        number: 0,
+        first: true,
+        last: true,
+        empty: false
+      });
+    }
+
+    if (pathname === '/api/catalogo/categorias' && req.method === 'GET') {
+      return sendJson(res, 200, CATEGORIAS);
+    }
+
+    if (pathname === '/api/catalogo/laboratorios' && req.method === 'GET') {
+      return sendJson(res, 200, LABORATORIOS);
+    }
+
+    if (pathname.startsWith('/api/catalogo/productos/codigo/') && req.method === 'GET') {
+      const codigo = pathname.split('/').pop();
+      const prod = PRODUCTOS.find(p => p.codigoBarras === codigo);
+      if (prod) return sendJson(res, 200, prod);
+      return sendJson(res, 404, { message: 'Producto no encontrado' });
+    }
+
+    if (pathname === '/api/catalogo/productos' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const cat = CATEGORIAS.find(c => c.id === body.categoriaId) || CATEGORIAS[0];
+      const lab = LABORATORIOS.find(l => l.id === body.laboratorioId) || LABORATORIOS[0];
+      const nuevo = {
+        id: PRODUCTOS.length + 1,
+        codigoBarras: body.codigoBarras,
+        nombre: body.nombre,
+        principioActivo: body.principioActivo,
+        concentracion: body.concentracion,
+        presentacion: body.presentacion,
+        categoria: cat,
+        laboratorio: lab,
+        precioVenta: body.precioVenta,
+        precioCosto: body.precioCosto,
+        margenPorcentaje: ((body.precioVenta - body.precioCosto) / body.precioVenta * 100).toFixed(1),
+        requiereReceta: !!body.requiereReceta,
+        activo: true,
+        creadoEn: new Date().toISOString()
+      };
+      PRODUCTOS.push(nuevo);
+      return sendJson(res, 201, nuevo);
+    }
+
+    // ==========================================
+    // 4. INVENTARIO (ms-inventario)
+    // ==========================================
+    if (pathname === '/api/inventario/stock' && req.method === 'GET') {
+      return sendJson(res, 200, STOCK);
+    }
+
+    if (pathname === '/api/inventario/stock-bajo' && req.method === 'GET') {
+      const bajos = STOCK.filter(s => s.stockActual <= s.stockMinimo);
+      return sendJson(res, 200, bajos);
+    }
+
+    if (pathname === '/api/inventario/alertas' && req.method === 'GET') {
+      return sendJson(res, 200, ALERTAS);
+    }
+
+    if (pathname.startsWith('/api/inventario/lotes/producto/') && req.method === 'GET') {
+      const prodId = parseInt(pathname.split('/').pop());
+      const lotesProd = LOTES.filter(l => l.productoId === prodId);
+      return sendJson(res, 200, lotesProd);
+    }
+
+    if (pathname === '/api/inventario/lotes/por-vencer' && req.method === 'GET') {
+      const porVencer = LOTES.filter(l => l.diasRestantes <= 90);
+      return sendJson(res, 200, porVencer);
+    }
+
+    if (pathname.startsWith('/api/inventario/kardex/producto/') && req.method === 'GET') {
+      const prodId = parseInt(pathname.split('/').pop());
+      const kardexProd = KARDEX.filter(k => k.productoId === prodId);
+      return sendJson(res, 200, kardexProd);
+    }
+
+    // ==========================================
+    // 5. CAJA Y VENTAS (ms-ventas)
+    // ==========================================
+    if (pathname === '/api/caja/cajas' && req.method === 'GET') {
+      return sendJson(res, 200, CAJAS);
+    }
+
+    if (pathname === '/api/caja/mi-turno' && req.method === 'GET') {
+      return sendJson(res, 200, SESION_CAJA_ACTUAL);
+    }
+
+    if (pathname === '/api/caja/sesiones' && req.method === 'GET') {
+      return sendJson(res, 200, [SESION_CAJA_ACTUAL]);
+    }
+
+    if (pathname === '/api/caja/apertura' && req.method === 'POST') {
+      const body = await parseBody(req);
+      SESION_CAJA_ACTUAL = {
+        id: SESION_CAJA_ACTUAL ? SESION_CAJA_ACTUAL.id + 1 : 1,
+        cajaId: body.cajaId || 1,
+        nombreCaja: body.cajaId === 2 ? 'Caja Rápida POS 02' : 'Caja Principal POS 01',
+        codigoCaja: body.cajaId === 2 ? 'CAJA-02' : 'CAJA-01',
+        usuarioId: 1,
+        sucursalId: 1,
+        montoApertura: body.montoApertura || 100.00,
+        estado: 'ABIERTA',
+        fechaApertura: new Date().toISOString(),
+        observaciones: body.observaciones || '',
+        totalVentasEfectivo: 0,
+        totalVentasTarjeta: 0,
+        totalVentasBilletera: 0,
+        totalVentasGeneral: 0,
+        cantidadTransacciones: 0
+      };
+      return sendJson(res, 200, SESION_CAJA_ACTUAL);
+    }
+
+    if (pathname === '/api/ventas/clientes' && req.method === 'GET') {
+      return sendJson(res, 200, CLIENTES);
+    }
+
+    if (pathname.startsWith('/api/ventas/clientes/documento/') && req.method === 'GET') {
+      const doc = pathname.split('/').pop();
+      const cli = CLIENTES.find(c => c.numeroDocumento === doc);
+      if (cli) return sendJson(res, 200, cli);
+      return sendJson(res, 404, { message: 'Cliente no encontrado' });
+    }
+
+    if (pathname === '/api/ventas/promociones' && req.method === 'GET') {
+      return sendJson(res, 200, PROMOCIONES);
+    }
+
+    if (pathname === '/api/ventas/cupones/validar' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const cupon = CUPONES.find(c => c.codigo.toUpperCase() === (body.codigo || '').toUpperCase());
+      if (cupon && cupon.activo) {
+        return sendJson(res, 200, {
+          valido: true,
+          codigo: cupon.codigo,
+          porcentajeDescuento: cupon.porcentajeDescuento,
+          montoFijoDescuento: cupon.montoFijoDescuento,
+          mensaje: `¡Cupón válido! Se aplicará un ${cupon.porcentajeDescuento}% de descuento`
+        });
+      } else {
+        return sendJson(res, 200, {
+          valido: false,
+          codigo: body.codigo,
+          mensaje: 'El cupón no existe o ya ha expirado'
+        });
+      }
+    }
+
+    if (pathname === '/api/ventas' && req.method === 'GET') {
+      return sendJson(res, 200, VENTAS);
+    }
+
+    if (pathname === '/api/ventas' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const correlativo = String(VENTAS.length + 1025).padStart(8, '0');
+      const prefix = body.tipoComprobante === 'FACTURA' ? 'F001' : 'B001';
+      const nuevaVenta = {
+        id: VENTAS.length + 1,
+        numeroComprobante: `${prefix}-${correlativo}`,
+        tipoComprobante: body.tipoComprobante || 'BOLETA',
+        sucursalId: 1,
+        cajaId: body.cajaId || 1,
+        sesionCajaId: SESION_CAJA_ACTUAL ? SESION_CAJA_ACTUAL.id : 1,
+        usuarioId: 1,
+        vendedorNombre: 'Administrador Farma Ochenta',
+        cliente: body.cliente || CLIENTES[0],
+        medioPago: body.medioPago || 'EFECTIVO',
+        montoEfectivo: body.montoEfectivo || body.total,
+        montoVuelto: body.montoVuelto || 0,
+        subtotal: (body.total / 1.18).toFixed(2),
+        igv: (body.total - body.total / 1.18).toFixed(2),
+        total: body.total,
+        descuentoTotal: body.descuentoTotal || 0,
+        estado: 'COMPLETADA',
+        fechaVenta: new Date().toISOString(),
+        items: body.items || []
+      };
+      VENTAS.unshift(nuevaVenta);
+      return sendJson(res, 201, nuevaVenta);
+    }
+
+    // ==========================================
+    // 6. COMPRAS (ms-compras)
+    // ==========================================
+    if (pathname === '/api/compras/proveedores' && req.method === 'GET') {
+      return sendJson(res, 200, PROVEEDORES);
+    }
+
+    if (pathname === '/api/compras/ordenes' && req.method === 'GET') {
+      return sendJson(res, 200, ORDENES);
+    }
+
+    if (pathname === '/api/compras/ingresos' && req.method === 'GET') {
+      return sendJson(res, 200, []);
+    }
+
+    // Ruta no encontrada
+    console.warn(`[404] Ruta no mapeada: ${pathname}`);
+    return sendJson(res, 404, {
+      timestamp: new Date().toISOString(),
+      status: 404,
+      error: 'Not Found',
+      message: `Ruta ${pathname} no encontrada en Gateway`
+    });
+
+  } catch (err) {
+    console.error('Error interno del servidor mock:', err);
+    return sendJson(res, 500, {
+      timestamp: new Date().toISOString(),
+      status: 500,
+      error: 'Internal Server Error',
+      message: err.message
+    });
+  }
+});
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`=======================================================`);
+  console.log(` FarmaGest API Gateway (Mock) activo en http://localhost:${PORT}`);
+  console.log(` Emulando microservicios: auth, catalogo, inventario, ventas, compras, reportes`);
+  console.log(`=======================================================`);
+});
