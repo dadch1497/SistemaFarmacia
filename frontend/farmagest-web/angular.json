@@ -88,10 +88,13 @@
               "buildTarget": "farmagest-web:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "host": "0.0.0.0",
+            "port": 4200
+          }
         }
       }
     }
   }
 }
-

@@ -488,6 +488,16 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, {});
     }
 
+    if (pathname.match(/^\/api\/auth\/usuarios\/\d+$/) && req.method === 'DELETE') {
+      const id = parseInt(pathname.split('/')[4]);
+      const username = Object.keys(USUARIOS).find(k => USUARIOS[k].id === id);
+      if (username && username !== 'admin') {
+        delete USUARIOS[username];
+        return sendJson(res, 204, {});
+      }
+      return sendJson(res, 400, { message: 'No se puede eliminar el usuario principal o no encontrado' });
+    }
+
     // ==========================================
     // 2. REPORTES & DASHBOARD (ms-reportes)
     // ==========================================
