@@ -1,7 +1,12 @@
 /**
- * FarmaGest — Mock API Gateway & Microservices Server
- * Servidor HTTP nativo en Node.js que emula el API Gateway (puerto 8080)
- * y los microservicios: ms-auth, ms-catalogo, ms-inventario, ms-ventas, ms-compras, ms-reportes
+ * FarmaGest — Mock API Gateway & Microservices Server Completo
+ * Emula el 100% de los endpoints consumidos por el Frontend Angular:
+ * - ms-auth (login, perfil, gestión de usuarios)
+ * - ms-catalogo (productos, categorías, laboratorios, cambios y trazabilidad de precios)
+ * - ms-inventario (stock FEFO, semáforos, kardex, mermas, alertas de caducidad)
+ * - ms-ventas (POS, boletas/facturas SUNAT, apertura/cierre/arqueo de caja, clientes, cupones, promociones, ventas en espera)
+ * - ms-compras (proveedores, órdenes de compra, ingresos físicos con lote y vencimiento)
+ * - ms-reportes (KPIs ejecutivos, comparativa semanal, auditoría inmutable)
  */
 
 const http = require('http');
@@ -9,7 +14,7 @@ const url = require('url');
 
 const PORT = 8080;
 
-// Permisos según V2__seed_roles_and_permissions.sql
+// Permisos según matriz de seguridad
 const PERMISOS_ADMIN = [
   'VENTA_CREAR', 'VENTA_LISTAR_PROPIAS', 'VENTA_LISTAR_TODAS', 'VENTA_ANULAR', 'VENTA_DEVOLUCION', 'CUPON_APLICAR', 'DESCUENTO_AUTORIZAR',
   'CAJA_APERTURA', 'CAJA_CIERRE_PROPIO', 'CAJA_CIERRE_TODOS',
@@ -33,8 +38,8 @@ const PERMISOS_ALMACENERO = [
   'PROVEEDOR_GESTIONAR', 'ORDEN_COMPRA_GESTIONAR', 'MERCADERIA_INGRESAR'
 ];
 
-// Usuarios válidos
-const USUARIOS = {
+// Usuarios maestros
+let USUARIOS = {
   admin: {
     id: 1,
     username: 'admin',
@@ -94,7 +99,7 @@ const USUARIOS = {
 };
 
 // Categorías
-const CATEGORIAS = [
+let CATEGORIAS = [
   { id: 1, nombre: 'Analgésicos', descripcion: 'Medicamentos para el alivio del dolor y fiebre', activo: true },
   { id: 2, nombre: 'Antibióticos', descripcion: 'Fármacos para combatir infecciones bacterianas', activo: true },
   { id: 3, nombre: 'Antialérgicos', descripcion: 'Antihistamínicos para alergias respiratorias y dérmicas', activo: true },
@@ -104,7 +109,7 @@ const CATEGORIAS = [
 ];
 
 // Laboratorios
-const LABORATORIOS = [
+let LABORATORIOS = [
   { id: 1, nombre: 'Medifarma', paisOrigen: 'Perú', activo: true },
   { id: 2, nombre: 'Laboratorios Portugal', paisOrigen: 'Perú', activo: true },
   { id: 3, nombre: 'IQ Farma', paisOrigen: 'Perú', activo: true },
@@ -113,120 +118,20 @@ const LABORATORIOS = [
   { id: 6, nombre: 'Farmindustria', paisOrigen: 'Perú', activo: true }
 ];
 
+// Historial de precios
+let HISTORIAL_PRECIOS = [
+  { id: 1, productoId: 1, nombreProducto: 'Paracetamol 500 mg', precioAnterior: 0.40, precioNuevo: 0.50, costoAnterior: 0.18, costoNuevo: 0.22, motivo: 'Ajuste anual por inflación del laboratorio', usuarioId: 1, fechaCambio: '2026-01-15T10:00:00Z' }
+];
+
 // Productos
 let PRODUCTOS = [
-  {
-    id: 1,
-    codigoBarras: '7751234567890',
-    nombre: 'Paracetamol 500 mg',
-    principioActivo: 'Paracetamol',
-    concentracion: '500 mg',
-    presentacion: 'Tableta',
-    categoria: CATEGORIAS[0],
-    laboratorio: LABORATORIOS[1],
-    precioVenta: 0.50,
-    precioCosto: 0.22,
-    margenPorcentaje: 56.0,
-    requiereReceta: false,
-    activo: true,
-    creadoEn: '2026-01-01T10:00:00Z'
-  },
-  {
-    id: 2,
-    codigoBarras: '7751234567891',
-    nombre: 'Ibuprofeno 400 mg',
-    principioActivo: 'Ibuprofeno',
-    concentracion: '400 mg',
-    presentacion: 'Tableta',
-    categoria: CATEGORIAS[0],
-    laboratorio: LABORATORIOS[0],
-    precioVenta: 0.90,
-    precioCosto: 0.40,
-    margenPorcentaje: 55.5,
-    requiereReceta: false,
-    activo: true,
-    creadoEn: '2026-01-01T10:00:00Z'
-  },
-  {
-    id: 3,
-    codigoBarras: '7751234567892',
-    nombre: 'Amoxicilina 500 mg',
-    principioActivo: 'Amoxicilina',
-    concentracion: '500 mg',
-    presentacion: 'Cápsula',
-    categoria: CATEGORIAS[1],
-    laboratorio: LABORATORIOS[5],
-    precioVenta: 2.50,
-    precioCosto: 1.20,
-    margenPorcentaje: 52.0,
-    requiereReceta: true,
-    activo: true,
-    creadoEn: '2026-01-01T10:00:00Z'
-  },
-  {
-    id: 4,
-    codigoBarras: '7751234567893',
-    nombre: 'Loratadina 10 mg',
-    principioActivo: 'Loratadina',
-    concentracion: '10 mg',
-    presentacion: 'Tableta',
-    categoria: CATEGORIAS[2],
-    laboratorio: LABORATORIOS[1],
-    precioVenta: 0.70,
-    precioCosto: 0.30,
-    margenPorcentaje: 57.1,
-    requiereReceta: false,
-    activo: true,
-    creadoEn: '2026-01-01T10:00:00Z'
-  },
-  {
-    id: 5,
-    codigoBarras: '7751234567894',
-    nombre: 'Omeprazol 20 mg',
-    principioActivo: 'Omeprazol',
-    concentracion: '20 mg',
-    presentacion: 'Cápsula',
-    categoria: CATEGORIAS[3],
-    laboratorio: LABORATORIOS[2],
-    precioVenta: 1.50,
-    precioCosto: 0.65,
-    margenPorcentaje: 56.6,
-    requiereReceta: false,
-    activo: true,
-    creadoEn: '2026-01-01T10:00:00Z'
-  },
-  {
-    id: 6,
-    codigoBarras: '7751234567895',
-    nombre: 'Vitamina C 1 g',
-    principioActivo: 'Ácido Ascórbico',
-    concentracion: '1 g',
-    presentacion: 'Tableta efervescente',
-    categoria: CATEGORIAS[4],
-    laboratorio: LABORATORIOS[3],
-    precioVenta: 2.00,
-    precioCosto: 0.90,
-    margenPorcentaje: 55.0,
-    requiereReceta: false,
-    activo: true,
-    creadoEn: '2026-01-01T10:00:00Z'
-  },
-  {
-    id: 7,
-    codigoBarras: '7751234567896',
-    nombre: 'Alcohol 70° 250 ml',
-    principioActivo: 'Alcohol Etílico 70°',
-    concentracion: '70°',
-    presentacion: 'Frasco 250 ml',
-    categoria: CATEGORIAS[5],
-    laboratorio: LABORATORIOS[1],
-    precioVenta: 6.00,
-    precioCosto: 3.80,
-    margenPorcentaje: 36.6,
-    requiereReceta: false,
-    activo: true,
-    creadoEn: '2026-01-01T10:00:00Z'
-  }
+  { id: 1, codigoBarras: '7751234567890', nombre: 'Paracetamol 500 mg', principioActivo: 'Paracetamol', concentracion: '500 mg', presentacion: 'Tableta', categoria: CATEGORIAS[0], laboratorio: LABORATORIOS[1], precioVenta: 0.50, precioCosto: 0.22, margenPorcentaje: 56.0, requiereReceta: false, activo: true, creadoEn: '2026-01-01T10:00:00Z' },
+  { id: 2, codigoBarras: '7751234567891', nombre: 'Ibuprofeno 400 mg', principioActivo: 'Ibuprofeno', concentracion: '400 mg', presentacion: 'Tableta', categoria: CATEGORIAS[0], laboratorio: LABORATORIOS[0], precioVenta: 0.90, precioCosto: 0.40, margenPorcentaje: 55.5, requiereReceta: false, activo: true, creadoEn: '2026-01-01T10:00:00Z' },
+  { id: 3, codigoBarras: '7751234567892', nombre: 'Amoxicilina 500 mg', principioActivo: 'Amoxicilina', concentracion: '500 mg', presentacion: 'Cápsula', categoria: CATEGORIAS[1], laboratorio: LABORATORIOS[5], precioVenta: 2.50, precioCosto: 1.20, margenPorcentaje: 52.0, requiereReceta: true, activo: true, creadoEn: '2026-01-01T10:00:00Z' },
+  { id: 4, codigoBarras: '7751234567893', nombre: 'Loratadina 10 mg', principioActivo: 'Loratadina', concentracion: '10 mg', presentacion: 'Tableta', categoria: CATEGORIAS[2], laboratorio: LABORATORIOS[1], precioVenta: 0.70, precioCosto: 0.30, margenPorcentaje: 57.1, requiereReceta: false, activo: true, creadoEn: '2026-01-01T10:00:00Z' },
+  { id: 5, codigoBarras: '7751234567894', nombre: 'Omeprazol 20 mg', principioActivo: 'Omeprazol', concentracion: '20 mg', presentacion: 'Cápsula', categoria: CATEGORIAS[3], laboratorio: LABORATORIOS[2], precioVenta: 1.50, precioCosto: 0.65, margenPorcentaje: 56.6, requiereReceta: false, activo: true, creadoEn: '2026-01-01T10:00:00Z' },
+  { id: 6, codigoBarras: '7751234567895', nombre: 'Vitamina C 1 g', principioActivo: 'Ácido Ascórbico', concentracion: '1 g', presentacion: 'Tableta efervescente', categoria: CATEGORIAS[4], laboratorio: LABORATORIOS[3], precioVenta: 2.00, precioCosto: 0.90, margenPorcentaje: 55.0, requiereReceta: false, activo: true, creadoEn: '2026-01-01T10:00:00Z' },
+  { id: 7, codigoBarras: '7751234567896', nombre: 'Alcohol 70° 250 ml', principioActivo: 'Alcohol Etílico 70°', concentracion: '70°', presentacion: 'Frasco 250 ml', categoria: CATEGORIAS[5], laboratorio: LABORATORIOS[1], precioVenta: 6.00, precioCosto: 3.80, margenPorcentaje: 36.6, requiereReceta: false, activo: true, creadoEn: '2026-01-01T10:00:00Z' }
 ];
 
 // Stock por producto
@@ -259,13 +164,12 @@ let ALERTAS = [
   { id: 3, productoId: 5, loteId: 6, numeroLote: 'L-2024-OME', sucursalId: 1, tipoAlerta: 'VENCIMIENTO_90_DIAS', mensaje: 'Lote L-2024-OME de Omeprazol 20 mg vence en 75 días', nivelUrgencia: 1, atendida: false, fechaAlerta: '2026-10-24T00:00:00Z' }
 ];
 
-// Cajas
+// Cajas y sesiones
 let CAJAS = [
   { id: 1, sucursalId: 1, nombre: 'Caja Principal POS 01', codigo: 'CAJA-01', activo: true },
   { id: 2, sucursalId: 1, nombre: 'Caja Rápida POS 02', codigo: 'CAJA-02', activo: true }
 ];
 
-// Turno de caja actual para el vendedor
 let SESION_CAJA_ACTUAL = {
   id: 1,
   cajaId: 1,
@@ -279,7 +183,7 @@ let SESION_CAJA_ACTUAL = {
   diferencia: null,
   estado: 'ABIERTA',
   fechaApertura: new Date().toISOString(),
-  observaciones: 'Turno abierto automáticamente',
+  observaciones: 'Turno activo para atención',
   totalVentasEfectivo: 350.00,
   totalVentasTarjeta: 220.00,
   totalVentasBilletera: 140.00,
@@ -307,7 +211,10 @@ let CUPONES = [
   { id: 3, codigo: 'BOTICA5', porcentajeDescuento: 5.00, montoFijoDescuento: 0.00, usosPermitidos: 1000, usosActuales: 80, fechaExpiracion: '2027-12-31', activo: true }
 ];
 
-// Ventas registradas
+// Ventas en espera del POS
+let VENTAS_ESPERA = [];
+
+// Ventas completadas
 let VENTAS = [
   {
     id: 1,
@@ -385,6 +292,9 @@ let ORDENES = [
   }
 ];
 
+// Ingresos de mercadería
+let INGRESOS = [];
+
 // Kardex
 let KARDEX = [
   { id: 1, productoId: 1, loteId: 1, numeroLote: 'L-2024-PAR', sucursalId: 1, tipoMovimiento: 'INGRESO_INICIAL', cantidad: 50, saldoResultante: 50, referenciaTipo: 'INICIAL', referenciaId: 'INI-001', motivo: 'Carga inicial de inventario', usuarioId: 1, fechaHora: '2026-10-23T08:00:00Z' },
@@ -393,7 +303,6 @@ let KARDEX = [
   { id: 4, productoId: 3, loteId: 4, numeroLote: 'L-2024-AMX', sucursalId: 1, tipoMovimiento: 'SALIDA_VENTA', cantidad: -11, saldoResultante: 8, referenciaTipo: 'VENTA', referenciaId: 'B001-00001024', motivo: 'Venta Boleta POS', usuarioId: 1, fechaHora: '2026-10-23T14:30:00Z' }
 ];
 
-// Helper para enviar JSON con CORS
 function sendJson(res, statusCode, data) {
   const payload = JSON.stringify(data);
   res.writeHead(statusCode, {
@@ -421,9 +330,8 @@ function parseBody(req) {
   });
 }
 
-// Servidor HTTP
 const server = http.createServer(async (req, res) => {
-  // Manejo de CORS Preflight
+  // CORS Preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
@@ -436,8 +344,6 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
   const query = parsedUrl.query;
-
-  console.log(`[${req.method}] ${pathname}`);
 
   try {
     // ==========================================
@@ -503,16 +409,39 @@ const server = http.createServer(async (req, res) => {
         roles: u.roles,
         permisos: u.permisos
       }));
-      return sendJson(res, 200, {
-        content: lista,
-        totalElements: lista.length,
-        totalPages: 1,
-        size: 50,
-        number: 0,
-        first: true,
-        last: true,
-        empty: false
-      });
+      return sendJson(res, 200, { content: lista });
+    }
+
+    if (pathname === '/api/auth/usuarios' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const roleMap = { 1: 'ROLE_ADMINISTRADOR', 2: 'ROLE_VENDEDOR', 3: 'ROLE_ALMACENERO' };
+      const rolPrincipal = roleMap[body.rolIds?.[0]] || 'ROLE_VENDEDOR';
+      const permisos = rolPrincipal === 'ROLE_ADMINISTRADOR' ? PERMISOS_ADMIN : (rolPrincipal === 'ROLE_ALMACENERO' ? PERMISOS_ALMACENERO : PERMISOS_VENDEDOR);
+
+      const nuevo = {
+        id: Object.keys(USUARIOS).length + 1,
+        username: body.username,
+        password: body.password,
+        nombres: body.nombres,
+        apellidos: body.apellidos,
+        email: body.email,
+        rolPrincipal: rolPrincipal,
+        sucursalId: body.sucursalId || 1,
+        roles: [rolPrincipal],
+        permisos: permisos,
+        activo: true,
+        creadoEn: new Date().toISOString()
+      };
+      USUARIOS[body.username] = nuevo;
+      return sendJson(res, 201, nuevo);
+    }
+
+    if (pathname.match(/^\/api\/auth\/usuarios\/\d+\/estado$/) && req.method === 'PATCH') {
+      const id = parseInt(pathname.split('/')[4]);
+      const body = await parseBody(req);
+      const user = Object.values(USUARIOS).find(u => u.id === id);
+      if (user) user.activo = body.activo;
+      return sendJson(res, 200, {});
     }
 
     // ==========================================
@@ -590,12 +519,11 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    if (pathname === '/api/catalogo/categorias' && req.method === 'GET') {
-      return sendJson(res, 200, CATEGORIAS);
-    }
-
-    if (pathname === '/api/catalogo/laboratorios' && req.method === 'GET') {
-      return sendJson(res, 200, LABORATORIOS);
+    if (pathname.match(/^\/api\/catalogo\/productos\/\d+$/) && req.method === 'GET') {
+      const id = parseInt(pathname.split('/')[4]);
+      const prod = PRODUCTOS.find(p => p.id === id);
+      if (prod) return sendJson(res, 200, prod);
+      return sendJson(res, 404, { message: 'Producto no encontrado' });
     }
 
     if (pathname.startsWith('/api/catalogo/productos/codigo/') && req.method === 'GET') {
@@ -629,11 +557,65 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 201, nuevo);
     }
 
+    if (pathname.match(/^\/api\/catalogo\/productos\/\d+\/precio$/) && req.method === 'PATCH') {
+      const id = parseInt(pathname.split('/')[4]);
+      const body = await parseBody(req);
+      const prod = PRODUCTOS.find(p => p.id === id);
+      if (prod) {
+        HISTORIAL_PRECIOS.unshift({
+          id: HISTORIAL_PRECIOS.length + 1,
+          productoId: prod.id,
+          nombreProducto: prod.nombre,
+          precioAnterior: prod.precioVenta,
+          precioNuevo: body.nuevoPrecioVenta,
+          costoAnterior: prod.precioCosto,
+          costoNuevo: body.nuevoPrecioCosto || prod.precioCosto,
+          motivo: body.motivo || 'Actualización manual de precio',
+          usuarioId: 1,
+          fechaCambio: new Date().toISOString()
+        });
+        prod.precioVenta = body.nuevoPrecioVenta;
+        if (body.nuevoPrecioCosto) prod.precioCosto = body.nuevoPrecioCosto;
+        return sendJson(res, 200, prod);
+      }
+      return sendJson(res, 404, { message: 'Producto no encontrado' });
+    }
+
+    if (pathname.match(/^\/api\/catalogo\/productos\/\d+\/historial-precios$/) && req.method === 'GET') {
+      const id = parseInt(pathname.split('/')[4]);
+      const hist = HISTORIAL_PRECIOS.filter(h => h.productoId === id);
+      return sendJson(res, 200, hist);
+    }
+
+    if (pathname.match(/^\/api\/catalogo\/productos\/\d+\/estado$/) && req.method === 'PATCH') {
+      const id = parseInt(pathname.split('/')[4]);
+      const prod = PRODUCTOS.find(p => p.id === id);
+      if (prod) {
+        prod.activo = query.activo === 'true';
+        return sendJson(res, 200, prod);
+      }
+      return sendJson(res, 404, { message: 'Producto no encontrado' });
+    }
+
+    if (pathname === '/api/catalogo/categorias' && req.method === 'GET') {
+      return sendJson(res, 200, CATEGORIAS);
+    }
+
+    if (pathname === '/api/catalogo/laboratorios' && req.method === 'GET') {
+      return sendJson(res, 200, LABORATORIOS);
+    }
+
     // ==========================================
     // 4. INVENTARIO (ms-inventario)
     // ==========================================
     if (pathname === '/api/inventario/stock' && req.method === 'GET') {
       return sendJson(res, 200, STOCK);
+    }
+
+    if (pathname.match(/^\/api\/inventario\/stock\/producto\/\d+$/) && req.method === 'GET') {
+      const prodId = parseInt(pathname.split('/')[5]);
+      const st = STOCK.find(s => s.productoId === prodId) || { productoId: prodId, stockActual: 0, stockMinimo: 10, estadoStock: 'CRITICO' };
+      return sendJson(res, 200, st);
     }
 
     if (pathname === '/api/inventario/stock-bajo' && req.method === 'GET') {
@@ -645,6 +627,13 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, ALERTAS);
     }
 
+    if (pathname.match(/^\/api\/inventario\/alertas\/\d+\/atender$/) && req.method === 'PATCH') {
+      const id = parseInt(pathname.split('/')[4]);
+      const alerta = ALERTAS.find(a => a.id === id);
+      if (alerta) alerta.atendida = true;
+      return sendJson(res, 200, {});
+    }
+
     if (pathname.startsWith('/api/inventario/lotes/producto/') && req.method === 'GET') {
       const prodId = parseInt(pathname.split('/').pop());
       const lotesProd = LOTES.filter(l => l.productoId === prodId);
@@ -652,7 +641,8 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === '/api/inventario/lotes/por-vencer' && req.method === 'GET') {
-      const porVencer = LOTES.filter(l => l.diasRestantes <= 90);
+      const dias = parseInt(query.dias) || 90;
+      const porVencer = LOTES.filter(l => l.diasRestantes <= dias);
       return sendJson(res, 200, porVencer);
     }
 
@@ -660,6 +650,30 @@ const server = http.createServer(async (req, res) => {
       const prodId = parseInt(pathname.split('/').pop());
       const kardexProd = KARDEX.filter(k => k.productoId === prodId);
       return sendJson(res, 200, kardexProd);
+    }
+
+    if (pathname === '/api/inventario/ajustes' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const st = STOCK.find(s => s.productoId === body.productoId);
+      const delta = body.tipoAjuste === 'MERMA' || body.tipoAjuste === 'ROTURA' ? -body.cantidad : body.cantidad;
+      const saldo = (st ? st.stockActual : 0) + delta;
+      if (st) st.stockActual = Math.max(0, saldo);
+
+      const nuevoKardex = {
+        id: KARDEX.length + 1,
+        productoId: body.productoId,
+        loteId: body.loteId,
+        numeroLote: body.numeroLote || 'AJUSTE',
+        sucursalId: 1,
+        tipoMovimiento: delta < 0 ? 'AJUSTE_MERMA' : 'AJUSTE_SOBRANTE',
+        cantidad: delta,
+        saldoResultante: Math.max(0, saldo),
+        motivo: body.motivo || 'Ajuste manual de inventario',
+        usuarioId: 1,
+        fechaHora: new Date().toISOString()
+      };
+      KARDEX.unshift(nuevoKardex);
+      return sendJson(res, 201, nuevoKardex);
     }
 
     // ==========================================
@@ -680,7 +694,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/caja/apertura' && req.method === 'POST') {
       const body = await parseBody(req);
       SESION_CAJA_ACTUAL = {
-        id: SESION_CAJA_ACTUAL ? SESION_CAJA_ACTUAL.id + 1 : 1,
+        id: (SESION_CAJA_ACTUAL?.id || 0) + 1,
         cajaId: body.cajaId || 1,
         nombreCaja: body.cajaId === 2 ? 'Caja Rápida POS 02' : 'Caja Principal POS 01',
         codigoCaja: body.cajaId === 2 ? 'CAJA-02' : 'CAJA-01',
@@ -699,6 +713,19 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, SESION_CAJA_ACTUAL);
     }
 
+    if (pathname.match(/^\/api\/caja\/\d+\/cierre$/) && req.method === 'POST') {
+      const body = await parseBody(req);
+      if (SESION_CAJA_ACTUAL) {
+        SESION_CAJA_ACTUAL.estado = 'CERRADA';
+        SESION_CAJA_ACTUAL.montoCierreReal = body.montoCierreReal;
+        SESION_CAJA_ACTUAL.montoCierreSistema = SESION_CAJA_ACTUAL.montoApertura + (SESION_CAJA_ACTUAL.totalVentasEfectivo || 0);
+        SESION_CAJA_ACTUAL.diferencia = body.montoCierreReal - SESION_CAJA_ACTUAL.montoCierreSistema;
+        SESION_CAJA_ACTUAL.fechaCierre = new Date().toISOString();
+        SESION_CAJA_ACTUAL.observaciones = body.observaciones || SESION_CAJA_ACTUAL.observaciones;
+      }
+      return sendJson(res, 200, SESION_CAJA_ACTUAL);
+    }
+
     if (pathname === '/api/ventas/clientes' && req.method === 'GET') {
       return sendJson(res, 200, CLIENTES);
     }
@@ -710,8 +737,50 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 404, { message: 'Cliente no encontrado' });
     }
 
+    if (pathname === '/api/ventas/clientes' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const nuevo = {
+        id: CLIENTES.length + 1,
+        tipoDocumento: body.tipoDocumento || 'DNI',
+        numeroDocumento: body.numeroDocumento,
+        nombresORazonSocial: body.nombresORazonSocial,
+        direccion: body.direccion || '',
+        telefono: body.telefono || '',
+        email: body.email || '',
+        activo: true
+      };
+      CLIENTES.push(nuevo);
+      return sendJson(res, 201, nuevo);
+    }
+
     if (pathname === '/api/ventas/promociones' && req.method === 'GET') {
       return sendJson(res, 200, PROMOCIONES);
+    }
+
+    if (pathname === '/api/ventas/promociones' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const nueva = {
+        id: PROMOCIONES.length + 1,
+        nombre: body.nombre,
+        tipoAlcance: body.tipoAlcance,
+        tipoDescuento: body.tipoDescuento,
+        valorDescuento: body.valorDescuento,
+        cantidadCondicion: body.cantidadCondicion,
+        cantidadPagada: body.cantidadPagada,
+        fechaInicio: body.fechaInicio,
+        fechaFin: body.fechaFin,
+        aplicaPorVencimiento: false,
+        activo: true
+      };
+      PROMOCIONES.push(nueva);
+      return sendJson(res, 201, nueva);
+    }
+
+    if (pathname.match(/^\/api\/ventas\/promociones\/\d+\/estado$/) && req.method === 'PATCH') {
+      const id = parseInt(pathname.split('/')[4]);
+      const promo = PROMOCIONES.find(p => p.id === id);
+      if (promo) promo.activo = query.activo === 'true';
+      return sendJson(res, 200, {});
     }
 
     if (pathname === '/api/ventas/cupones/validar' && req.method === 'POST') {
@@ -734,14 +803,85 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    if (pathname === '/api/ventas/espera' && req.method === 'GET') {
+      return sendJson(res, 200, VENTAS_ESPERA);
+    }
+
+    if (pathname === '/api/ventas/espera' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const nuevaEspera = {
+        id: VENTAS_ESPERA.length + 1,
+        codigoEspera: `ESP-${Date.now().toString().slice(-4)}`,
+        referencia: body.referencia || 'Cliente en mostrador',
+        subtotal: body.subtotal,
+        igv: body.igv,
+        total: body.total,
+        descuentoTotal: body.descuentoTotal || 0,
+        datosVentaJson: body.datosVentaJson,
+        creadoEn: new Date().toISOString()
+      };
+      VENTAS_ESPERA.unshift(nuevaEspera);
+      return sendJson(res, 201, nuevaEspera);
+    }
+
+    if (pathname.match(/^\/api\/ventas\/espera\/\d+$/) && req.method === 'DELETE') {
+      const id = parseInt(pathname.split('/')[4]);
+      VENTAS_ESPERA = VENTAS_ESPERA.filter(v => v.id !== id);
+      return sendJson(res, 204, {});
+    }
+
     if (pathname === '/api/ventas' && req.method === 'GET') {
       return sendJson(res, 200, VENTAS);
+    }
+
+    if (pathname.match(/^\/api\/ventas\/\d+$/) && req.method === 'GET') {
+      const id = parseInt(pathname.split('/')[3]);
+      const v = VENTAS.find(vt => vt.id === id);
+      if (v) return sendJson(res, 200, v);
+      return sendJson(res, 404, { message: 'Venta no encontrada' });
+    }
+
+    if (pathname.match(/^\/api\/ventas\/\d+\/anular$/) && req.method === 'POST') {
+      const id = parseInt(pathname.split('/')[3]);
+      const v = VENTAS.find(vt => vt.id === id);
+      if (v) {
+        v.estado = 'ANULADA';
+        // Reponer stock
+        if (v.items) {
+          v.items.forEach(it => {
+            const st = STOCK.find(s => s.productoId === it.productoId);
+            if (st) st.stockActual += it.cantidad;
+          });
+        }
+        return sendJson(res, 200, v);
+      }
+      return sendJson(res, 404, { message: 'Venta no encontrada' });
     }
 
     if (pathname === '/api/ventas' && req.method === 'POST') {
       const body = await parseBody(req);
       const correlativo = String(VENTAS.length + 1025).padStart(8, '0');
       const prefix = body.tipoComprobante === 'FACTURA' ? 'F001' : 'B001';
+
+      // Descontar inventario FEFO
+      if (body.items) {
+        body.items.forEach(it => {
+          const st = STOCK.find(s => s.productoId === it.productoId);
+          if (st) st.stockActual = Math.max(0, st.stockActual - it.cantidad);
+          const lote = LOTES.find(l => l.id === it.loteId);
+          if (lote) lote.cantidadActual = Math.max(0, lote.cantidadActual - it.cantidad);
+        });
+      }
+
+      // Actualizar turno caja
+      if (SESION_CAJA_ACTUAL && SESION_CAJA_ACTUAL.estado === 'ABIERTA') {
+        SESION_CAJA_ACTUAL.cantidadTransacciones = (SESION_CAJA_ACTUAL.cantidadTransacciones || 0) + 1;
+        SESION_CAJA_ACTUAL.totalVentasGeneral = (SESION_CAJA_ACTUAL.totalVentasGeneral || 0) + body.total;
+        if (body.medioPago === 'EFECTIVO') SESION_CAJA_ACTUAL.totalVentasEfectivo = (SESION_CAJA_ACTUAL.totalVentasEfectivo || 0) + body.total;
+        else if (body.medioPago === 'TARJETA') SESION_CAJA_ACTUAL.totalVentasTarjeta = (SESION_CAJA_ACTUAL.totalVentasTarjeta || 0) + body.total;
+        else SESION_CAJA_ACTUAL.totalVentasBilletera = (SESION_CAJA_ACTUAL.totalVentasBilletera || 0) + body.total;
+      }
+
       const nuevaVenta = {
         id: VENTAS.length + 1,
         numeroComprobante: `${prefix}-${correlativo}`,
@@ -755,8 +895,8 @@ const server = http.createServer(async (req, res) => {
         medioPago: body.medioPago || 'EFECTIVO',
         montoEfectivo: body.montoEfectivo || body.total,
         montoVuelto: body.montoVuelto || 0,
-        subtotal: (body.total / 1.18).toFixed(2),
-        igv: (body.total - body.total / 1.18).toFixed(2),
+        subtotal: parseFloat((body.total / 1.18).toFixed(2)),
+        igv: parseFloat((body.total - body.total / 1.18).toFixed(2)),
         total: body.total,
         descuentoTotal: body.descuentoTotal || 0,
         estado: 'COMPLETADA',
@@ -774,16 +914,130 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, PROVEEDORES);
     }
 
+    if (pathname === '/api/compras/proveedores' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const nuevo = {
+        id: PROVEEDORES.length + 1,
+        ruc: body.ruc,
+        razonSocial: body.razonSocial,
+        nombreContacto: body.nombreContacto,
+        telefono: body.telefono,
+        email: body.email,
+        direccion: body.direccion,
+        activo: true,
+        creadoEn: new Date().toISOString()
+      };
+      PROVEEDORES.push(nuevo);
+      return sendJson(res, 201, nuevo);
+    }
+
+    if (pathname.match(/^\/api\/compras\/proveedores\/\d+$/) && req.method === 'PUT') {
+      const id = parseInt(pathname.split('/')[4]);
+      const body = await parseBody(req);
+      const prov = PROVEEDORES.find(p => p.id === id);
+      if (prov) Object.assign(prov, body);
+      return sendJson(res, 200, prov);
+    }
+
+    if (pathname.match(/^\/api\/compras\/proveedores\/\d+$/) && req.method === 'DELETE') {
+      const id = parseInt(pathname.split('/')[4]);
+      const prov = PROVEEDORES.find(p => p.id === id);
+      if (prov) prov.activo = false;
+      return sendJson(res, 204, {});
+    }
+
     if (pathname === '/api/compras/ordenes' && req.method === 'GET') {
       return sendJson(res, 200, ORDENES);
     }
 
-    if (pathname === '/api/compras/ingresos' && req.method === 'GET') {
-      return sendJson(res, 200, []);
+    if (pathname === '/api/compras/ordenes' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const prov = PROVEEDORES.find(p => p.id === body.proveedorId) || PROVEEDORES[0];
+      const itemsConSubtotal = (body.detalles || []).map((d, idx) => ({
+        id: idx + 1,
+        productoId: d.productoId,
+        nombreProducto: (PRODUCTOS.find(p => p.id === d.productoId) || {}).nombre || 'Producto',
+        cantidadSolicitada: d.cantidadSolicitada,
+        costoPactado: d.costoPactado,
+        subtotal: d.cantidadSolicitada * d.costoPactado
+      }));
+      const subtotal = itemsConSubtotal.reduce((acc, it) => acc + it.subtotal, 0);
+
+      const nuevaOrden = {
+        id: ORDENES.length + 1,
+        numeroOrden: `OC-2026-${String(ORDENES.length + 1).padStart(4, '0')}`,
+        proveedor: prov,
+        sucursalId: 1,
+        estado: 'PENDIENTE',
+        subtotal: parseFloat(subtotal.toFixed(2)),
+        igv: parseFloat((subtotal * 0.18).toFixed(2)),
+        total: parseFloat((subtotal * 1.18).toFixed(2)),
+        usuarioCreadorId: 1,
+        fechaEmision: new Date().toISOString(),
+        fechaEsperada: body.fechaEsperada || new Date().toISOString(),
+        observaciones: body.observaciones || '',
+        items: itemsConSubtotal
+      };
+      ORDENES.unshift(nuevaOrden);
+      return sendJson(res, 201, nuevaOrden);
     }
 
-    // Ruta no encontrada
-    console.warn(`[404] Ruta no mapeada: ${pathname}`);
+    if (pathname.match(/^\/api\/compras\/ordenes\/\d+\/estado$/) && req.method === 'PATCH') {
+      const id = parseInt(pathname.split('/')[4]);
+      const orden = ORDENES.find(o => o.id === id);
+      if (orden) orden.estado = query.nuevoEstado || 'APROBADA';
+      return sendJson(res, 200, orden);
+    }
+
+    if (pathname === '/api/compras/ingresos' && req.method === 'GET') {
+      return sendJson(res, 200, INGRESOS);
+    }
+
+    if (pathname === '/api/compras/ingresos' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const nuevoIngreso = {
+        id: INGRESOS.length + 1,
+        numeroGuia: body.numeroGuiaRemision || `GR-${Date.now().toString().slice(-6)}`,
+        ordenCompraId: body.ordenCompraId,
+        sucursalId: 1,
+        usuarioReceptorId: 1,
+        fechaIngreso: new Date().toISOString(),
+        observaciones: body.observaciones || '',
+        items: body.items || []
+      };
+
+      // Registrar los lotes nuevos en inventario
+      if (body.items) {
+        body.items.forEach(it => {
+          const nuevoLote = {
+            id: LOTES.length + 1,
+            productoId: it.productoId,
+            sucursalId: 1,
+            numeroLote: it.numeroLote,
+            fechaVencimiento: it.fechaVencimiento,
+            cantidadInicial: it.cantidadRecibida,
+            cantidadActual: it.cantidadRecibida,
+            costoUnitario: it.costoUnitario || 1.0,
+            estado: 'DISPONIBLE',
+            diasRestantes: Math.max(1, Math.round((new Date(it.fechaVencimiento) - new Date()) / (1000 * 60 * 60 * 24))),
+            semaforoVencimiento: 'VERDE'
+          };
+          LOTES.push(nuevoLote);
+
+          // Actualizar stock
+          const st = STOCK.find(s => s.productoId === it.productoId);
+          if (st) {
+            st.stockActual += it.cantidadRecibida;
+          }
+        });
+      }
+
+      INGRESOS.unshift(nuevoIngreso);
+      return sendJson(res, 201, nuevoIngreso);
+    }
+
+    // Ruta 404
+    console.warn(`[404] Ruta no mapeada: ${req.method} ${pathname}`);
     return sendJson(res, 404, {
       timestamp: new Date().toISOString(),
       status: 404,
@@ -804,7 +1058,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`=======================================================`);
-  console.log(` FarmaGest API Gateway (Mock) activo en http://localhost:${PORT}`);
-  console.log(` Emulando microservicios: auth, catalogo, inventario, ventas, compras, reportes`);
+  console.log(` FarmaGest API Gateway (Mock Completo) en http://localhost:${PORT}`);
+  console.log(` Soporte total de endpoints para todos los módulos de FarmaGest`);
   console.log(`=======================================================`);
 });
