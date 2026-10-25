@@ -641,12 +641,22 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, hist);
     }
 
-    if (pathname.match(/^\/api\/catalogo\/productos\/\d+\/estado$/) && req.method === 'PATCH') {
+        if (pathname.match(/^\/api\/catalogo\/productos\/\d+\/estado$/) && req.method === 'PATCH') {
       const id = parseInt(pathname.split('/')[4]);
       const prod = PRODUCTOS.find(p => p.id === id);
       if (prod) {
         prod.activo = query.activo === 'true';
         return sendJson(res, 200, prod);
+      }
+      return sendJson(res, 404, { message: 'Producto no encontrado' });
+    }
+
+    if (pathname.match(/^\/api\/catalogo\/productos\/\d+$/) && req.method === 'DELETE') {
+      const id = parseInt(pathname.split('/')[4]);
+      const idx = PRODUCTOS.findIndex(p => p.id === id);
+      if (idx >= 0) {
+        PRODUCTOS[idx].activo = false;
+        return sendJson(res, 204, {});
       }
       return sendJson(res, 404, { message: 'Producto no encontrado' });
     }
@@ -1071,8 +1081,15 @@ const server = http.createServer(async (req, res) => {
     // ==========================================
     // 6. COMPRAS (ms-compras)
     // ==========================================
-    if (pathname === '/api/compras/proveedores' && req.method === 'GET') {
+        if (pathname === '/api/compras/proveedores' && req.method === 'GET') {
       return sendJson(res, 200, PROVEEDORES);
+    }
+
+    if (pathname.match(/^\/api\/compras\/proveedores\/\d+$/) && req.method === 'GET') {
+      const id = parseInt(pathname.split('/')[4]);
+      const prov = PROVEEDORES.find(p => p.id === id);
+      if (prov) return sendJson(res, 200, prov);
+      return sendJson(res, 404, { message: 'Proveedor no encontrado' });
     }
 
     if (pathname === '/api/compras/proveedores' && req.method === 'POST') {
@@ -1107,8 +1124,15 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 204, {});
     }
 
-    if (pathname === '/api/compras/ordenes' && req.method === 'GET') {
+        if (pathname === '/api/compras/ordenes' && req.method === 'GET') {
       return sendJson(res, 200, ORDENES);
+    }
+
+    if (pathname.match(/^\/api\/compras\/ordenes\/\d+$/) && req.method === 'GET') {
+      const id = parseInt(pathname.split('/')[4]);
+      const orden = ORDENES.find(o => o.id === id);
+      if (orden) return sendJson(res, 200, orden);
+      return sendJson(res, 404, { message: 'Orden de compra no encontrada' });
     }
 
     if (pathname === '/api/compras/ordenes' && req.method === 'POST') {
@@ -1152,8 +1176,15 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, orden);
     }
 
-    if (pathname === '/api/compras/ingresos' && req.method === 'GET') {
+        if (pathname === '/api/compras/ingresos' && req.method === 'GET') {
       return sendJson(res, 200, INGRESOS);
+    }
+
+    if (pathname.match(/^\/api\/compras\/ingresos\/\d+$/) && req.method === 'GET') {
+      const id = parseInt(pathname.split('/')[4]);
+      const ing = INGRESOS.find(i => i.id === id);
+      if (ing) return sendJson(res, 200, ing);
+      return sendJson(res, 404, { message: 'Ingreso no encontrado' });
     }
 
     if (pathname === '/api/compras/ingresos' && req.method === 'POST') {

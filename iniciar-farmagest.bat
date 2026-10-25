@@ -17,22 +17,33 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8080 ^| findstr LISTENING') 
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr :4200 ^| findstr LISTENING') do taskkill /F /PID %%a >nul 2>&1
 
 echo [1/2] Levantando API Gateway & Microservicios en puerto 8080...
-start "FarmaGest-Backend" /min node "%~dp0backend\mock-server.js"
+start "FarmaGest-Backend" /min cmd /c "node \"%~dp0backend\mock-server.js\""
 
 echo [2/2] Levantando Frontend Web Angular en puerto 4200...
-start "FarmaGest-Frontend" /min cmd /c "cd /d "%~dp0frontend\farmagest-web" && npm start"
+start "FarmaGest-Frontend" /min cmd /c "cd /d \"%~dp0frontend\farmagest-web\" && npm start"
 
 echo.
-echo Esperando inicialización de servicios...
-timeout /t 6 > nul
+<nul set /p="Esperando inicialización y compilación de FarmaGest"
 
+:wait_loop
+timeout /t 2 > nul
+powershell -Command "try { $res = Invoke-WebRequest -Uri 'http://127.0.0.1:4200' -UseBasicParsing -TimeoutSec 1; if ($res.StatusCode -eq 200) { exit 0 } else { exit 1 } } catch { exit 1 }" > nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    <nul set /p=.
+    goto wait_loop
+)
+
+echo.
+echo [OK] ¡FarmaGest compilado y listo para usar!
+echo.
 echo Abriendo FarmaGest en tu navegador...
 start http://localhost:4200
 
 echo.
 echo ========================================================
-echo  ¡FarmaGest activo y listo para usar!
+echo  ¡FarmaGest activo y funcionando correctamente!
 echo  URL: http://localhost:4200
 echo  Gateway: http://localhost:8080
 echo ========================================================
-timeout /t 3 > nul
+echo Puedes cerrar esta ventana cuando desees.
+timeout /t 5 > nul
