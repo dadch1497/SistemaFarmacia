@@ -1261,6 +1261,39 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 201, nuevoIngreso);
     }
 
+    // ==========================================
+    // 7. FACTURACIÓN ELECTRÓNICA SUNAT (ms-sunat)
+    // ==========================================
+    if ((pathname === '/api/sunat/health' || pathname === '/sunat/health') && req.method === 'GET') {
+      return sendJson(res, 200, {
+        status: 'UP',
+        service: 'ms-sunat-php',
+        ambiente: 'BETA',
+        emisor_ruc: '20601234567',
+        greenter_disponible: true,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if ((pathname === '/api/sunat/factura' || pathname === '/sunat/factura') && req.method === 'POST') {
+      const body = await parseBody(req);
+      const serie = body.serie || (body.tipoComprobante === 'FACTURA' ? 'F001' : 'B001');
+      const numero = String(body.numero || '1').padStart(8, '0');
+      const hashSimulado = Buffer.from(`${serie}-${numero}-${body.total || '0'}-${Date.now()}`).toString('base64').substring(0, 28);
+
+      return sendJson(res, 200, {
+        estadoSunat: 'ACEPTADA',
+        codigoRespuesta: '0',
+        descripcion: `La ${body.tipoComprobante || 'BOLETA'} número ${serie}-${numero} ha sido aceptada por SUNAT`,
+        serie: serie,
+        numero: numero,
+        hashCpe: hashSimulado,
+        qrCodeUrl: `https://sunat.gob.pe/cpe?ruc=20601234567&tipo=03&serie=${serie}&numero=${numero}&monto=${body.total || 0}`,
+        cdrZip: 'UEsDBAoAAAAAA...',
+        fechaRespuesta: new Date().toISOString()
+      });
+    }
+
     // Ruta 404
     console.warn(`[404] Ruta no mapeada: ${req.method} ${pathname}`);
     return sendJson(res, 404, {
