@@ -1,7 +1,7 @@
 export type EstadoSesionCaja = 'ABIERTA' | 'CERRADA' | 'ARQUEADA';
 export type TipoDocumento = 'DNI' | 'RUC' | 'CE' | 'PASAPORTE' | 'SIN_DOCUMENTO';
 export type TipoComprobante = 'BOLETA' | 'FACTURA' | 'NOTA_VENTA';
-export type MedioPago = 'EFECTIVO' | 'TARJETA' | 'YAPE_PLIN';
+export type MedioPago = 'EFECTIVO' | 'TARJETA' | 'YAPE_PLIN' | 'CREDITO';
 export type EstadoVenta = 'COMPLETADA' | 'ANULADA';
 
 export interface Caja {
@@ -55,6 +55,9 @@ export interface Cliente {
   telefono?: string;
   email?: string;
   activo: boolean;
+  limiteCredito?: number;
+  saldoDeudor?: number;
+  diasCredito?: number;
 }
 
 export interface CrearClienteRequest {
@@ -174,6 +177,10 @@ export interface Venta {
   estado: EstadoVenta;
   fechaHora: string;
   observaciones?: string;
+  hashCpe?: string;
+  qrCodeUrl?: string;
+  estadoSunat?: string;
+  mensajeSunat?: string;
   detalles: DetalleVenta[];
 }
 
@@ -194,4 +201,10 @@ export interface GuardarVentaEsperaRequest {
 
 export interface AnularVentaRequest {
   motivo: string;
+}
+
+export interface AmortizarDeudaRequest {
+  monto: number;
+  medioPago: MedioPago;
+  referencia?: string;
 }

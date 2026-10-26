@@ -538,6 +538,19 @@ export class PosComponent implements OnInit {
       return;
     }
 
+    // Validación de Crédito
+    if (this.medioPago === 'CREDITO') {
+      const cli = this.clienteSeleccionado();
+      if (!cli || cli.numeroDocumento === '00000000') {
+        this.mostrarError('Para ventas al crédito debe asignar un cliente con cuenta corriente registrada.');
+        return;
+      }
+      if (this.creditoInsuficiente()) {
+        this.mostrarError(`Límite de crédito excedido. Disponible: S/ ${this.creditoDisponibleCliente().toFixed(2)}, Monto: S/ ${total.toFixed(2)}`);
+        return;
+      }
+    }
+
     // Validación de Factura con RUC
     if (this.tipoComprobante === 'FACTURA') {
       const cli = this.clienteSeleccionado();
@@ -735,6 +748,44 @@ export class PosComponent implements OnInit {
         this.mostrarError('Error al cerrar caja: ' + (err.error?.message || err.message));
       }
     });
+  }
+
+  seleccionarMedioPagoCredito(): void {
+    this.medioPago = 'CREDITO';
+    const cli = this.clienteSeleccionado();
+    if (!cli || cli.numeroDocumento === '00000000') {
+      this.mostrarError('Para ventas al crédito debe buscar y seleccionar un cliente con línea de crédito habilitada.');
+    }
+  }
+
+  creditoDisponibleCliente(): number {
+    const cli = this.clienteSeleccionado();
+    if (!cli) return 0;
+    const limite = cli.limiteCredito || 0;
+    const deuda = cli.saldoDeudor || 0;
+    return Math.max(0, limite - deuda);
+  }
+
+  creditoInsuficiente(): boolean {
+    if (this.medioPago !== 'CREDITO') return false;
+    return this.calcularTotalPagar() > this.creditoDisponibleCliente();
+  }
+
+  obtenerQrUrl(): string {
+    const v = this.ultimaVenta();
+    if (v && (v as any).qrCodeUrl) return (v as any).qrCodeUrl;
+    const ruc = '20601234567';
+    const tipo = v?.tipoComprobante === 'FACTURA' ? '01' : '03';
+    const serie = v?.serieComprobante || 'B001';
+    const num = v?.numeroComprobante || '000001';
+    const igv = (v?.igv || 0).toFixed(2);
+    const total = (v?.total || 0).toFixed(2);
+    const fecha = v?.fechaHora ? String(v.fechaHora).substring(0, 10) : new Date().toISOString().substring(0, 10);
+    const cliDoc = v?.cliente?.numeroDocumento || '00000000';
+    const cliTipo = v?.cliente?.tipoDocumento || 'DNI';
+    const hash = (v as any)?.hashCpe || 'm8Qy/bT49jF71xR4w==';
+    const qrData = `${ruc}|${tipo}|${serie}|${num}|${igv}|${total}|${fecha}|${cliTipo}|${cliDoc}|${hash}|`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
   }
 
   imprimirTicket(): void {

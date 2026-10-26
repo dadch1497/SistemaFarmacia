@@ -43,6 +43,9 @@ export class ProductosComponent implements OnInit {
   modalPrecioAbierto = false;
   modalHistorialAbierto = false;
   modalNuevoAbierto = false;
+  modalCargaMasivaAbierto = false;
+  productosPrevisualizacion: any[] = [];
+  errorCargaMasiva: string | null = null;
 
   productoSeleccionado: Producto | null = null;
   historialPrecios: HistorialPrecio[] = [];
@@ -280,6 +283,101 @@ export class ProductosComponent implements OnInit {
         this.cargarProductos(this.paginaActual);
       },
       error: () => alert('Error al cambiar el estado del producto')
+    });
+  }
+
+  abrirModalCargaMasiva(): void {
+    this.productosPrevisualizacion = [];
+    this.errorCargaMasiva = null;
+    this.modalCargaMasivaAbierto = true;
+  }
+
+  cerrarModalCargaMasiva(): void {
+    this.modalCargaMasivaAbierto = false;
+    this.productosPrevisualizacion = [];
+    this.errorCargaMasiva = null;
+  }
+
+  descargarPlantillaCsv(): void {
+    const encabezados = 'codigoBarras,nombre,principioActivo,presentacion,categoria,precioCosto,precioVenta,requiereReceta,stockInicial,numeroLote,fechaVencimiento\n';
+    const filasEjemplo = [
+      '7750123456789,AMOXICILINA 500MG,Amoxicilina,Caja x 100 Cápsulas,ANTIBIOTICOS,12.50,22.00,true,50,LOTE-AMX-2026,2027-12-31',
+      '7750987654321,PARACETAMOL 500MG,Paracetamol,Blíster x 10 Tabletas,ANALGESICOS,1.20,3.50,false,120,LOTE-PCT-2026,2028-06-30',
+      '7751122334455,IBUPROFENO 400MG,Ibuprofeno,Caja x 20 Tabletas,ANALGESICOS,3.00,6.50,false,80,LOTE-IBU-2026,2027-09-15'
+    ].join('\n');
+
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(encabezados + filasEjemplo);
+    const link = document.createElement('a');
+    link.setAttribute('href', csvContent);
+    link.setAttribute('download', 'plantilla_carga_masiva_medicamentos.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  onArchivoCsvSeleccionado(event: any): void {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    this.errorCargaMasiva = null;
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      try {
+        const text: string = e.target.result;
+        const lineas = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+        if (lineas.length < 2) {
+          this.errorCargaMasiva = 'El archivo CSV debe contener al menos un registro además del encabezado.';
+          return;
+        }
+
+        const items: any[] = [];
+        for (let i = 1; i < lineas.length; i++) {
+          const col = lineas[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+          if (col.length < 7) continue;
+
+          items.push({
+            codigoBarras: col[0] || ('GEN-' + Math.floor(100000000 + Math.random() * 900000000)),
+            nombre: col[1] || 'Medicamento Sin Nombre',
+            principioActivo: col[2] || '',
+            presentacion: col[3] || 'Unidad',
+            categoria: col[4] || 'GENERAL',
+            precioCosto: parseFloat(col[5]) || 1.0,
+            precioVenta: parseFloat(col[6]) || 2.0,
+            requiereReceta: col[7] === 'true' || col[7] === '1' || col[7] === 'SI',
+            stockInicial: col[8] ? parseInt(col[8], 10) : 10,
+            numeroLote: col[9] || ('LOT-' + new Date().getFullYear()),
+            fechaVencimiento: col[10] || '2028-12-31'
+          });
+        }
+
+        if (items.length === 0) {
+          this.errorCargaMasiva = 'No se encontraron medicamentos válidos en el archivo seleccionado.';
+          return;
+        }
+
+        this.productosPrevisualizacion = items;
+      } catch (err: any) {
+        this.errorCargaMasiva = 'Error al procesar el archivo CSV: ' + err.message;
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  confirmarCargaMasiva(): void {
+    if (this.productosPrevisualizacion.length === 0) return;
+
+    this.cargando.set(true);
+    this.catalogoService.cargaMasiva(this.productosPrevisualizacion).subscribe({
+      next: (res: any) => {
+        this.cargando.set(false);
+        this.cerrarModalCargaMasiva();
+        this.mostrarExito(`Se importaron ${res.totalImportados || this.productosPrevisualizacion.length} medicamentos y lotes exitosamente.`);
+        this.cargarProductos(0);
+      },
+      error: (err: any) => {
+        this.cargando.set(false);
+        this.errorCargaMasiva = err.error?.detail || err.error?.message || 'Error al ejecutar la carga masiva en el servidor.';
+      }
     });
   }
 

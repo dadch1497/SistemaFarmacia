@@ -7,10 +7,140 @@
       <p class="page-subtitle">
         Control de existencias físicas por lote, fechas de caducidad, auditoría Kardex y semaforización de vencimientos.
       </p>
+    
+  <!-- Modal Acta Oficial DIGEMID de Baja y Destrucción -->
+  <div *ngIf="modalActaDigemidAbierto" class="modal-backdrop">
+    <div class="modal" style="max-width: 950px; width: 95%; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h2 class="modal-title">📋 Acta Oficial DIGEMID - Baja y Destrucción de Medicamentos</h2>
+        <button class="btn-close" (click)="cerrarModalActaDigemid()">&times;</button>
+      </div>
+
+      <div class="modal-body" id="seccion-acta-digemid">
+        <!-- Membrete Sanitario Oficial -->
+        <div style="border: 2px solid #0f172a; padding: 20px; border-radius: 6px; background-color: #ffffff; color: #0f172a;">
+          <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
+            <p style="font-size: 11px; text-transform: uppercase; margin: 0; letter-spacing: 1px; color: #475569;">
+              REPÚBLICA DEL PERÚ · MINISTERIO DE SALUD · DIGEMID / {{ actaConfig.diris }}
+            </p>
+            <h2 style="font-size: 16px; font-weight: 800; margin: 6px 0 2px 0; text-transform: uppercase;">
+              ACTA DE BAJA Y DESTRUCCIÓN DE PRODUCTOS FARMACÉUTICOS, DISPOSITIVOS MÉDICOS Y PRODUCTOS SANITARIOS
+            </h2>
+            <p style="font-size: 12px; font-weight: 700; margin: 0; color: #1e3a8a;">
+              N° DE EXPEDIENTE / ACTA: {{ actaConfig.numeroActa }}
+            </p>
+          </div>
+
+          <!-- Base Legal y Datos del Establecimiento -->
+          <div style="font-size: 11.5px; line-height: 1.5; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0;">
+            <p style="margin: 0 0 6px 0;">
+              En cumplimiento del <strong>D.S. N° 014-2011-SA</strong> (Reglamento de Establecimientos Farmacéuticos), 
+              <strong>Ley N° 29459</strong> (Ley de Productos Farmacéuticos) y <strong>D.S. N° 016-2011-SA</strong>, 
+              se procede a levantar la presente acta en las instalaciones de:
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div><strong>Establecimiento:</strong> {{ actaConfig.establecimiento }}</div>
+              <div><strong>RUC:</strong> {{ actaConfig.ruc }}</div>
+              <div><strong>Código Aut. Sanitaria:</strong> {{ actaConfig.codigoEstablecimiento }}</div>
+              <div><strong>Jurisdicción:</strong> {{ actaConfig.diris }}</div>
+              <div><strong>Director Técnico:</strong> {{ actaConfig.directorTecnico }} ({{ actaConfig.colegiatura }})</div>
+              <div><strong>Representante Legal:</strong> {{ actaConfig.representanteLegal }}</div>
+              <div><strong>Fecha de Ejecución:</strong> {{ actaConfig.fechaEmision }}</div>
+              <div><strong>Lugar:</strong> {{ actaConfig.lugar }}</div>
+            </div>
+          </div>
+
+          <!-- Tabla de Lotes dados de baja -->
+          <h4 style="font-size: 12px; font-weight: 700; text-transform: uppercase; margin: 12px 0 6px 0; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">
+            Relación de Productos Farmacéuticos para Desnaturalización y Destrucción
+          </h4>
+          <table class="tabla-farmagest" style="font-size: 11px; width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+            <thead>
+              <tr style="background-color: #f1f5f9; text-align: left;">
+                <th style="padding: 6px; border: 1px solid #cbd5e1;">Ítem</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1;">Medicamento / Producto</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1;">Reg. Sanitario</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1;">Lote</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1;">Vencimiento</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">Cantidad</th>
+                <th style="padding: 6px; border: 1px solid #cbd5e1;">Causa / Motivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of lotesParaActa; let i = index">
+                <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: center;">{{ i + 1 }}</td>
+                <td style="padding: 5px; border: 1px solid #cbd5e1;"><strong>{{ item.nombre }}</strong></td>
+                <td style="padding: 5px; border: 1px solid #cbd5e1;"><code>{{ item.registroSanitario }}</code></td>
+                <td style="padding: 5px; border: 1px solid #cbd5e1;"><code>{{ item.numeroLote }}</code></td>
+                <td style="padding: 5px; border: 1px solid #cbd5e1; color: #b91c1c; font-weight: 600;">{{ item.fechaVencimiento }}</td>
+                <td style="padding: 5px; border: 1px solid #cbd5e1; text-align: right; font-weight: bold;">{{ item.cantidad }} un.</td>
+                <td style="padding: 5px; border: 1px solid #cbd5e1;">{{ item.motivo }}</td>
+              </tr>
+              <tr *ngIf="lotesParaActa.length === 0">
+                <td colspan="7" style="padding: 12px; text-align: center; color: #64748b; border: 1px solid #cbd5e1;">
+                  No hay lotes en condición crítica o vencida actualmente en el inventario.
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr style="background-color: #f8fafc; font-weight: bold;">
+                <td colspan="5" style="padding: 6px; border: 1px solid #cbd5e1; text-align: right;">TOTAL UNIDADES DESTRUIDAS:</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: right; color: #b91c1c;">{{ totalUnidadesBaja() }} un.</td>
+                <td style="padding: 6px; border: 1px solid #cbd5e1; font-size: 10px;">Valoriz: S/ {{ totalValorizadoBaja() | number:'1.2-2' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <!-- Declaración de Inutilización y Métodos Sanitarios -->
+          <p style="font-size: 11px; color: #334155; margin-bottom: 25px; line-height: 1.4;">
+            <strong>MÉTODO DE DESTRUCCIÓN:</strong> Los productos detallados fueron desnaturalizados, triturados e inutilizados 
+            para impedir su comercialización y consumo, siendo confinados conforme a los procedimientos para residuos biológicos y farmacéuticos 
+            (NTS N° 144-MINSA/2018/DIGESA). Se levanta la presente acta en señal de conformidad ante la autoridad sanitaria.
+          </p>
+
+          <!-- Bloque de Firmas -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: center; margin-top: 40px; font-size: 11px;">
+            <div style="border-top: 1px solid #0f172a; padding-top: 6px;">
+              <strong>{{ actaConfig.directorTecnico }}</strong><br />
+              <span>DIRECTOR TÉCNICO</span><br />
+              <span>{{ actaConfig.colegiatura }}</span>
+            </div>
+            <div style="border-top: 1px solid #0f172a; padding-top: 6px;">
+              <strong>{{ actaConfig.representanteLegal }}</strong><br />
+              <span>REPRESENTANTE LEGAL</span><br />
+              <span>BOTICA FARMA GESTIÓN S.A.C.</span>
+            </div>
+            <div style="border-top: 1px solid #0f172a; padding-top: 6px;">
+              <strong>INSPECTOR SANITARIO</strong><br />
+              <span>DIRIS / DISA / DIGEMID</span><br />
+              <span>MINISTERIO DE SALUD</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalActaDigemid()">Cerrar</button>
+        <button class="btn btn-primary" (click)="imprimirActaDigemid()" style="display: flex; align-items: center; gap: 6px;">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+          </svg>
+          Imprimir / Guardar en PDF (A4 Oficial)
+        </button>
+      </div>
     </div>
+  </div>
+
+</div>
 
     <!-- Acciones disponibles para Admin y Almacenero -->
-    <div class="header-actions" *ngIf="authService.isAdmin() || authService.isAlmacenero()">
+    <div class="header-actions" *ngIf="authService.isAdmin() || authService.isAlmacenero()" style="display: flex; gap: 10px; align-items: center;">
+      <button class="btn btn-secondary" (click)="abrirModalActaDigemid()" style="display: flex; align-items: center; gap: 6px;">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        📋 Acta Destrucción DIGEMID
+      </button>
       <button class="btn btn-primary" (click)="abrirModalAjuste()">
         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>

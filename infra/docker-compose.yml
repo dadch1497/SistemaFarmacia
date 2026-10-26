@@ -64,8 +64,8 @@ services:
 
   eureka-server:
     build:
-      context: ../backend/eureka-server
-      dockerfile: Dockerfile
+      context: ../backend
+      dockerfile: eureka-server/Dockerfile
     image: farmagest-eureka-server:latest
     container_name: farmagest-eureka-server
     restart: unless-stopped
@@ -85,8 +85,8 @@ services:
 
   api-gateway:
     build:
-      context: ../backend/api-gateway
-      dockerfile: Dockerfile
+      context: ../backend
+      dockerfile: api-gateway/Dockerfile
     image: farmagest-api-gateway:latest
     container_name: farmagest-api-gateway
     restart: unless-stopped
@@ -109,8 +109,8 @@ services:
 
   ms-auth:
     build:
-      context: ../backend/ms-auth
-      dockerfile: Dockerfile
+      context: ../backend
+      dockerfile: ms-auth/Dockerfile
     image: farmagest-ms-auth:latest
     container_name: farmagest-ms-auth
     restart: unless-stopped
@@ -145,8 +145,8 @@ services:
 
   ms-catalogo:
     build:
-      context: ../backend/ms-catalogo
-      dockerfile: Dockerfile
+      context: ../backend
+      dockerfile: ms-catalogo/Dockerfile
     image: farmagest-ms-catalogo:latest
     container_name: farmagest-ms-catalogo
     restart: unless-stopped
@@ -182,8 +182,8 @@ services:
 
   ms-inventario:
     build:
-      context: ../backend/ms-inventario
-      dockerfile: Dockerfile
+      context: ../backend
+      dockerfile: ms-inventario/Dockerfile
     image: farmagest-ms-inventario:latest
     container_name: farmagest-ms-inventario
     restart: unless-stopped
@@ -219,8 +219,8 @@ services:
 
   ms-compras:
     build:
-      context: ../backend/ms-compras
-      dockerfile: Dockerfile
+      context: ../backend
+      dockerfile: ms-compras/Dockerfile
     image: farmagest-ms-compras:latest
     container_name: farmagest-ms-compras
     restart: unless-stopped
@@ -256,8 +256,8 @@ services:
 
   ms-ventas:
     build:
-      context: ../backend/ms-ventas
-      dockerfile: Dockerfile
+      context: ../backend
+      dockerfile: ms-ventas/Dockerfile
     image: farmagest-ms-ventas:latest
     container_name: farmagest-ms-ventas
     restart: unless-stopped
@@ -294,8 +294,8 @@ services:
 
   ms-reportes:
     build:
-      context: ../backend/ms-reportes
-      dockerfile: Dockerfile
+      context: ../backend
+      dockerfile: ms-reportes/Dockerfile
     image: farmagest-ms-reportes:latest
     container_name: farmagest-ms-reportes
     restart: unless-stopped

@@ -180,6 +180,25 @@
           <button type="button" class="medio-btn" [class.active]="medioPago === 'EFECTIVO'" [attr.aria-pressed]="medioPago === 'EFECTIVO'" (click)="medioPago = 'EFECTIVO'; recalcularTotales()"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M5 12h1m12 0h1"/></svg>Efectivo</button>
           <button type="button" class="medio-btn" [class.active]="medioPago === 'TARJETA'" [attr.aria-pressed]="medioPago === 'TARJETA'" (click)="medioPago = 'TARJETA'"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 10h20M6 16h4"/></svg>Tarjeta</button>
           <button type="button" class="medio-btn" [class.active]="medioPago === 'YAPE_PLIN'" [attr.aria-pressed]="medioPago === 'YAPE_PLIN'" (click)="medioPago = 'YAPE_PLIN'"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4m-3 14h2"/></svg>Yape / Plin</button>
+          <button type="button" class="medio-btn" [class.active]="medioPago === 'CREDITO'" [attr.aria-pressed]="medioPago === 'CREDITO'" (click)="seleccionarMedioPagoCredito()"><svg aria-hidden="true" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Crédito</button>
+        </div>
+        <div *ngIf="medioPago === 'CREDITO'" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px; margin: 8px 0; font-size: 12px;">
+          <div style="font-weight: 700; color: #1e40af; margin-bottom: 4px;">Cuenta Corriente del Cliente:</div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+            <span>Límite Crédito:</span>
+            <strong>S/ {{ (clienteSeleccionado()?.limiteCredito || 0) | number:'1.2-2' }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+            <span>Saldo Deudor:</span>
+            <span style="color: #b91c1c; font-weight: 600;">S/ {{ (clienteSeleccionado()?.saldoDeudor || 0) | number:'1.2-2' }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+            <span>Disponible:</span>
+            <strong style="color: #15803d;">S/ {{ creditoDisponibleCliente() | number:'1.2-2' }}</strong>
+          </div>
+          <div *ngIf="creditoInsuficiente()" style="color: #dc2626; font-weight: bold; margin-top: 4px;">
+            ⚠️ El total supera la línea de crédito disponible.
+          </div>
         </div>
         <div *ngIf="medioPago === 'EFECTIVO'" class="efectivo-vuelto-row"><div><label for="cart-cash">Efectivo recibido (S/)</label><input id="cart-cash" type="number" [(ngModel)]="montoRecibido" step="0.50" class="input-efectivo"/></div><div class="vuelto-group"><span>Vuelto</span><strong>S/ {{ calcularVuelto() | number:'1.2-2' }}</strong></div></div>
         <div class="checkout-actions"><button type="button" class="cart-hold" (click)="ponerEnEspera()" [disabled]="!carrito().length">Poner en espera</button><button type="button" class="btn-checkout" (click)="procesarCobro()" [disabled]="!carrito().length || !cajaActiva() || !!mensajeDocumento() || cargando()">Cobrar S/ {{ calcularTotalPagar() | number:'1.2-2' }}</button></div>
@@ -446,6 +465,20 @@
             <div *ngIf="ultimaVenta()?.medioPago === 'EFECTIVO'" class="fila">
               <span>Vuelto Entregado:</span>
               <strong>S/ {{ ultimaVenta()?.vuelto | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <!-- Bloque Oficial SUNAT: QR y Hash CPE -->
+          <div class="ticket-sunat-qr" style="text-align: center; margin: 15px 0 10px 0; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+            <img [src]="obtenerQrUrl()" alt="Código QR SUNAT" style="width: 130px; height: 130px; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px;" />
+            <div style="font-size: 9.5px; color: #64748b; margin-top: 6px; font-family: monospace; word-break: break-all;">
+              <strong>Hash CPE:</strong> {{ ultimaVenta()?.hashCpe || '4uS+k8h2G6nL+z1P/YmQ3w==' }}
+            </div>
+            <div style="font-size: 10px; color: #475569; margin-top: 4px; font-weight: 600;">
+              Representación Impresa del Comprobante de Pago Electrónico
+            </div>
+            <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">
+              Consulte su comprobante en: sunat.gob.pe
             </div>
           </div>
 

@@ -193,10 +193,10 @@ let SESION_CAJA_ACTUAL = {
 
 // Clientes
 let CLIENTES = [
-  { id: 1, tipoDocumento: 'DNI', numeroDocumento: '00000000', nombresORazonSocial: 'CLIENTE GENÉRICO / VARIOS', direccion: 'Mostrador Farmacia', telefono: '000000000', email: 'sin_correo@farmagest.pe', activo: true },
-  { id: 2, tipoDocumento: 'DNI', numeroDocumento: '10485923', nombresORazonSocial: 'Juan Carlos Pérez Morales', direccion: 'Jr. Las Begonias 342, Ate, Lima', telefono: '987654321', email: 'jperez@gmail.com', activo: true },
-  { id: 3, tipoDocumento: 'DNI', numeroDocumento: '45892314', nombresORazonSocial: 'María Elena Flores Ramos', direccion: 'Av. José Carlos Mariátegui 128, Ate', telefono: '998877665', email: 'mflores@outlook.com', activo: true },
-  { id: 4, tipoDocumento: 'RUC', numeroDocumento: '20601234567', nombresORazonSocial: 'Botica Popular Ate S.A.C.', direccion: 'Av. Nicolás Ayllón 4500, Ate, Lima', telefono: '013567890', email: 'facturacion@boticapopular.pe', activo: true }
+  { id: 1, tipoDocumento: 'DNI', numeroDocumento: '00000000', nombresORazonSocial: 'CLIENTE GENÉRICO / VARIOS', direccion: 'Mostrador Farmacia', telefono: '000000000', email: 'sin_correo@farmagest.pe', activo: true, limiteCredito: 0, saldoDeudor: 0, diasCredito: 0 },
+  { id: 2, tipoDocumento: 'DNI', numeroDocumento: '10485923', nombresORazonSocial: 'Juan Carlos Pérez Morales', direccion: 'Jr. Las Begonias 342, Ate, Lima', telefono: '987654321', email: 'jperez@gmail.com', activo: true, limiteCredito: 1000.00, saldoDeudor: 120.00, diasCredito: 15 },
+  { id: 3, tipoDocumento: 'DNI', numeroDocumento: '45892314', nombresORazonSocial: 'María Elena Flores Ramos', direccion: 'Av. José Carlos Mariátegui 128, Ate', telefono: '998877665', email: 'mflores@outlook.com', activo: true, limiteCredito: 500.00, saldoDeudor: 0.00, diasCredito: 15 },
+  { id: 4, tipoDocumento: 'RUC', numeroDocumento: '20601234567', nombresORazonSocial: 'Botica Popular Ate S.A.C.', direccion: 'Av. Nicolás Ayllón 4500, Ate, Lima', telefono: '013567890', email: 'facturacion@boticapopular.pe', activo: true, limiteCredito: 5000.00, saldoDeudor: 850.00, diasCredito: 30 }
 ];
 
 // Promociones y Cupones
@@ -587,6 +587,101 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 404, { message: 'Producto no encontrado' });
     }
 
+    if (pathname === '/api/catalogo/productos/carga-masiva' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const lista = Array.isArray(body) ? body : (body.productos || (body.nombre ? [body] : []));
+      const importados = [];
+
+      lista.forEach((p, idx) => {
+        const cat = CATEGORIAS.find(c => c.nombre.toLowerCase() === (p.categoria || '').toLowerCase()) || CATEGORIAS[0];
+        const lab = LABORATORIOS.find(l => l.nombre.toLowerCase() === (p.laboratorio || '').toLowerCase()) || LABORATORIOS[0];
+
+        const precioVenta = parseFloat(p.precioVenta) || 1.00;
+        const precioCosto = parseFloat(p.precioCosto) || (precioVenta * 0.6);
+        const stockInicial = parseInt(p.stockInicial) || 20;
+
+        const nuevoProd = {
+          id: PRODUCTOS.length + 1,
+          codigoBarras: String(p.codigoBarras || ('775' + Date.now().toString().slice(-7) + idx)),
+          nombre: p.nombre || ('Medicamento ' + (PRODUCTOS.length + 1)),
+          principioActivo: p.principioActivo || p.nombre || 'Genérico',
+          concentracion: p.concentracion || '500 mg',
+          presentacion: p.presentacion || 'Tableta',
+          categoria: cat,
+          laboratorio: lab,
+          precioVenta: precioVenta,
+          precioCosto: precioCosto,
+          margenPorcentaje: Number(((precioVenta - precioCosto) / precioVenta * 100).toFixed(1)),
+          requiereReceta: p.requiereReceta === true || String(p.requiereReceta).toLowerCase() === 'true',
+          activo: true,
+          creadoEn: new Date().toISOString()
+        };
+        PRODUCTOS.push(nuevoProd);
+
+        // Crear registro en STOCK
+        const nuevoStock = {
+          id: STOCK.length + 1,
+          productoId: nuevoProd.id,
+          sucursalId: 1,
+          stockActual: stockInicial,
+          stockMinimo: 10,
+          stockMaximo: 200,
+          estadoStock: stockInicial <= 10 ? 'BAJO' : 'OPTIMO',
+          actualizadoEn: new Date().toISOString(),
+          nombreProducto: nuevoProd.nombre,
+          codigoBarras: nuevoProd.codigoBarras,
+          presentacion: nuevoProd.presentacion
+        };
+        STOCK.push(nuevoStock);
+
+        // Crear lote inicial FEFO
+        const numLote = p.numeroLote || ('L-' + new Date().getFullYear() + '-' + String(idx + 1).padStart(3, '0'));
+        const fechaVenc = p.fechaVencimiento || '2028-12-31';
+        const dias = Math.max(1, Math.round((new Date(fechaVenc) - new Date()) / (1000 * 60 * 60 * 24)));
+        const semaforo = dias <= 30 ? 'ROJO' : (dias <= 90 ? 'AMARILLO' : 'VERDE');
+
+        const nuevoLote = {
+          id: LOTES.length + 1,
+          productoId: nuevoProd.id,
+          sucursalId: 1,
+          numeroLote: numLote,
+          fechaVencimiento: fechaVenc,
+          cantidadInicial: stockInicial,
+          cantidadActual: stockInicial,
+          costoUnitario: precioCosto,
+          estado: 'DISPONIBLE',
+          diasRestantes: dias,
+          semaforoVencimiento: semaforo
+        };
+        LOTES.push(nuevoLote);
+
+        // Registrar en Kardex
+        KARDEX.unshift({
+          id: KARDEX.length + 1,
+          productoId: nuevoProd.id,
+          loteId: nuevoLote.id,
+          numeroLote: numLote,
+          sucursalId: 1,
+          tipoMovimiento: 'INGRESO_INICIAL',
+          cantidad: stockInicial,
+          saldoResultante: stockInicial,
+          referenciaTipo: 'CARGA_MASIVA',
+          referenciaId: 'IMP-' + Date.now().toString().slice(-4),
+          motivo: 'Carga masiva inicial de inventario',
+          usuarioId: 1,
+          fechaHora: new Date().toISOString()
+        });
+
+        importados.push(nuevoProd);
+      });
+
+      return sendJson(res, 201, {
+        mensaje: `Se importaron exitosamente ${importados.length} productos con su inventario inicial.`,
+        totalImportados: importados.length,
+        productos: importados
+      });
+    }
+
     if (pathname === '/api/catalogo/productos' && req.method === 'POST') {
       const body = await parseBody(req);
       const cat = CATEGORIAS.find(c => c.id === body.categoriaId) || CATEGORIAS[0];
@@ -796,6 +891,23 @@ const server = http.createServer(async (req, res) => {
         SESION_CAJA_ACTUAL.observaciones = body.observaciones || SESION_CAJA_ACTUAL.observaciones;
       }
       return sendJson(res, 200, SESION_CAJA_ACTUAL);
+    }
+
+    if (pathname === '/api/ventas/clientes/cuentas-corrientes' && req.method === 'GET') {
+      const conCredito = CLIENTES.filter(c => (c.limiteCredito && c.limiteCredito > 0) || (c.saldoDeudor && c.saldoDeudor > 0));
+      return sendJson(res, 200, conCredito);
+    }
+
+    if (pathname.match(/^\/api\/ventas\/clientes\/\d+\/amortizar$/) && req.method === 'POST') {
+      const id = parseInt(pathname.split('/')[4]);
+      const body = await parseBody(req);
+      const cli = CLIENTES.find(c => c.id === id);
+      if (cli) {
+        const monto = parseFloat(body.monto) || 0;
+        cli.saldoDeudor = Math.max(0, Number(((cli.saldoDeudor || 0) - monto).toFixed(2)));
+        return sendJson(res, 200, cli);
+      }
+      return sendJson(res, 404, { message: 'Cliente no encontrado' });
     }
 
     if (pathname === '/api/ventas/clientes' && req.method === 'GET') {
@@ -1042,6 +1154,14 @@ const server = http.createServer(async (req, res) => {
       }
 
       const ahora = new Date().toISOString();
+      const hashSimulado = Buffer.from(`${serie}-${correlativo}-${totalFinal}-${ahora}`).toString('base64').substring(0, 28);
+      const qrUrl = `https://sunat.gob.pe/cpe?ruc=20601234567&tipo=${body.tipoComprobante === 'FACTURA' ? '01' : '03'}&serie=${serie}&numero=${correlativo}&monto=${totalFinal}&fecha=${ahora.substring(0, 10)}`;
+
+      // Si la venta es al crédito, actualizar saldo deudor del cliente
+      if (body.medioPago === 'CREDITO' && clienteVenta) {
+        clienteVenta.saldoDeudor = Number(((clienteVenta.saldoDeudor || 0) + totalFinal).toFixed(2));
+      }
+
       const nuevaVenta = {
         id: VENTAS.length + 1,
         sucursalId: body.sucursalId || 1,
@@ -1068,6 +1188,9 @@ const server = http.createServer(async (req, res) => {
         promocionId: body.promocionId,
         cuponCodigo: body.cuponCodigo,
         estado: 'COMPLETADA',
+        estadoSunat: 'ACEPTADA',
+        hashCpe: hashSimulado,
+        qrCodeUrl: qrUrl,
         fechaHora: ahora,
         fechaVenta: ahora,
         observaciones: body.observaciones || '',
