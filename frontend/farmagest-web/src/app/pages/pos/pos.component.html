@@ -289,11 +289,11 @@
         En Espera ({{ ventasEspera().length }})
       </button>
 
-      <button class="btn btn-outline btn-sm" (click)="abrirModalDevolucionPos()" style="border-color: #0B3D38; color: #0B3D38; font-weight: 700; background-color: #E6F4F1;">
+      <button class="btn btn-sm" (click)="abrirModalDevolucionPos()" style="background-color: #0B3D38; color: #ffffff; border: 1px solid #082d29; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; box-shadow: 0 2px 4px rgba(11, 61, 56, 0.25);">
         <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
         </svg>
-        ↩ Devolución / NC
+        ↩ Devolución de ventas (Notas Crédito)
       </button>
 
       <button *ngIf="carrito().length > 0" class="btn btn-outline-danger btn-sm" (click)="limpiarCarrito()">
