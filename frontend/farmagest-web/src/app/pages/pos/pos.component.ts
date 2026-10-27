@@ -15,7 +15,10 @@ import {
   ItemVentaRequest,
   Venta,
   VentaEspera,
-  ValidarCuponResponse
+  ValidarCuponResponse,
+  NotaCredito,
+  TipoNotaCredito,
+  EmitirNotaCreditoRequest
 } from '../../core/models/ventas.models';
 import { Producto } from '../../core/models/catalogo.models';
 
@@ -98,6 +101,20 @@ export class PosComponent implements OnInit {
   // Comprobante emitido / Ticket
   ultimaVenta = signal<Venta | null>(null);
   modalTicketAbierto: boolean = false;
+
+  // Devoluciones y Notas de Crédito en POS
+  modalDevolucionPosAbierto: boolean = false;
+  codigoBusquedaDevolucion: string = '';
+  buscandoComprobanteDevolucion: boolean = false;
+  ventaParaDevolverPos = signal<Venta | null>(null);
+  itemsDevolucionPos: any[] = [];
+  tipoNotaCreditoPos: TipoNotaCredito = '07';
+  motivoSustentoPos: string = '';
+  medioReembolsoPos: MedioPago = 'EFECTIVO';
+  procesandoDevolucionPos: boolean = false;
+  errorDevolucionPos: string | null = null;
+  notaCreditoEmitidaPos = signal<NotaCredito | null>(null);
+  modalNotaCreditoEmitidaPosAbierto: boolean = false;
 
   cargando = signal<boolean>(false);
   mensajeExito = signal<string | null>(null);
@@ -807,4 +824,161 @@ export class PosComponent implements OnInit {
     this.mensajeError.set(msg);
     this.mensajeExito.set(null);
   }
+
+  // ==========================================
+  // Devoluciones y Notas de Crédito en POS
+  // ==========================================
+  abrirModalDevolucionPos(): void {
+    this.modalDevolucionPosAbierto = true;
+    this.codigoBusquedaDevolucion = '';
+    this.ventaParaDevolverPos.set(null);
+    this.itemsDevolucionPos = [];
+    this.motivoSustentoPos = '';
+    this.errorDevolucionPos = null;
+  }
+
+  cerrarModalDevolucionPos(): void {
+    this.modalDevolucionPosAbierto = false;
+    this.ventaParaDevolverPos.set(null);
+    this.itemsDevolucionPos = [];
+  }
+
+  buscarComprobanteParaDevolucion(): void {
+    const q = this.codigoBusquedaDevolucion.trim();
+    if (!q) {
+      this.errorDevolucionPos = 'Ingrese el número del comprobante (ej: B001-00001024 o 00001024).';
+      return;
+    }
+
+    this.buscandoComprobanteDevolucion = true;
+    this.errorDevolucionPos = null;
+    this.ventasService.buscarComprobante(q).subscribe({
+      next: (venta) => {
+        this.buscandoComprobanteDevolucion = false;
+        if (venta.estado === 'ANULADA') {
+          this.errorDevolucionPos = `El comprobante ${venta.serieComprobante}-${venta.numeroComprobante} ya se encuentra ANULADO.`;
+          this.ventaParaDevolverPos.set(null);
+          return;
+        }
+
+        this.ventaParaDevolverPos.set(venta);
+        this.medioReembolsoPos = venta.medioPago === 'CREDITO' ? 'CREDITO' : 'EFECTIVO';
+        this.tipoNotaCreditoPos = '07';
+
+        const lista = venta.detalles || (venta as any).items || [];
+        this.itemsDevolucionPos = lista.map((d: any) => ({
+          detalleId: d.id,
+          productoId: d.productoId,
+          nombreProducto: d.nombreProducto || ('Medicamento #' + d.productoId),
+          loteId: d.loteId,
+          numeroLote: d.numeroLote || 'LOTE-POS',
+          cantidadVendida: d.cantidad || 1,
+          cantidadDevolver: d.cantidad || 1,
+          precioUnitario: d.precioUnitario || 0,
+          subtotal: Number(((d.cantidad || 1) * (d.precioUnitario || 0)).toFixed(2)),
+          seleccionado: true,
+          reingresaAStock: true
+        }));
+      },
+      error: () => {
+        this.buscandoComprobanteDevolucion = false;
+        this.errorDevolucionPos = `No se encontró ninguna venta con la referencia "${q}".`;
+        this.ventaParaDevolverPos.set(null);
+      }
+    });
+  }
+
+  onItemDevolucionPosToggle(item: any): void {
+    if (!item.seleccionado) {
+      item.cantidadDevolver = 0;
+      item.subtotal = 0;
+    } else {
+      item.cantidadDevolver = item.cantidadVendida;
+      item.subtotal = Number((item.cantidadDevolver * item.precioUnitario).toFixed(2));
+    }
+  }
+
+  onCantidadDevolverPosChange(item: any): void {
+    if (item.cantidadDevolver < 0) item.cantidadDevolver = 0;
+    if (item.cantidadDevolver > item.cantidadVendida) item.cantidadDevolver = item.cantidadVendida;
+    item.seleccionado = item.cantidadDevolver > 0;
+    item.subtotal = Number((item.cantidadDevolver * item.precioUnitario).toFixed(2));
+  }
+
+  calcularTotalDevolucionPos(): number {
+    return Number(this.itemsDevolucionPos
+      .filter(it => it.seleccionado && it.cantidadDevolver > 0)
+      .reduce((sum, it) => sum + it.subtotal, 0)
+      .toFixed(2));
+  }
+
+  calcularSubtotalDevolucionPos(): number {
+    const total = this.calcularTotalDevolucionPos();
+    return Number((total / 1.18).toFixed(2));
+  }
+
+  calcularIgvDevolucionPos(): number {
+    const total = this.calcularTotalDevolucionPos();
+    const sub = this.calcularSubtotalDevolucionPos();
+    return Number((total - sub).toFixed(2));
+  }
+
+  confirmarDevolucionPos(): void {
+    const v = this.ventaParaDevolverPos();
+    if (!v) return;
+
+    const itemsAProcesar = this.itemsDevolucionPos.filter(it => it.seleccionado && it.cantidadDevolver > 0);
+    if (itemsAProcesar.length === 0) {
+      alert('Seleccione al menos un medicamento y cantidad a devolver.');
+      return;
+    }
+
+    if (!this.motivoSustentoPos.trim()) {
+      alert('Debe ingresar el motivo o sustento de la devolución según exige la normativa SUNAT.');
+      return;
+    }
+
+    const request: EmitirNotaCreditoRequest = {
+      ventaId: v.id,
+      tipoNotaCredito: this.tipoNotaCreditoPos,
+      motivoSustento: this.motivoSustentoPos.trim(),
+      medioReembolso: this.medioReembolsoPos,
+      items: itemsAProcesar.map(it => ({
+        detalleVentaId: it.detalleId,
+        productoId: it.productoId,
+        nombreProducto: it.nombreProducto,
+        loteId: it.loteId,
+        numeroLote: it.numeroLote,
+        cantidadDevuelta: it.cantidadDevolver,
+        precioUnitario: it.precioUnitario,
+        reingresaAStock: it.reingresaAStock,
+        motivoItem: this.motivoSustentoPos
+      }))
+    };
+
+    this.procesandoDevolucionPos = true;
+    this.ventasService.emitirNotaCredito(request).subscribe({
+      next: (nc) => {
+        this.procesandoDevolucionPos = false;
+        this.cerrarModalDevolucionPos();
+        this.notaCreditoEmitidaPos.set(nc);
+        this.modalNotaCreditoEmitidaPosAbierto = true;
+        this.mostrarExito(`Nota de Crédito ${nc.serieNotaCredito}-${nc.numeroNotaCredito} emitida con éxito.`);
+      },
+      error: (err) => {
+        this.procesandoDevolucionPos = false;
+        alert('Error al emitir Nota de Crédito: ' + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  cerrarModalNotaCreditoEmitidaPos(): void {
+    this.modalNotaCreditoEmitidaPosAbierto = false;
+    this.notaCreditoEmitidaPos.set(null);
+  }
+
+  imprimirNotaCreditoPos(): void {
+    window.print();
+  }
+
 }

@@ -303,3 +303,193 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+
+/* ======================================================== */
+/* ESTILOS DE PESTAÑAS Y NOTAS DE CRÉDITO                   */
+/* ======================================================== */
+.tabs-nav-reportes {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid #E2E8F0;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tab-btn-rep {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #64748B;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn-rep:hover {
+  color: #0F172A;
+}
+
+.tab-btn-rep.active {
+  color: #0F766E;
+  border-bottom-color: #0F766E;
+}
+
+.btn-devolucion {
+  background-color: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-devolucion:hover {
+  background-color: #DC2626;
+  color: #FFFFFF;
+}
+
+.badge-nc-ref {
+  background-color: #F1F5F9;
+  color: #475569;
+  border: 1px dashed #CBD5E1;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.estado-nc {
+  background-color: #FEF3C7;
+  color: #B45309;
+}
+
+.tag-nc {
+  background-color: #FEE2E2 !important;
+  color: #B91C1C !important;
+  border-color: #FCA5A5 !important;
+}
+
+.badge-sunat-ok {
+  background-color: #DCFCE7;
+  color: #15803D;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Modales */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #64748B;
+  cursor: pointer;
+}
+
+.btn-close:hover {
+  color: #0F172A;
+}
+
+.modal-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #E2E8F0;
+  background: #F8FAFC;
+}
+
+/* Impresión Oficial SUNAT */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #seccion-nota-credito-imprimible, #seccion-nota-credito-imprimible * {
+    visibility: visible;
+  }
+  #seccion-nota-credito-imprimible {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    margin: 0;
+    padding: 20px;
+    background: #ffffff !important;
+    box-sizing: border-box;
+    z-index: 999999;
+  }
+  .modal-backdrop {
+    background: none !important;
+    position: static !important;
+  }
+  .modal {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .modal-header, .modal-footer, .btn, .reportes-header, .tabs-nav-reportes, .kpi-grid-sunat, .filtro-bar {
+    display: none !important;
+  }
+}

@@ -16,7 +16,9 @@ import {
   Venta,
   VentaEspera,
   GuardarVentaEsperaRequest,
-  AnularVentaRequest
+  AnularVentaRequest,
+  NotaCredito,
+  EmitirNotaCreditoRequest
 } from '../models/ventas.models';
 
 @Injectable({
@@ -126,5 +128,26 @@ export class VentasService {
 
   eliminarVentaEspera(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiVentas}/espera/${id}`);
+  }
+
+  // ==========================================
+  // Notas de Crédito y Devoluciones (SUNAT Tipo 07)
+  // ==========================================
+  listarNotasCredito(sucursalId: number = 1): Observable<NotaCredito[]> {
+    const params = new HttpParams().set('sucursalId', sucursalId.toString());
+    return this.http.get<NotaCredito[]>(`${this.apiVentas}/notas-credito`, { params });
+  }
+
+  obtenerNotaCredito(id: number): Observable<NotaCredito> {
+    return this.http.get<NotaCredito>(`${this.apiVentas}/notas-credito/${id}`);
+  }
+
+  emitirNotaCredito(request: EmitirNotaCreditoRequest): Observable<NotaCredito> {
+    return this.http.post<NotaCredito>(`${this.apiVentas}/notas-credito`, request);
+  }
+
+  buscarComprobante(q: string): Observable<Venta> {
+    const params = new HttpParams().set('q', q.trim());
+    return this.http.get<Venta>(`${this.apiVentas}/buscar-comprobante`, { params });
   }
 }

@@ -98,6 +98,43 @@ public class VentaController {
         return ResponseEntity.noContent().build();
     }
 
+    // ==========================================
+    // NOTAS DE CRÉDITO Y DEVOLUCIONES (SUNAT Tipo 07)
+    // ==========================================
+    @PostMapping("/notas-credito")
+    @PreAuthorize("hasAnyRole('ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR')")
+    @Operation(summary = "Emitir Nota de Crédito Electrónica por devolución de venta (Catálogo 09 SUNAT)")
+    public ResponseEntity<NotaCreditoDto> emitirNotaCredito(
+            @Valid @RequestBody EmitirNotaCreditoRequest request,
+            Authentication authentication
+    ) {
+        Long usuarioId = obtenerUsuarioId(authentication);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ventaService.emitirNotaCredito(request, usuarioId));
+    }
+
+    @GetMapping("/notas-credito")
+    @PreAuthorize("hasAnyRole('ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR')")
+    @Operation(summary = "Listar Notas de Crédito emitidas")
+    public ResponseEntity<List<NotaCreditoDto>> listarNotasCredito(
+            @RequestParam(name = "sucursalId", defaultValue = "1") Integer sucursalId
+    ) {
+        return ResponseEntity.ok(ventaService.listarNotasCredito(sucursalId));
+    }
+
+    @GetMapping("/notas-credito/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR')")
+    @Operation(summary = "Obtener detalle de Nota de Crédito por ID")
+    public ResponseEntity<NotaCreditoDto> obtenerNotaCredito(@PathVariable Long id) {
+        return ResponseEntity.ok(ventaService.obtenerNotaCreditoPorId(id));
+    }
+
+    @GetMapping("/buscar-comprobante")
+    @PreAuthorize("hasAnyRole('ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR')")
+    @Operation(summary = "Buscar comprobante por serie y correlativo para devolución")
+    public ResponseEntity<VentaDto> buscarComprobante(@RequestParam(name = "q") String q) {
+        return ResponseEntity.ok(ventaService.buscarComprobante(q));
+    }
+
     private Long obtenerUsuarioId(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal principal) {
             return principal.getUserId();

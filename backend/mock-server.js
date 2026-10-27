@@ -211,6 +211,55 @@ let CUPONES = [
   { id: 3, codigo: 'BOTICA5', porcentajeDescuento: 5.00, montoFijoDescuento: 0.00, usosPermitidos: 1000, usosActuales: 80, fechaExpiracion: '2027-12-31', activo: true }
 ];
 
+// Notas de Crédito Electrónicas (SUNAT Tipo 07)
+let NOTAS_CREDITO = [
+  {
+    id: 1,
+    sucursalId: 1,
+    sesionCajaId: 1,
+    ventaId: 1,
+    tipoComprobanteModificado: 'BOLETA',
+    serieComprobanteModificado: 'B001',
+    numeroComprobanteModificado: '00001024',
+    serieNotaCredito: 'BC01',
+    numeroNotaCredito: '00000001',
+    tipoNotaCredito: '07',
+    descripcionTipoNotaCredito: 'Devolución por ítem',
+    motivoSustento: 'Error en dosificación indicada por el médico, cambio de medicamento',
+    cliente: {
+      id: 2,
+      tipoDocumento: 'DNI',
+      numeroDocumento: '10485923',
+      nombresORazonSocial: 'Juan Carlos Pérez Morales',
+      direccion: 'Jr. Las Begonias 342, Ate, Lima'
+    },
+    fechaHora: '2026-10-24T10:15:00Z',
+    subtotalDevuelto: 4.24,
+    igvDevuelto: 0.76,
+    totalDevuelto: 5.00,
+    medioReembolso: 'EFECTIVO',
+    reingresoStockRealizado: true,
+    hashCpe: 'eWdlc3Qtbm90YS1jcmVkaXRvLWJjMDE=',
+    qrCodeUrl: 'https://sunat.gob.pe/cpe?ruc=20601234567&tipo=07&serie=BC01&numero=00000001&monto=5.00&fecha=2026-10-24',
+    estadoSunat: 'ACEPTADA',
+    detalles: [
+      {
+        id: 1,
+        detalleVentaId: 1,
+        productoId: 1,
+        nombreProducto: 'Paracetamol 500 mg',
+        loteId: 1,
+        numeroLote: 'L-2024-PAR',
+        cantidadDevuelta: 10,
+        precioUnitario: 0.50,
+        subtotal: 5.00,
+        reingresaAStock: true,
+        motivoItem: 'Devolución en empaque sellado'
+      }
+    ]
+  }
+];
+
 // Ventas en espera del POS
 let VENTAS_ESPERA = [];
 
@@ -1019,6 +1068,197 @@ const server = http.createServer(async (req, res) => {
       const id = parseInt(pathname.split('/')[4]);
       VENTAS_ESPERA = VENTAS_ESPERA.filter(v => v.id !== id);
       return sendJson(res, 204, {});
+    }
+
+    // ==========================================
+    // NOTAS DE CRÉDITO Y DEVOLUCIONES (SUNAT Tipo 07)
+    // ==========================================
+    if (pathname === '/api/ventas/notas-credito' && req.method === 'GET') {
+      return sendJson(res, 200, NOTAS_CREDITO);
+    }
+
+    if (pathname.match(/^\/api\/ventas\/notas-credito\/\d+$/) && req.method === 'GET') {
+      const id = parseInt(pathname.split('/')[4]);
+      const nc = NOTAS_CREDITO.find(item => item.id === id);
+      if (nc) return sendJson(res, 200, nc);
+      return sendJson(res, 404, { message: 'Nota de crédito no encontrada' });
+    }
+
+    if (pathname === '/api/ventas/buscar-comprobante' && req.method === 'GET') {
+      const q = (query.q || '').trim().toLowerCase();
+      const serie = (query.serie || '').trim().toLowerCase();
+      const numero = (query.numero || '').trim().toLowerCase();
+
+      let encontrada = null;
+      if (serie && numero) {
+        encontrada = VENTAS.find(v => 
+          v.serieComprobante.toLowerCase() === serie && 
+          v.numeroComprobante.toLowerCase() === numero
+        );
+      } else if (q) {
+        encontrada = VENTAS.find(v => {
+          const comp = `${v.serieComprobante}-${v.numeroComprobante}`.toLowerCase();
+          return comp.includes(q) || 
+                 (v.numeroComprobante && v.numeroComprobante.includes(q)) ||
+                 (v.cliente && v.cliente.numeroDocumento && v.cliente.numeroDocumento.includes(q));
+        });
+      }
+
+      if (encontrada) return sendJson(res, 200, encontrada);
+      return sendJson(res, 404, { message: 'Comprobante no encontrado' });
+    }
+
+    if ((pathname === '/api/ventas/notas-credito' || pathname.match(/^\/api\/ventas\/\d+\/nota-credito$/)) && req.method === 'POST') {
+      const body = await parseBody(req);
+      const ventaId = body.ventaId || (pathname.includes('/nota-credito') ? parseInt(pathname.split('/')[3]) : null);
+      const v = VENTAS.find(vt => vt.id === ventaId);
+      
+      if (!v) {
+        return sendJson(res, 404, { message: 'Venta original no encontrada para emitir la Nota de Crédito' });
+      }
+
+      if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
+        return sendJson(res, 400, { message: 'Debe especificar al menos un ítem a devolver' });
+      }
+
+      if (!body.motivoSustento || !body.motivoSustento.trim()) {
+        return sendJson(res, 400, { message: 'El motivo y sustento de la Nota de Crédito es obligatorio según normativa SUNAT' });
+      }
+
+      // Catálogo 09 SUNAT
+      const mapaDescripcionesNC = {
+        '01': 'Anulación de la operación',
+        '02': 'Anulación por error en el RUC',
+        '03': 'Corrección por error en la descripción',
+        '04': 'Descuento global',
+        '05': 'Descuento por ítem',
+        '06': 'Devolución total',
+        '07': 'Devolución por ítem'
+      };
+
+      const codigoTipoNC = body.tipoNotaCredito || '07';
+      const descTipoNC = mapaDescripcionesNC[codigoTipoNC] || 'Devolución por ítem';
+
+      // Calcular montos de devolución
+      let totalDevuelto = 0;
+      const detallesNC = [];
+
+      for (const it of body.items) {
+        const cantDev = Number(it.cantidadDevuelta) || 0;
+        if (cantDev <= 0) continue;
+
+        const precio = Number(it.precioUnitario) || 0;
+        const subLinea = Number((cantDev * precio).toFixed(2));
+        totalDevuelto += subLinea;
+
+        detallesNC.push({
+          id: detallesNC.length + 1,
+          detalleVentaId: it.detalleVentaId || null,
+          productoId: it.productoId,
+          nombreProducto: it.nombreProducto || 'Medicamento',
+          loteId: it.loteId || null,
+          numeroLote: it.numeroLote || 'LOTE-DEV',
+          cantidadDevuelta: cantDev,
+          precioUnitario: precio,
+          subtotal: subLinea,
+          reingresaAStock: it.reingresaAStock !== false,
+          motivoItem: it.motivoItem || body.motivoSustento
+        });
+
+        // 1. Reingreso a Inventario y Kardex si aplica
+        if (it.reingresaAStock !== false) {
+          const st = STOCK.find(s => s.productoId === it.productoId);
+          if (st) st.stockActual += cantDev;
+
+          if (it.loteId) {
+            const lote = LOTES.find(l => l.id === it.loteId);
+            if (lote) lote.cantidadActual += cantDev;
+          }
+
+          KARDEX.unshift({
+            id: KARDEX.length + 1,
+            productoId: it.productoId,
+            loteId: it.loteId || null,
+            numeroLote: it.numeroLote || 'LOTE-DEV',
+            sucursalId: 1,
+            tipoMovimiento: 'ENTRADA_DEVOLUCION_VENTA',
+            cantidad: cantDev,
+            saldoResultante: st ? st.stockActual : cantDev,
+            referenciaTipo: 'NOTA_CREDITO',
+            referenciaId: `${v.tipoComprobante === 'FACTURA' ? 'FC01' : 'BC01'}-${String(NOTAS_CREDITO.length + 1).padStart(8, '0')}`,
+            motivo: `Reingreso por Nota de Crédito: ${body.motivoSustento}`,
+            usuarioId: 1,
+            fechaHora: new Date().toISOString()
+          });
+        }
+      }
+
+      totalDevuelto = Number(totalDevuelto.toFixed(2));
+      const subtotalDevuelto = Number((totalDevuelto / 1.18).toFixed(2));
+      const igvDevuelto = Number((totalDevuelto - subtotalDevuelto).toFixed(2));
+
+      // Serie y Correlativo oficial SUNAT (FC01 para Factura, BC01 para Boleta)
+      const serieNC = v.tipoComprobante === 'FACTURA' ? 'FC01' : (v.tipoComprobante === 'NOTA_VENTA' ? 'NC01' : 'BC01');
+      const correlativoNC = String(NOTAS_CREDITO.length + 1).padStart(8, '0');
+      const ahora = new Date().toISOString();
+
+      // Reembolso financiero / Cuenta Corriente
+      const medioReembolso = body.medioReembolso || v.medioPago || 'EFECTIVO';
+      if ((v.medioPago === 'CREDITO' || medioReembolso === 'CREDITO') && v.cliente && v.cliente.id) {
+        const cli = CLIENTES.find(c => c.id === v.cliente.id);
+        if (cli) {
+          cli.saldoDeudor = Math.max(0, Number(((cli.saldoDeudor || 0) - totalDevuelto).toFixed(2)));
+        }
+      } else if (medioReembolso === 'EFECTIVO') {
+        if (SESION_CAJA_ACTUAL && SESION_CAJA_ACTUAL.estado === 'ABIERTA') {
+          SESION_CAJA_ACTUAL.totalVentasEfectivo = Math.max(0, Number(((SESION_CAJA_ACTUAL.totalVentasEfectivo || 0) - totalDevuelto).toFixed(2)));
+          SESION_CAJA_ACTUAL.totalVentasGeneral = Math.max(0, Number(((SESION_CAJA_ACTUAL.totalVentasGeneral || 0) - totalDevuelto).toFixed(2)));
+        }
+      }
+
+      // Actualizar estado de la venta
+      const totalCantVendida = (v.detalles || v.items || []).reduce((acc, d) => acc + (d.cantidad || 0), 0);
+      const totalCantDevuelta = detallesNC.reduce((acc, d) => acc + d.cantidadDevuelta, 0);
+
+      if (totalCantDevuelta >= totalCantVendida || codigoTipoNC === '01' || codigoTipoNC === '06') {
+        v.estado = 'ANULADA';
+      } else {
+        v.estado = 'CON_NOTA_CREDITO';
+      }
+      v.notaCreditoReferencia = `${serieNC}-${correlativoNC}`;
+
+      // Generar Hash CPE y QR oficial de Nota de Crédito
+      const hashSimulado = Buffer.from(`${serieNC}-${correlativoNC}-${totalDevuelto}-${ahora}`).toString('base64').substring(0, 28);
+      const qrUrl = `https://sunat.gob.pe/cpe?ruc=20601234567&tipo=07&serie=${serieNC}&numero=${correlativoNC}&monto=${totalDevuelto}&fecha=${ahora.substring(0, 10)}`;
+
+      const nuevaNotaCredito = {
+        id: NOTAS_CREDITO.length + 1,
+        sucursalId: v.sucursalId || 1,
+        sesionCajaId: v.sesionCajaId || (SESION_CAJA_ACTUAL ? SESION_CAJA_ACTUAL.id : 1),
+        ventaId: v.id,
+        tipoComprobanteModificado: v.tipoComprobante,
+        serieComprobanteModificado: v.serieComprobante,
+        numeroComprobanteModificado: v.numeroComprobante,
+        serieNotaCredito: serieNC,
+        numeroNotaCredito: correlativoNC,
+        tipoNotaCredito: codigoTipoNC,
+        descripcionTipoNotaCredito: descTipoNC,
+        motivoSustento: body.motivoSustento.trim(),
+        cliente: v.cliente,
+        fechaHora: ahora,
+        subtotalDevuelto: subtotalDevuelto,
+        igvDevuelto: igvDevuelto,
+        totalDevuelto: totalDevuelto,
+        medioReembolso: medioReembolso,
+        reingresoStockRealizado: detallesNC.some(d => d.reingresaAStock),
+        hashCpe: hashSimulado,
+        qrCodeUrl: qrUrl,
+        estadoSunat: 'ACEPTADA',
+        detalles: detallesNC
+      };
+
+      NOTAS_CREDITO.unshift(nuevaNotaCredito);
+      return sendJson(res, 201, nuevaNotaCredito);
     }
 
     if (pathname === '/api/ventas' && req.method === 'GET') {
