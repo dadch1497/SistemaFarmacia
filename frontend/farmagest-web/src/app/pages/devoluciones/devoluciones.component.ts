@@ -38,6 +38,7 @@ export class DevolucionesComponent implements OnInit {
 
   // Modal de Devolución
   modalDevolucionAbierto: boolean = false;
+  ventaEncontradaBusqueda: Venta | null = null;
   ventaSeleccionada: Venta | null = null;
   tipoNotaCredito: TipoNotaCredito = '07';
   motivoSustento: string = '';
@@ -96,26 +97,91 @@ export class DevolucionesComponent implements OnInit {
   }
 
   // Búsqueda rápida por comprobante
+  encontrarVentaEnMemoria(queryStr: string): Venta | undefined {
+    let q = (queryStr || '').trim().toLowerCase();
+    q = q.replace(/^ej:?\s*/i, '').replace(/^boleta:?\s*/i, '').replace(/^factura:?\s*/i, '').trim();
+    if (!q) return undefined;
+
+    const qClean = q.replace(/[-\s]/g, '');
+    let qSerie = '';
+    let qNum = '';
+    const matchComp = q.match(/^([a-z0-9]{1,4})[-\s]+(\d+)$/i);
+    if (matchComp) {
+      qSerie = matchComp[1].toLowerCase();
+      qNum = matchComp[2];
+    }
+
+    const isPureDigits = /^\d+$/.test(q);
+    const qInt = isPureDigits ? parseInt(q, 10) : null;
+
+    return this.ventas().find(v => {
+      const full = `${v.serieComprobante}-${v.numeroComprobante}`.toLowerCase();
+      const clean = `${v.serieComprobante}${v.numeroComprobante}`.toLowerCase();
+      const numClean = (v.numeroComprobante || '').toLowerCase();
+      const numInt = parseInt(v.numeroComprobante, 10);
+      const serieComp = (v.serieComprobante || '').toLowerCase();
+      const clienteDoc = (v.cliente?.numeroDocumento || '').toLowerCase();
+      const clienteNom = (v.cliente?.nombresORazonSocial || '').toLowerCase();
+
+      if (full.includes(q) || clean.includes(qClean) || numClean.includes(q)) return true;
+      if (qSerie && qNum) {
+        if (serieComp === qSerie && (numInt === parseInt(qNum, 10) || numClean.endsWith(qNum))) return true;
+      }
+      if (qInt !== null && !isNaN(qInt)) {
+        if (numInt === qInt || numClean.endsWith(q)) return true;
+      }
+      if (clienteDoc.includes(q) || clienteNom.includes(q)) return true;
+
+      return false;
+    });
+  }
+
+  onBusquedaInputChange(): void {
+    if (this.tabActivo === 'VENTAS') {
+      this.filtroTextoVentas = this.codigoBusqueda.trim();
+    }
+  }
+
   buscarComprobanteRapido(): void {
-    const q = this.codigoBusqueda.trim();
-    if (!q) {
-      this.mostrarError('Por favor ingrese el número o serie del comprobante (ej: B001-00001024 o 00001024).');
+    const qRaw = (this.codigoBusqueda || '').trim();
+    if (!qRaw) {
+      this.mostrarError('Por favor ingrese el número o serie del comprobante (ej: B001-00001024, F001-00000412 o solo 1024).');
       return;
     }
 
+    const qLimpia = qRaw.replace(/^ej:?\s*/i, '').replace(/^boleta:?\s*/i, '').replace(/^factura:?\s*/i, '').trim();
+
+    // 1. Buscar de inmediato en las ventas ya cargadas en memoria (0ms de latencia, 100% fiable)
+    const enMemoria = this.encontrarVentaEnMemoria(qLimpia);
+    if (enMemoria) {
+      this.tabActivo = 'VENTAS';
+      this.filtroTextoVentas = `${enMemoria.serieComprobante}-${enMemoria.numeroComprobante}`;
+      this.ventaEncontradaBusqueda = enMemoria;
+      this.mensajeError.set(null);
+      this.mostrarExito(`Comprobante ${enMemoria.serieComprobante}-${enMemoria.numeroComprobante} encontrado con éxito.`);
+      this.abrirModalDevolucion(enMemoria);
+      return;
+    }
+
+    // 2. Si no se encontró en memoria, consultar al servidor backend
     this.buscandoVenta = true;
-    this.ventasService.buscarComprobante(q).subscribe({
+    this.ventasService.buscarComprobante(qLimpia).subscribe({
       next: (venta) => {
         this.buscandoVenta = false;
-        if (venta.estado === 'ANULADA') {
-          this.mostrarError(`El comprobante ${venta.serieComprobante}-${venta.numeroComprobante} ya se encuentra ANULADO.`);
-          return;
+        if (!this.ventas().some(v => v.id === venta.id)) {
+          this.ventas.update(lista => [venta, ...lista]);
         }
+        this.tabActivo = 'VENTAS';
+        this.filtroTextoVentas = `${venta.serieComprobante}-${venta.numeroComprobante}`;
+        this.ventaEncontradaBusqueda = venta;
+        this.mensajeError.set(null);
+        this.mostrarExito(`Comprobante ${venta.serieComprobante}-${venta.numeroComprobante} encontrado con éxito.`);
         this.abrirModalDevolucion(venta);
       },
       error: () => {
         this.buscandoVenta = false;
-        this.mostrarError(`No se encontró ningún comprobante con la referencia "${q}".`);
+        // Si no encontró por búsqueda exacta, buscar el primer término o mostrar sugerencias
+        this.mostrarError(`No se encontró el comprobante con "${qRaw}". Compruebe que coincida con "B001-00001024" o "F001-00000412".`);
       }
     });
   }

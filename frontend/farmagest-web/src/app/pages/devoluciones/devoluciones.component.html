@@ -17,8 +17,9 @@
       <button class="btn btn-secondary" (click)="cargarDatos()">
         ↻ Actualizar Datos
       </button>
-      <button class="btn btn-primary" (click)="tabActivo = 'VENTAS'" style="background-color: #0B3D38; border-color: #082d29;">
-        ➕ Nueva Devolución
+      <button class="btn btn-primary" (click)="tabActivo = 'VENTAS'" style="background-color: #0B3D38; border-color: #082d29; color: #FFFFFF !important; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+        <span style="color: #FFFFFF !important;">➕</span>
+        <span style="color: #FFFFFF !important;">Nueva Devolución</span>
       </button>
     </div>
   </div>
@@ -47,13 +48,33 @@
         <input 
           type="text" 
           [(ngModel)]="codigoBusqueda" 
+          (input)="onBusquedaInputChange()"
           (keyup.enter)="buscarComprobanteRapido()"
           placeholder="Ej: B001-00001024 o 1024..." 
           class="input-destacado" />
-        <button class="btn btn-primary btn-buscar-devolver" (click)="buscarComprobanteRapido()" [disabled]="buscandoVenta">
-          {{ buscandoVenta ? 'Buscando...' : '↩ Buscar para Devolver' }}
+        <button class="btn btn-primary btn-buscar-devolver" (click)="buscarComprobanteRapido()" [disabled]="buscandoVenta" style="background-color: #0B3D38; border-color: #082d29; color: #FFFFFF !important; font-weight: 700;">
+          <span style="color: #FFFFFF !important;">{{ buscandoVenta ? 'Buscando...' : '↩ Buscar para Devolver' }}</span>
         </button>
       </div>
+    </div>
+    <!-- Tarjeta de Venta Encontrada tras la Búsqueda -->
+    <div *ngIf="ventaEncontradaBusqueda" style="background: #E6F4F1; border: 2px solid #0B3D38; border-radius: 8px; padding: 12px 18px; margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="background-color: #0B3D38; color: #FFFFFF; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+          ✓
+        </div>
+        <div>
+          <div style="font-size: 14px; font-weight: 800; color: #0B3D38;">
+            Comprobante Encontrado: {{ ventaEncontradaBusqueda.tipoComprobante }} {{ ventaEncontradaBusqueda.serieComprobante }}-{{ ventaEncontradaBusqueda.numeroComprobante }}
+          </div>
+          <div style="font-size: 12px; color: #334155; margin-top: 2px;">
+            Cliente: <strong>{{ ventaEncontradaBusqueda.cliente?.nombresORazonSocial || 'Cliente General' }}</strong> | Total: <strong>S/ {{ ventaEncontradaBusqueda.total | number:'1.2-2' }}</strong> | Medio de Pago: {{ ventaEncontradaBusqueda.medioPago }}
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" (click)="abrirModalDevolucion(ventaEncontradaBusqueda)" style="background-color: #0B3D38; border-color: #082d29; color: #FFFFFF !important; font-weight: 700;">
+        ↩ Abrir Formulario de Devolución
+      </button>
     </div>
   </div>
 

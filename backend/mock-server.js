@@ -1085,7 +1085,9 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === '/api/ventas/buscar-comprobante' && req.method === 'GET') {
-      const q = (query.q || '').trim().toLowerCase();
+      let q = (query.q || '').trim().toLowerCase();
+      // Limpiar prefijos comunes como 'ej:', 'boleta:', 'factura:', 'b: ', 'f: '
+      q = q.replace(/^ej:?\s*/i, '').replace(/^boleta:?\s*/i, '').replace(/^factura:?\s*/i, '').trim();
       const serie = (query.serie || '').trim().toLowerCase();
       const numero = (query.numero || '').trim().toLowerCase();
 
@@ -1093,14 +1095,48 @@ const server = http.createServer(async (req, res) => {
       if (serie && numero) {
         encontrada = VENTAS.find(v => 
           v.serieComprobante.toLowerCase() === serie && 
-          v.numeroComprobante.toLowerCase() === numero
+          (v.numeroComprobante.toLowerCase() === numero || parseInt(v.numeroComprobante, 10) === parseInt(numero, 10))
         );
       } else if (q) {
+        const qClean = q.replace(/[-\s]/g, '');
+        
+        // Detectar si el usuario escribió Serie + Número (ej: "B001-1024", "B001 1024", "B1-1024")
+        let qSerie = '';
+        let qNum = '';
+        const matchComp = q.match(/^([a-z0-9]{1,4})[-\s]+(\d+)$/i);
+        if (matchComp) {
+          qSerie = matchComp[1].toLowerCase();
+          qNum = matchComp[2];
+        }
+
+        const isPureDigits = /^\d+$/.test(q);
+        const qInt = isPureDigits ? parseInt(q, 10) : null;
+
         encontrada = VENTAS.find(v => {
           const comp = `${v.serieComprobante}-${v.numeroComprobante}`.toLowerCase();
-          return comp.includes(q) || 
-                 (v.numeroComprobante && v.numeroComprobante.includes(q)) ||
-                 (v.cliente && v.cliente.numeroDocumento && v.cliente.numeroDocumento.includes(q));
+          const compClean = `${v.serieComprobante}${v.numeroComprobante}`.toLowerCase();
+          const numClean = (v.numeroComprobante || '').toLowerCase();
+          const numInt = parseInt(v.numeroComprobante, 10);
+          const serieComp = (v.serieComprobante || '').toLowerCase();
+
+          // 1. Coincidencia exacta o parcial de cadena
+          if (comp.includes(q) || compClean.includes(qClean) || numClean.includes(q)) return true;
+
+          // 2. Coincidencia de Serie + Número sin ceros (ej: B001-1024 vs B001-00001024)
+          if (qSerie && qNum) {
+            if (serieComp === qSerie && (numInt === parseInt(qNum, 10) || numClean.endsWith(qNum))) return true;
+          }
+
+          // 3. Coincidencia solo por número correlativo (ej: "1024" vs "00001024")
+          if (qInt !== null && !isNaN(qInt)) {
+            if (numInt === qInt || numClean.endsWith(q)) return true;
+          }
+
+          // 4. Coincidencia por DNI / RUC o nombre del cliente
+          if (v.cliente && v.cliente.numeroDocumento && v.cliente.numeroDocumento.includes(q)) return true;
+          if (v.cliente && v.cliente.nombresORazonSocial && v.cliente.nombresORazonSocial.toLowerCase().includes(q)) return true;
+
+          return false;
         });
       }
 

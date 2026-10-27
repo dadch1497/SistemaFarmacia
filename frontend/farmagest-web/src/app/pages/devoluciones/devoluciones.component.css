@@ -1,3 +1,4 @@
+.btn-primary, .btn-buscar-devolver, .btn-devolver-grande { color: #FFFFFF !important; }
 .devoluciones-page {
   display: flex;
   flex-direction: column;
@@ -111,12 +112,23 @@
 }
 
 .btn-buscar-devolver {
-  background-color: #0B3D38;
-  border-color: #082d29;
+  background-color: #0B3D38 !important;
+  border-color: #082d29 !important;
+  color: #FFFFFF !important;
   font-weight: 700;
   padding: 0.75rem 1.25rem;
   font-size: 0.95rem;
   border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-buscar-devolver:hover {
+  background-color: #082d29 !important;
+  color: #FFFFFF !important;
 }
 
 .btn-buscar-devolver:hover {
