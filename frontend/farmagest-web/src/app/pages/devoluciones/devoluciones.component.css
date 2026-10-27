@@ -167,6 +167,11 @@
   border: 1px solid #E2E8F0;
 }
 
+.kpi-card.destaque-red {
+  border-left: 4px solid #DC2626;
+  background-color: #FEF2F2;
+}
+
 .kpi-card.destaque-teal {
   border-left: 4px solid #0B3D38;
   background-color: #E6F4F1;
