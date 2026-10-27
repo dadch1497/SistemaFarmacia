@@ -1,3 +1,4 @@
+import { forkJoin } from 'rxjs';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,6 +26,7 @@ export class DevolucionesComponent implements OnInit {
   ventas = signal<Venta[]>([]);
   notasCredito = signal<NotaCredito[]>([]);
   cargando = signal<boolean>(false);
+  actualizando: boolean = false;
   mensajeExito = signal<string | null>(null);
   mensajeError = signal<string | null>(null);
 

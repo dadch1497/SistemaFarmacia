@@ -1,3 +1,24 @@
+
+@keyframes spinIcon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.anim-girar {
+  animation: spinIcon 0.8s linear infinite;
+  transform-origin: center;
+}
+
+.btn-actualizar-datos:hover:not(:disabled) {
+  background-color: #F8FAFC !important;
+  border-color: #94A3B8 !important;
+  color: #0B3D38 !important;
+}
+
+.btn-actualizar-datos:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 .btn-primary, .btn-buscar-devolver, .btn-devolver-grande { color: #FFFFFF !important; }
 .devoluciones-page {
   display: flex;
