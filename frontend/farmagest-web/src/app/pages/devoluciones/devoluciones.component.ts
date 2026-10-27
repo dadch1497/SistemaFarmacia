@@ -38,6 +38,8 @@ export class DevolucionesComponent implements OnInit {
 
   // Modal de Devolución
   modalDevolucionAbierto: boolean = false;
+  modalSeleccionarVentaAbierto: boolean = false;
+  filtroBusquedaModal: string = '';
   ventaEncontradaBusqueda: Venta | null = null;
   ventaSeleccionada: Venta | null = null;
   tipoNotaCredito: TipoNotaCredito = '07';
@@ -353,6 +355,38 @@ export class DevolucionesComponent implements OnInit {
 
   imprimirNotaCredito(): void {
     window.print();
+  }
+
+  iniciarNuevaDevolucion(): void {
+    if (this.ventaEncontradaBusqueda && this.ventaEncontradaBusqueda.estado !== 'ANULADA') {
+      this.abrirModalDevolucion(this.ventaEncontradaBusqueda);
+      return;
+    }
+    this.filtroBusquedaModal = '';
+    this.modalSeleccionarVentaAbierto = true;
+  }
+
+  cerrarModalSeleccionarVenta(): void {
+    this.modalSeleccionarVentaAbierto = false;
+    this.filtroBusquedaModal = '';
+  }
+
+  seleccionarVentaParaDevolver(v: Venta): void {
+    this.cerrarModalSeleccionarVenta();
+    this.abrirModalDevolucion(v);
+  }
+
+  ventasParaSeleccionar(): Venta[] {
+    const q = this.filtroBusquedaModal.trim().toLowerCase();
+    const noAnuladas = this.ventas().filter(v => v.estado !== 'ANULADA');
+    if (!q) return noAnuladas;
+    return noAnuladas.filter(v => {
+      const comp = `${v.serieComprobante}-${v.numeroComprobante}`.toLowerCase();
+      const num = (v.numeroComprobante || '').toLowerCase();
+      const cli = (v.cliente?.nombresORazonSocial || '').toLowerCase();
+      const doc = (v.cliente?.numeroDocumento || '').toLowerCase();
+      return comp.includes(q) || num.includes(q) || cli.includes(q) || doc.includes(q);
+    });
   }
 
   mostrarExito(msg: string): void {
