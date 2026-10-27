@@ -9,6 +9,7 @@ import { PosComponent } from './pages/pos/pos.component';
 import { ReportesComponent } from './pages/reportes/reportes.component';
 import { PromocionesComponent } from './pages/promociones/promociones.component';
 import { UsuariosComponent } from './pages/usuarios/usuarios.component';
+import { DevolucionesComponent } from './pages/devoluciones/devoluciones.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -24,6 +25,8 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: HomeComponent },
       { path: 'pos', component: PosComponent },
+      { path: 'devoluciones', component: DevolucionesComponent },
+      { path: 'notas-credito', redirectTo: 'devoluciones', pathMatch: 'full' },
       { path: 'pos/mis-ventas', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'productos', component: ProductosComponent },
       { path: 'productos/consulta', component: ProductosComponent },

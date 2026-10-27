@@ -1,0 +1,573 @@
+<div class="devoluciones-page">
+
+  <!-- ========================================================================= -->
+  <!-- ENCABEZADO PRINCIPAL DEVOLUCIONES & NOTAS DE CRÉDITO                      -->
+  <!-- ========================================================================= -->
+  <div class="devoluciones-header">
+    <div class="header-titles">
+      <div class="header-badge">
+        <span class="pulse-dot"></span>
+        MÓDULO OFICIAL SUNAT · TIPO 07
+      </div>
+      <h2>Devoluciones de Ventas y Notas de Crédito</h2>
+      <p class="subtitle">Emisión reglamentaria de Notas de Crédito Electrónicas (BC01 / FC01), reingreso físico al Kardex y reversión de cobros</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="cargarDatos()">
+        ↻ Actualizar Datos
+      </button>
+      <button class="btn btn-primary" (click)="tabActivo = 'VENTAS'" style="background-color: #dc2626; border-color: #b91c1c;">
+        ➕ Nueva Devolución
+      </button>
+    </div>
+  </div>
+
+  <!-- Mensajes de Notificación -->
+  <div *ngIf="mensajeExito()" class="alert alert-success" style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <span>{{ mensajeExito() }}</span>
+  </div>
+
+  <div *ngIf="mensajeError()" class="alert alert-danger" style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span>{{ mensajeError() }}</span>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- BARRA DE BÚSQUEDA RÁPIDA DE COMPROBANTES                                  -->
+  <!-- ========================================================================= -->
+  <div class="tarjeta search-card-destacada">
+    <div class="search-flex-row">
+      <div class="search-info">
+        <h3>🔍 Búsqueda Rápida de Comprobante para Devolución</h3>
+        <p>Ingrese el número de la Boleta o Factura (ej: <code>B001-00001024</code>, <code>F001-00000412</code> o solo <code>1024</code>) para iniciar el proceso de inmediato:</p>
+      </div>
+      <div class="search-inputs">
+        <input 
+          type="text" 
+          [(ngModel)]="codigoBusqueda" 
+          (keyup.enter)="buscarComprobanteRapido()"
+          placeholder="Ej: B001-00001024 o 1024..." 
+          class="input-destacado" />
+        <button class="btn btn-primary btn-buscar-devolver" (click)="buscarComprobanteRapido()" [disabled]="buscandoVenta">
+          {{ buscandoVenta ? 'Buscando...' : '↩ Buscar para Devolver' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- PESTAÑAS DE NAVEGACIÓN                                                    -->
+  <!-- ========================================================================= -->
+  <div class="tabs-nav-devoluciones">
+    <button 
+      class="tab-btn-dev" 
+      [class.active]="tabActivo === 'NOTAS_CREDITO'" 
+      (click)="cambiarTab('NOTAS_CREDITO')">
+      📑 Historial de Notas de Crédito Emitidas ({{ notasCredito().length }})
+    </button>
+    <button 
+      class="tab-btn-dev" 
+      [class.active]="tabActivo === 'VENTAS'" 
+      (click)="cambiarTab('VENTAS')">
+      🧾 Ventas Realizadas - Listas para Devolver ({{ ventas().length }})
+    </button>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- VISTA 1: HISTORIAL DE NOTAS DE CRÉDITO EMITIDAS                           -->
+  <!-- ========================================================================= -->
+  <div *ngIf="tabActivo === 'NOTAS_CREDITO'">
+    <!-- Resumen KPIs -->
+    <div class="kpi-grid-devoluciones">
+      <div class="kpi-card">
+        <div class="kpi-label">TOTAL NOTAS DE CRÉDITO</div>
+        <div class="kpi-value text-dark">{{ notasCredito().length }}</div>
+        <div class="kpi-sub">Documentos Electrónicos Tipo 07</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">BASE IMPONIBLE DEVUELTA</div>
+        <div class="kpi-value text-teal">S/ {{ totalSubtotalDevueltoNC() | number:'1.2-2' }}</div>
+        <div class="kpi-sub">Deducción de base imponible</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">I.G.V. REVERTIDO (18%)</div>
+        <div class="kpi-value text-warning">S/ {{ totalIgvDevueltoNC() | number:'1.2-2' }}</div>
+        <div class="kpi-sub">Ajuste de débito fiscal SUNAT</div>
+      </div>
+
+      <div class="kpi-card destaque-red">
+        <div class="kpi-label">TOTAL REEMBOLSADO AL CLIENTE</div>
+        <div class="kpi-value text-red">S/ {{ totalDevueltoNC() | number:'1.2-2' }}</div>
+        <div class="kpi-sub">Monto total reembolsado o acreditado</div>
+      </div>
+    </div>
+
+    <!-- Filtro de Notas de Crédito -->
+    <div class="tarjeta filtro-bar">
+      <div class="filtro-group search-group" style="flex: 1;">
+        <label>Filtrar Notas de Crédito:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="filtroTextoNc" 
+          placeholder="Buscar por Serie NC (BC01), Comprobante Original (B001), DNI, RUC, Cliente..."
+          class="form-input search-input" />
+      </div>
+    </div>
+
+    <!-- Tabla de Notas de Crédito -->
+    <div class="tarjeta tabla-container">
+      <div *ngIf="cargando()" class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando información...</p>
+      </div>
+
+      <div *ngIf="!cargando()" class="table-responsive">
+        <table class="tabla-farmagest">
+          <thead>
+            <tr>
+              <th>Fecha / Hora</th>
+              <th>Nota de Crédito</th>
+              <th>Comprobante Afectado</th>
+              <th>Tipo SUNAT (Cat. 09)</th>
+              <th>Motivo / Sustento</th>
+              <th>Cliente</th>
+              <th>Reembolso</th>
+              <th class="text-right">Total Devuelto</th>
+              <th>SUNAT</th>
+              <th class="text-center">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let nc of notasCreditoFiltradas()">
+              <td class="text-sm text-muted">
+                {{ nc.fechaHora | date:'dd/MM/yyyy HH:mm' }}
+              </td>
+              <td>
+                <strong class="comprobante-tag tag-nc">{{ nc.serieNotaCredito }}-{{ nc.numeroNotaCredito }}</strong>
+              </td>
+              <td>
+                <span class="badge" [class.badge-factura]="nc.tipoComprobanteModificado === 'FACTURA'" [class.badge-boleta]="nc.tipoComprobanteModificado === 'BOLETA'">
+                  {{ nc.tipoComprobanteModificado }}
+                </span>
+                <span style="font-weight: 600; margin-left: 4px;">{{ nc.serieComprobanteModificado }}-{{ nc.numeroComprobanteModificado }}</span>
+              </td>
+              <td>
+                <span class="code-badge">{{ nc.tipoNotaCredito }} - {{ nc.descripcionTipoNotaCredito }}</span>
+              </td>
+              <td>
+                <div style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px;" [title]="nc.motivoSustento">
+                  {{ nc.motivoSustento }}
+                </div>
+              </td>
+              <td>
+                <div style="font-size: 12.5px;">
+                  <strong>{{ nc.cliente?.nombresORazonSocial || 'CLIENTE GENÉRICO' }}</strong>
+                  <div style="font-size: 11px; color: #64748b;">{{ nc.cliente?.tipoDocumento }}: {{ nc.cliente?.numeroDocumento }}</div>
+                </div>
+              </td>
+              <td>
+                <span class="chip-pago">{{ nc.medioReembolso }}</span>
+              </td>
+              <td class="text-right font-mono font-bold" style="color: #dc2626;">
+                S/ {{ nc.totalDevuelto | number:'1.2-2' }}
+              </td>
+              <td>
+                <span class="badge-sunat-ok">✔ {{ nc.estadoSunat || 'ACEPTADA' }}</span>
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary" (click)="verDetalleNotaCredito(nc)">
+                  👁️ Ver / Imprimir
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="!notasCreditoFiltradas().length">
+              <td colspan="10" class="text-center text-muted p-4">
+                No se encontraron notas de crédito emitidas.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- VISTA 2: VENTAS REALIZADAS (LISTAS PARA DEVOLUCIÓN)                       -->
+  <!-- ========================================================================= -->
+  <div *ngIf="tabActivo === 'VENTAS'">
+    <div class="tarjeta filtro-bar">
+      <div class="filtro-group search-group" style="flex: 1;">
+        <label>Filtrar Ventas para Devolución:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="filtroTextoVentas" 
+          placeholder="Buscar por comprobante (B001, F001), DNI, RUC, cliente..."
+          class="form-input search-input" />
+      </div>
+    </div>
+
+    <div class="tarjeta tabla-container">
+      <div class="table-responsive">
+        <table class="tabla-farmagest">
+          <thead>
+            <tr>
+              <th>Fecha / Hora</th>
+              <th>Tipo</th>
+              <th>Comprobante</th>
+              <th>Cliente</th>
+              <th class="text-right">Total Venta</th>
+              <th>Pago</th>
+              <th>Estado</th>
+              <th class="text-center">Acción de Devolución</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let v of ventasFiltradas()">
+              <td class="text-sm text-muted">
+                {{ v.fechaHora | date:'dd/MM/yyyy HH:mm' }}
+              </td>
+              <td>
+                <span class="badge" [class.badge-factura]="v.tipoComprobante === 'FACTURA'" [class.badge-boleta]="v.tipoComprobante === 'BOLETA'">
+                  {{ v.tipoComprobante }}
+                </span>
+              </td>
+              <td>
+                <strong class="comprobante-tag">{{ v.serieComprobante }}-{{ v.numeroComprobante }}</strong>
+              </td>
+              <td>
+                <strong>{{ v.cliente?.nombresORazonSocial || 'Cliente General' }}</strong>
+                <div style="font-size: 11px; color: #64748b;">{{ v.cliente?.tipoDocumento }}: {{ v.cliente?.numeroDocumento }}</div>
+              </td>
+              <td class="text-right font-mono font-bold">
+                S/ {{ v.total | number:'1.2-2' }}
+              </td>
+              <td>
+                <span class="chip-pago">{{ v.medioPago }}</span>
+              </td>
+              <td>
+                <span 
+                  class="chip-estado" 
+                  [class.estado-completado]="v.estado === 'COMPLETADA'" 
+                  [class.estado-anulado]="v.estado === 'ANULADA'"
+                  [class.estado-nc]="v.estado === 'CON_NOTA_CREDITO'">
+                  {{ v.estado }}
+                </span>
+              </td>
+              <td class="text-center">
+                <button 
+                  *ngIf="v.estado !== 'ANULADA'"
+                  class="btn btn-sm btn-devolver-grande" 
+                  (click)="abrirModalDevolucion(v)">
+                  ↩ Realizar Devolución
+                </button>
+                <span *ngIf="v.estado === 'ANULADA'" class="badge" style="background: #fee2e2; color: #b91c1c;">
+                  Anulado / Devuelto
+                </span>
+              </td>
+            </tr>
+
+            <tr *ngIf="!ventasFiltradas().length">
+              <td colspan="8" class="text-center text-muted p-4">
+                No se encontraron ventas para mostrar.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: FORMULARIO DE DEVOLUCIÓN Y EMISIÓN DE NOTA DE CRÉDITO             -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalDevolucionAbierto" class="modal-backdrop">
+    <div class="modal" style="max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header" style="background-color: #fef2f2; border-bottom: 2px solid #fecaca;">
+        <h2 class="modal-title" style="color: #991b1b;">
+          ↩ Formulario de Devolución de Venta y Emisión de Nota de Crédito
+        </h2>
+        <button class="btn-close" (click)="cerrarModalDevolucion()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Tarjeta de Datos de la Venta Original -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 13px;">
+            <div>
+              <span style="color: #64748b; display: block;">Comprobante de Referencia:</span>
+              <strong style="font-size: 15px; color: #0f172a;">
+                {{ ventaSeleccionada?.tipoComprobante }} {{ ventaSeleccionada?.serieComprobante }}-{{ ventaSeleccionada?.numeroComprobante }}
+              </strong>
+            </div>
+            <div>
+              <span style="color: #64748b; display: block;">Cliente / Titular:</span>
+              <strong>{{ ventaSeleccionada?.cliente?.nombresORazonSocial || 'Cliente General' }}</strong>
+            </div>
+            <div>
+              <span style="color: #64748b; display: block;">Fecha de la Venta:</span>
+              <strong>{{ ventaSeleccionada?.fechaHora | date:'dd/MM/yyyy HH:mm' }}</strong>
+            </div>
+            <div>
+              <span style="color: #64748b; display: block;">Medio de Pago:</span>
+              <span class="chip-pago">{{ ventaSeleccionada?.medioPago }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parámetros SUNAT -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div>
+            <label style="font-weight: 700; font-size: 12.5px; display: block; margin-bottom: 4px;">Tipo de Nota de Crédito (Catálogo 09 SUNAT):</label>
+            <select [(ngModel)]="tipoNotaCredito" class="form-select" style="width: 100%; padding: 8px;">
+              <option value="07">07 - Devolución por ítem (parcial o específica)</option>
+              <option value="06">06 - Devolución total</option>
+              <option value="01">01 - Anulación de la operación</option>
+              <option value="03">03 - Corrección por error en la descripción</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-weight: 700; font-size: 12.5px; display: block; margin-bottom: 4px;">Medio de Reembolso Financiero:</label>
+            <select [(ngModel)]="medioReembolso" class="form-select" style="width: 100%; padding: 8px;">
+              <option value="EFECTIVO">Efectivo (Salida de dinero de Caja)</option>
+              <option value="CREDITO" *ngIf="ventaSeleccionada?.medioPago === 'CREDITO' || (ventaSeleccionada?.cliente?.saldoDeudor || 0) > 0">
+                Crédito (Abonar a cuenta corriente / Disminuir deuda)
+              </option>
+              <option value="TARJETA">Extorno / Reversión Tarjeta</option>
+              <option value="YAPE_PLIN">Billetera Digital (Yape / Plin)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 18px;">
+          <label style="font-weight: 700; font-size: 12.5px; display: block; margin-bottom: 4px;">
+            Motivo o Sustento de la Devolución (Obligatorio SUNAT):
+          </label>
+          <input 
+            type="text" 
+            [(ngModel)]="motivoSustento" 
+            placeholder="Ej: Cambio de medicamento por receta modificada, error en dosificación..." 
+            class="form-input" 
+            style="width: 100%; padding: 9px;" />
+        </div>
+
+        <!-- Tabla de Medicamentos a Devolver -->
+        <h3 style="font-size: 13.5px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">
+          Seleccione los medicamentos y cantidades a devolver:
+        </h3>
+        
+        <div style="border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin-bottom: 16px;">
+          <table class="tabla-farmagest" style="font-size: 12.5px; width: 100%;">
+            <thead>
+              <tr style="background: #f1f5f9;">
+                <th style="width: 50px; text-align: center;">Devolver</th>
+                <th>Medicamento</th>
+                <th>Lote</th>
+                <th class="text-center">Comprado</th>
+                <th class="text-center" style="width: 110px;">Cant. Devolver</th>
+                <th class="text-right">P. Unitario</th>
+                <th class="text-right">Subtotal</th>
+                <th class="text-center">Reingreso a Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let it of itemsDevolucion" [style.background]="it.seleccionado ? '#f0fdf4' : 'transparent'">
+                <td style="text-align: center;">
+                  <input type="checkbox" [(ngModel)]="it.seleccionado" (change)="onItemDevolucionToggle(it)" style="width: 18px; height: 18px;" />
+                </td>
+                <td>
+                  <strong>{{ it.nombreProducto }}</strong>
+                </td>
+                <td>
+                  <span class="code-badge">{{ it.numeroLote }}</span>
+                </td>
+                <td class="text-center font-bold">
+                  {{ it.cantidadVendida }}
+                </td>
+                <td class="text-center">
+                  <input 
+                    type="number" 
+                    [(ngModel)]="it.cantidadDevolver" 
+                    [min]="0" 
+                    [max]="it.cantidadVendida"
+                    (input)="onCantidadDevolverChange(it)"
+                    [disabled]="!it.seleccionado"
+                    style="width: 70px; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; font-weight: bold; font-size: 13px;" />
+                </td>
+                <td class="text-right font-mono">
+                  S/ {{ it.precioUnitario | number:'1.2-2' }}
+                </td>
+                <td class="text-right font-mono font-bold" style="color: #dc2626;">
+                  S/ {{ it.subtotal | number:'1.2-2' }}
+                </td>
+                <td class="text-center">
+                  <label style="cursor: pointer; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;">
+                    <input type="checkbox" [(ngModel)]="it.reingresaAStock" [disabled]="!it.seleccionado" />
+                    <span [style.color]="it.reingresaAStock ? '#166534' : '#991b1b'" style="font-weight: 600;">
+                      {{ it.reingresaAStock ? 'Sí (Kardex)' : 'No (Merma)' }}
+                    </span>
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Resumen de Reembolso -->
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 12px; color: #991b1b; font-weight: 700;">TOTAL DE LA NOTA DE CRÉDITO:</div>
+            <div style="font-size: 13px; color: #7f1d1d; margin-top: 2px;">
+              Base Imponible: <strong>S/ {{ calcularSubtotalDevolucion() | number:'1.2-2' }}</strong> | 
+              IGV (18%): <strong>S/ {{ calcularIgvDevolucion() | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-size: 12px; color: #991b1b; display: block; font-weight: 700;">IMPORTE A REEMBOLSAR:</span>
+            <strong style="font-size: 24px; color: #b91c1c; font-family: monospace;">
+              S/ {{ calcularTotalDevolucion() | number:'1.2-2' }}
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalDevolucion()" [disabled]="procesandoDevolucion">Cancelar</button>
+        <button 
+          class="btn btn-primary" 
+          (click)="confirmarDevolucion()" 
+          [disabled]="calcularTotalDevolucion() <= 0 || !motivoSustento.trim() || procesandoDevolucion"
+          style="background-color: #dc2626; border-color: #b91c1c; font-weight: 700;">
+          {{ procesandoDevolucion ? 'Emitiendo en SUNAT...' : 'Emitir Nota de Crédito Electrónica' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: COMPROBANTE OFICIAL NOTA DE CRÉDITO ELECTRÓNICA (IMPRESIÓN)        -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalDetalleNcAbierto && notaCreditoSeleccionada()" class="modal-backdrop">
+    <div class="modal" style="max-width: 650px; width: 95%; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h2 class="modal-title">📑 Nota de Crédito Electrónica Emitida</h2>
+        <button class="btn-close" (click)="cerrarModalDetalleNc()">&times;</button>
+      </div>
+
+      <div class="modal-body" id="seccion-nota-credito-imprimible">
+        <div class="ticket-recibo" style="background: #ffffff; padding: 24px; border: 2px solid #0f172a; border-radius: 6px; color: #0f172a;">
+          <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 14px;">
+            <h3 style="margin: 0 0 2px 0; font-size: 18px; font-weight: 800;">BOTICA FARMA GESTIÓN S.A.C.</h3>
+            <p style="margin: 0; font-size: 12px; font-weight: 600;">RUC: 20601234567</p>
+            <p style="margin: 0; font-size: 11px; color: #475569;">Av. Nicolás Ayllón 1250, Ate, Lima</p>
+            
+            <div style="margin: 12px 0 6px 0; border: 2px solid #0f172a; padding: 6px; border-radius: 4px; background: #f8fafc;">
+              <h4 style="margin: 0; font-size: 14px; font-weight: 800; text-transform: uppercase;">
+                NOTA DE CRÉDITO ELECTRÓNICA
+              </h4>
+              <h3 style="margin: 4px 0 0 0; font-size: 19px; font-weight: 900; color: #1e3a8a;">
+                {{ notaCreditoSeleccionada()?.serieNotaCredito }}-{{ notaCreditoSeleccionada()?.numeroNotaCredito }}
+              </h3>
+            </div>
+            
+            <div style="text-align: center; margin-top: 4px;">
+              <span class="badge-sunat-ok" style="font-size: 11px;">
+                ✔ SUNAT: ACEPTADA
+              </span>
+            </div>
+          </div>
+
+          <div style="font-size: 11.5px; line-height: 1.5; margin-bottom: 14px; border-bottom: 1px dashed #94a3b8; padding-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span><strong>Fecha Emisión:</strong> {{ notaCreditoSeleccionada()?.fechaHora | date:'dd/MM/yyyy HH:mm' }}</span>
+              <span><strong>Medio Reembolso:</strong> {{ notaCreditoSeleccionada()?.medioReembolso }}</span>
+            </div>
+            <div>
+              <strong>Documento Modificado:</strong> 
+              {{ notaCreditoSeleccionada()?.tipoComprobanteModificado }} ELECTRÓNICA 
+              {{ notaCreditoSeleccionada()?.serieComprobanteModificado }}-{{ notaCreditoSeleccionada()?.numeroComprobanteModificado }}
+            </div>
+            <div>
+              <strong>Motivo SUNAT:</strong> 
+              {{ notaCreditoSeleccionada()?.tipoNotaCredito }} - {{ notaCreditoSeleccionada()?.descripcionTipoNotaCredito }}
+            </div>
+            <div>
+              <strong>Sustento:</strong> {{ notaCreditoSeleccionada()?.motivoSustento }}
+            </div>
+            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dotted #cbd5e1;">
+              <strong>Cliente:</strong> {{ notaCreditoSeleccionada()?.cliente?.nombresORazonSocial || 'CLIENTE GENÉRICO' }}<br />
+              <strong>{{ notaCreditoSeleccionada()?.cliente?.tipoDocumento || 'DNI' }}:</strong> {{ notaCreditoSeleccionada()?.cliente?.numeroDocumento || '00000000' }}
+            </div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 14px;">
+            <thead>
+              <tr style="border-bottom: 1px solid #0f172a; border-top: 1px solid #0f172a;">
+                <th style="text-align: center; padding: 4px;">Cant.</th>
+                <th style="text-align: left; padding: 4px;">Descripción</th>
+                <th style="text-align: left; padding: 4px;">Lote</th>
+                <th style="text-align: right; padding: 4px;">P. Unit</th>
+                <th style="text-align: right; padding: 4px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let det of notaCreditoSeleccionada()?.detalles" style="border-bottom: 1px dotted #e2e8f0;">
+                <td style="text-align: center; padding: 4px; font-weight: bold;">{{ det.cantidadDevuelta }}</td>
+                <td style="padding: 4px;"><strong>{{ det.nombreProducto }}</strong></td>
+                <td style="padding: 4px;"><code>{{ det.numeroLote }}</code></td>
+                <td style="text-align: right; padding: 4px;">S/ {{ det.precioUnitario | number:'1.2-2' }}</td>
+                <td style="text-align: right; padding: 4px; font-weight: bold;">S/ {{ det.subtotal | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="font-size: 12px; margin-left: auto; width: 220px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+              <span>Op. Gravada:</span>
+              <span>S/ {{ notaCreditoSeleccionada()?.subtotalDevuelto | number:'1.2-2' }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+              <span>I.G.V. (18%):</span>
+              <span>S/ {{ notaCreditoSeleccionada()?.igvDevuelto | number:'1.2-2' }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; border-top: 1px solid #0f172a; padding-top: 4px; color: #b91c1c;">
+              <span>TOTAL DEVUELTO:</span>
+              <span>S/ {{ notaCreditoSeleccionada()?.totalDevuelto | number:'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <!-- Bloque SUNAT Oficial: QR y Hash -->
+          <div style="text-align: center; border-top: 1px dashed #94a3b8; padding-top: 12px;">
+            <img 
+              [src]="notaCreditoSeleccionada()?.qrCodeUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=SUNAT-NC'" 
+              alt="QR SUNAT" 
+              style="width: 120px; height: 120px; margin: 0 auto; display: block; border: 1px solid #e2e8f0; padding: 4px;" />
+            <div style="font-size: 9px; font-family: monospace; color: #475569; margin-top: 4px;">
+              <strong>Hash CPE:</strong> {{ notaCreditoSeleccionada()?.hashCpe || '4uS+k8h2G6nL+z1P/YmQ3w==' }}
+            </div>
+            <div style="font-size: 9.5px; color: #475569; margin-top: 2px;">
+              Representación Impresa de la NOTA DE CRÉDITO ELECTRÓNICA
+            </div>
+            <div style="font-size: 8.5px; color: #94a3b8; margin-top: 1px;">
+              Autorizado mediante resolución SUNAT N° 034-005-0005315
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalDetalleNc()">Cerrar</button>
+        <button class="btn btn-primary" (click)="imprimirNotaCredito()" style="display: flex; align-items: center; gap: 6px;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          Imprimir Nota de Crédito (Ticket / A4)
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
