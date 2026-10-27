@@ -469,17 +469,17 @@
         </div>
 
         <!-- Resumen Financiero de la Devolución -->
-        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="background: #E6F4F1; border: 1px solid #A2D2CC; border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <div style="font-size: 12px; color: #991b1b; font-weight: 600;">RESUMEN DE NOTA DE CRÉDITO:</div>
-            <div style="font-size: 13px; color: #7f1d1d; margin-top: 2px;">
+            <div style="font-size: 12px; color: #0B3D38; font-weight: 600;">RESUMEN DE NOTA DE CRÉDITO:</div>
+            <div style="font-size: 13px; color: #082d29; margin-top: 2px;">
               Base Gravada: <strong>S/ {{ calcularSubtotalDevolucion() | number:'1.2-2' }}</strong> | 
               IGV (18%): <strong>S/ {{ calcularIgvDevolucion() | number:'1.2-2' }}</strong>
             </div>
           </div>
           <div style="text-align: right;">
-            <span style="font-size: 12px; color: #991b1b; display: block; font-weight: 700;">TOTAL A REEMBOLSAR:</span>
-            <strong style="font-size: 22px; color: #b91c1c; font-family: monospace;">
+            <span style="font-size: 12px; color: #0B3D38; display: block; font-weight: 700;">TOTAL A REEMBOLSAR:</span>
+            <strong style="font-size: 22px; color: #0B3D38; font-family: monospace;">
               S/ {{ calcularTotalDevolucion() | number:'1.2-2' }}
             </strong>
           </div>
@@ -492,7 +492,7 @@
           class="btn btn-primary" 
           (click)="confirmarDevolucion()" 
           [disabled]="calcularTotalDevolucion() <= 0 || !motivoSustento.trim() || procesandoDevolucion"
-          style="background-color: #dc2626; border-color: #b91c1c;">
+          style="background-color: #0B3D38; border-color: #082d29;">
           {{ procesandoDevolucion ? 'Emitiendo en SUNAT...' : 'Emitir Nota de Crédito Electrónica' }}
         </button>
       </div>
@@ -591,7 +591,7 @@
               <span>I.G.V. (18%):</span>
               <span>S/ {{ notaCreditoSeleccionada()?.igvDevuelto | number:'1.2-2' }}</span>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; border-top: 1px solid #0f172a; padding-top: 4px; color: #b91c1c;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; border-top: 1px solid #0f172a; padding-top: 4px; color: #0B3D38;">
               <span>TOTAL DEVUELTO:</span>
               <span>S/ {{ notaCreditoSeleccionada()?.totalDevuelto | number:'1.2-2' }}</span>
             </div>

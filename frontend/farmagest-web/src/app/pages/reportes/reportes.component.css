@@ -338,9 +338,9 @@
 }
 
 .btn-devolucion {
-  background-color: #FEF2F2;
-  color: #DC2626;
-  border: 1px solid #FECACA;
+  background-color: #E6F4F1;
+  color: #0B3D38;
+  border: 1px solid #A2D2CC;
   padding: 0.3rem 0.6rem;
   border-radius: 6px;
   font-weight: 700;
@@ -350,7 +350,7 @@
 }
 
 .btn-devolucion:hover {
-  background-color: #DC2626;
+  background-color: #0B3D38;
   color: #FFFFFF;
 }
 
@@ -371,9 +371,9 @@
 }
 
 .tag-nc {
-  background-color: #FEE2E2 !important;
-  color: #B91C1C !important;
-  border-color: #FCA5A5 !important;
+  background-color: #E6F4F1 !important;
+  color: #0B3D38 !important;
+  border-color: #A2D2CC !important;
 }
 
 .badge-sunat-ok {

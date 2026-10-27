@@ -146,13 +146,13 @@
           </div>
 
           <!-- Total devuelto -->
-          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 12px; color: #991b1b;">
+          <div style="background: #E6F4F1; border: 1px solid #A2D2CC; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 12px; color: #0B3D38;">
               Base: S/ {{ calcularSubtotalDevolucionPos() | number:'1.2-2' }} | IGV: S/ {{ calcularIgvDevolucionPos() | number:'1.2-2' }}
             </div>
             <div>
-              <span style="font-weight: 700; color: #991b1b; font-size: 12px; margin-right: 8px;">TOTAL REEMBOLSO:</span>
-              <strong style="font-size: 20px; color: #b91c1c; font-family: monospace;">S/ {{ calcularTotalDevolucionPos() | number:'1.2-2' }}</strong>
+              <span style="font-weight: 700; color: #0B3D38; font-size: 12px; margin-right: 8px;">TOTAL REEMBOLSO:</span>
+              <strong style="font-size: 20px; color: #0B3D38; font-family: monospace;">S/ {{ calcularTotalDevolucionPos() | number:'1.2-2' }}</strong>
             </div>
           </div>
         </div>
@@ -165,7 +165,7 @@
           class="btn btn-primary" 
           (click)="confirmarDevolucionPos()" 
           [disabled]="calcularTotalDevolucionPos() <= 0 || !motivoSustentoPos.trim() || procesandoDevolucionPos"
-          style="background-color: #dc2626; border-color: #b91c1c;">
+          style="background-color: #0B3D38; border-color: #082d29;">
           {{ procesandoDevolucionPos ? 'Procesando...' : 'Emitir Nota de Crédito' }}
         </button>
       </div>
@@ -289,7 +289,7 @@
         En Espera ({{ ventasEspera().length }})
       </button>
 
-      <button class="btn btn-outline btn-sm" (click)="abrirModalDevolucionPos()" style="border-color: #fca5a5; color: #dc2626; font-weight: 700;">
+      <button class="btn btn-outline btn-sm" (click)="abrirModalDevolucionPos()" style="border-color: #0B3D38; color: #0B3D38; font-weight: 700; background-color: #E6F4F1;">
         <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
         </svg>
