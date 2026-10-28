@@ -49,6 +49,17 @@ public class ClienteController {
         return ResponseEntity.ok(clienteService.obtenerPorId(id));
     }
 
+    public record ContactoRequest(
+        @jakarta.validation.constraints.Size(max=200) String direccion,
+        @jakarta.validation.constraints.Size(max=30) String telefono,
+        @jakarta.validation.constraints.Size(max=100) @jakarta.validation.constraints.Email String email) {}
+
+    @PatchMapping("/{id}/contacto")
+    @PreAuthorize("hasAnyRole('ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR')")
+    public ClienteDto actualizarContacto(@PathVariable Long id, @Valid @RequestBody ContactoRequest request) {
+        return clienteService.actualizarContacto(id, request.direccion(), request.telefono(), request.email());
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR')")
     @Operation(summary = "Registrar nuevo cliente")

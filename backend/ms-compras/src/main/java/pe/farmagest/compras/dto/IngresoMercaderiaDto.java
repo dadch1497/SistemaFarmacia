@@ -5,6 +5,9 @@ import java.util.List;
 
 public class IngresoMercaderiaDto {
     private Long id;
+    private boolean tieneGuiaAdjunta;
+    public boolean isTieneGuiaAdjunta(){return tieneGuiaAdjunta;}
+    public void setTieneGuiaAdjunta(boolean value){tieneGuiaAdjunta=value;}
     private String numeroGuia;
     private String numeroFacturaProveedor;
     private Long ordenCompraId;

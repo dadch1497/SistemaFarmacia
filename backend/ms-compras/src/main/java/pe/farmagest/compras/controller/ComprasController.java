@@ -21,9 +21,11 @@ import java.util.List;
 public class ComprasController {
 
     private final ComprasService comprasService;
+    private final pe.farmagest.compras.service.GuiaDocumentoService guias;
 
-    public ComprasController(ComprasService comprasService) {
+    public ComprasController(ComprasService comprasService, pe.farmagest.compras.service.GuiaDocumentoService guias) {
         this.comprasService = comprasService;
+        this.guias = guias;
     }
 
     @GetMapping("/ordenes")
@@ -88,6 +90,30 @@ public class ComprasController {
     ) {
         Long usuarioId = obtenerUsuarioId(authentication);
         return ResponseEntity.status(HttpStatus.CREATED).body(comprasService.registrarIngreso(request, usuarioId));
+    }
+
+    @PostMapping(value="/ingresos/con-guia", consumes="multipart/form-data")
+    @PreAuthorize("hasAnyRole('ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO')")
+    public ResponseEntity<IngresoMercaderiaDto> registrarConGuia(
+      @Valid @RequestPart("registro") RegistrarIngresoRequest request,
+      @RequestPart("archivo") org.springframework.web.multipart.MultipartFile archivo, Authentication authentication) {
+      return ResponseEntity.status(HttpStatus.CREATED).body(comprasService.registrarIngresoConGuia(request,obtenerUsuarioId(authentication),archivo));
+    }
+
+    @PostMapping(value="/ingresos/{id}/guia", consumes="multipart/form-data")
+    @PreAuthorize("hasAnyRole('ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO')")
+    public ResponseEntity<Void> adjuntarGuia(@PathVariable Long id,@RequestPart("archivo") org.springframework.web.multipart.MultipartFile archivo){
+      guias.adjuntar(id,archivo);return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping("/ingresos/{id}/guia")
+    @PreAuthorize("hasAnyRole('ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO')")
+    public ResponseEntity<byte[]> descargarGuia(@PathVariable Long id){
+      var guia=guias.obtener(id);
+      return ResponseEntity.ok().contentType(org.springframework.http.MediaType.parseMediaType(guia.getTipo()))
+        .header("Content-Disposition",org.springframework.http.ContentDisposition.attachment().filename(guia.getNombre(),java.nio.charset.StandardCharsets.UTF_8).build().toString())
+        .header("Access-Control-Expose-Headers","Content-Disposition").header("X-Content-Type-Options","nosniff").header("Cache-Control","no-store")
+        .contentLength(guia.getContenido().length).body(guia.getContenido());
     }
 
     private Long obtenerUsuarioId(Authentication authentication) {

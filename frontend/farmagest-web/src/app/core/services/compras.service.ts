@@ -71,11 +71,23 @@ export class ComprasService {
     return this.http.get<IngresoMercaderia[]>(`${this.apiUrl}/ingresos`, { params });
   }
 
+  descargarGuia(id: number) {
+    return this.http.get(`${this.apiUrl}/ingresos/${id}/guia`, { responseType: 'blob', observe: 'response' });
+  }
+  adjuntarGuia(id: number, archivo: File): Observable<void> {
+    const form = new FormData(); form.append('archivo', archivo, archivo.name);
+    return this.http.post<void>(`${this.apiUrl}/ingresos/${id}/guia`, form);
+  }
+
   obtenerIngreso(id: number): Observable<IngresoMercaderia> {
     return this.http.get<IngresoMercaderia>(`${this.apiUrl}/ingresos/${id}`);
   }
 
-  registrarIngreso(request: RegistrarIngresoRequest): Observable<IngresoMercaderia> {
+  registrarIngreso(request: RegistrarIngresoRequest, archivo?: File | null): Observable<IngresoMercaderia> {
+    if (archivo) {
+      const form = new FormData(); form.append('registro', new Blob([JSON.stringify(request)], { type: 'application/json' })); form.append('archivo', archivo, archivo.name);
+      return this.http.post<IngresoMercaderia>(`${this.apiUrl}/ingresos/con-guia`, form);
+    }
     return this.http.post<IngresoMercaderia>(`${this.apiUrl}/ingresos`, request);
   }
 }

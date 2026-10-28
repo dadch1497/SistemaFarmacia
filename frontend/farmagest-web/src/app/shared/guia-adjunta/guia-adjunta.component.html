@@ -1,0 +1,10 @@
+<section class="attachment" aria-label="Guía original adjunta">
+ <div class="heading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h7"/></svg><div><strong>Guía original</strong><p>{{ archivo ? archivo.name : guardado ? 'Documento conservado con esta recepción' : 'Adjunta el PDF o la foto para consultarlo e imprimirlo después' }}</p></div><span *ngIf="guardado" class="badge">Guardada</span></div>
+ <div class="actions"><label *ngIf="editable && !guardado" class="button">{{ archivo ? 'Cambiar archivo' : 'Adjuntar guía' }}<input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" (change)="seleccionar($event)" [disabled]="ocupado()" aria-label="Adjuntar PDF o foto de la guía original" /></label>
+ <button *ngIf="archivo || guardado" type="button" (click)="ver()" [disabled]="ocupado()">Ver guía</button><button *ngIf="archivo || guardado" type="button" (click)="descargar()" [disabled]="ocupado()">Descargar original</button>
+ <button *ngIf="archivo && !guardado && !ingresoId" type="button" (click)="quitar()" [disabled]="ocupado()">Quitar adjunto</button>
+ <button *ngIf="archivo && ingresoId && !guardado" type="button" class="primary" (click)="guardarAdjunto()" [disabled]="ocupado()">Guardar guía en esta recepción</button></div>
+ <small *ngIf="!guardado && !ingresoId">Se guardará junto con el ingreso al confirmar la recepción. PDF, JPG, PNG o WebP · hasta 12 MB. Adjuntar no rellena ni cambia productos.</small>
+ <p *ngIf="ocupado()" role="status">Preparando documento…</p><p *ngIf="error()" class="error" role="alert">{{ error() }}</p>
+ <div *ngIf="abierto" class="viewer"><div class="viewer-toolbar"><strong>{{ nombre }}</strong><button type="button" (click)="imprimir()">Imprimir</button><button type="button" (click)="abierto=false">Cerrar vista</button></div><div class="pages"><figure *ngFor="let pagina of paginas; let i = index"><figcaption>Página {{ i+1 }} de {{ paginas.length }}</figcaption><img [src]="pagina" [alt]="'Página ' + (i+1) + ' de la guía original'" /></figure></div></div>
+</section>
