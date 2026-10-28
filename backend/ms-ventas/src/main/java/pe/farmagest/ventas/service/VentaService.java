@@ -27,6 +27,7 @@ public class VentaService {
     private final PromocionService promocionService;
     private final VentasEventPublisher eventPublisher;
     private final SunatPhpClient sunatPhpClient;
+    private final DevolucionRepository devolucionRepository;
 
     public VentaService(VentaRepository ventaRepository,
                         DetalleVentaRepository detalleVentaRepository,
@@ -37,7 +38,9 @@ public class VentaService {
                         VentaEsperaRepository ventaEsperaRepository,
                         PromocionService promocionService,
                         VentasEventPublisher eventPublisher,
-                        SunatPhpClient sunatPhpClient) {
+                        SunatPhpClient sunatPhpClient,
+                        DevolucionRepository devolucionRepository) {
+        this.devolucionRepository = devolucionRepository;
         this.ventaRepository = ventaRepository;
         this.detalleVentaRepository = detalleVentaRepository;
         this.sesionCajaRepository = sesionCajaRepository;
@@ -358,4 +361,153 @@ public class VentaService {
 
         return dto;
     }
+
+    // ==========================================
+    // NOTAS DE CRÉDITO Y DEVOLUCIONES
+    // ==========================================
+    @Transactional
+    public NotaCreditoDto emitirNotaCredito(EmitirNotaCreditoRequest request, Long usuarioId) {
+        Venta venta = ventaRepository.findById(request.getVentaId())
+                .orElseThrow(() -> new IllegalArgumentException("Venta no encontrada: " + request.getVentaId()));
+
+        if (venta.getEstado() == EstadoVenta.ANULADA) {
+            throw new IllegalStateException("La venta ya se encuentra anulada.");
+        }
+
+        Devolucion devolucion = new Devolucion();
+        devolucion.setVenta(venta);
+        devolucion.setUsuarioId(usuarioId != null ? usuarioId : 1L);
+        devolucion.setSucursalId(venta.getSucursalId());
+        devolucion.setMotivo(request.getMotivoSustento());
+        devolucion.setTipoNotaCredito(request.getTipoNotaCredito() != null ? request.getTipoNotaCredito() : "07");
+        devolucion.setMedioReembolso(request.getMedioReembolso() != null ? request.getMedioReembolso() : venta.getMedioPago());
+        devolucion.setFechaHora(LocalDateTime.now());
+
+        // Generar Serie y Correlativo según normativa SUNAT
+        String serieNC = (venta.getTipoComprobante() == TipoComprobante.FACTURA) ? "FC01" : "BC01";
+        long totalNcPrevias = devolucionRepository.count();
+        String correlativoNC = String.format("%08d", totalNcPrevias + 1);
+        devolucion.setSerieNotaCredito(serieNC);
+        devolucion.setNumeroNotaCredito(correlativoNC);
+
+        BigDecimal totalDevuelto = BigDecimal.ZERO;
+
+        for (ItemDevolucionRequest it : request.getItems()) {
+            DetalleDevolucion det = new DetalleDevolucion();
+            det.setProductoId(it.getProductoId());
+            det.setNombreProducto(it.getNombreProducto() != null ? it.getNombreProducto() : "Medicamento #" + it.getProductoId());
+            det.setLoteId(it.getLoteId());
+            det.setNumeroLote(it.getNumeroLote());
+            det.setCantidad(it.getCantidadDevuelta());
+
+            BigDecimal precio = it.getPrecioUnitario() != null ? it.getPrecioUnitario() : BigDecimal.ZERO;
+            det.setPrecioUnitario(precio);
+            BigDecimal montoLinea = precio.multiply(BigDecimal.valueOf(it.getCantidadDevuelta())).setScale(2, RoundingMode.HALF_UP);
+            det.setMontoReembolsado(montoLinea);
+            det.setReingresaAStock(it.getReingresaAStock() != null ? it.getReingresaAStock() : true);
+
+            devolucion.agregarDetalle(det);
+            totalDevuelto = totalDevuelto.add(montoLinea);
+        }
+
+        BigDecimal subtotalDevuelto = totalDevuelto.divide(BigDecimal.valueOf(1.18), 2, RoundingMode.HALF_UP);
+        BigDecimal igvDevuelto = totalDevuelto.subtract(subtotalDevuelto);
+
+        devolucion.setTotalDevuelto(totalDevuelto);
+        devolucion.setSubtotalDevuelto(subtotalDevuelto);
+        devolucion.setIgvDevuelto(igvDevuelto);
+
+        devolucion.setHashCpe("hash-cpe-nc-" + UUID.randomUUID().toString().substring(0, 16));
+        devolucion.setQrCodeUrl("https://sunat.gob.pe/cpe?ruc=20601234567&tipo=07&serie=" + serieNC + "&numero=" + correlativoNC);
+        devolucion.setEstadoSunat("ACEPTADA");
+
+        // Guardar devolución
+        Devolucion guardada = devolucionRepository.save(devolucion);
+
+        // Si es devolución total, anular venta
+        if ("01".equals(request.getTipoNotaCredito()) || "06".equals(request.getTipoNotaCredito())) {
+            venta.setEstado(EstadoVenta.ANULADA);
+            ventaRepository.save(venta);
+        }
+
+        return mapearNotaCreditoDto(guardada);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NotaCreditoDto> listarNotasCredito(Integer sucursalId) {
+        return devolucionRepository.findBySucursalIdOrderByFechaHoraDesc(sucursalId)
+                .stream().map(this::mapearNotaCreditoDto).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public NotaCreditoDto obtenerNotaCreditoPorId(Long id) {
+        Devolucion d = devolucionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Nota de crédito no encontrada: " + id));
+        return mapearNotaCreditoDto(d);
+    }
+
+    @Transactional(readOnly = true)
+    public VentaDto buscarComprobante(String q) {
+        List<Venta> todas = ventaRepository.findAll();
+        String query = q.trim().toLowerCase();
+        for (Venta v : todas) {
+            String serieNum = (v.getSerieComprobante() + "-" + v.getNumeroComprobante()).toLowerCase();
+            if (serieNum.contains(query) || v.getNumeroComprobante().contains(query)) {
+                return mapearVentaDto(v);
+            }
+        }
+        throw new IllegalArgumentException("Comprobante no encontrado: " + q);
+    }
+
+    private NotaCreditoDto mapearNotaCreditoDto(Devolucion d) {
+        NotaCreditoDto dto = new NotaCreditoDto();
+        dto.setId(d.getId());
+        dto.setSucursalId(d.getSucursalId());
+        dto.setVentaId(d.getVenta().getId());
+        dto.setTipoComprobanteModificado(d.getVenta().getTipoComprobante());
+        dto.setSerieComprobanteModificado(d.getVenta().getSerieComprobante());
+        dto.setNumeroComprobanteModificado(d.getVenta().getNumeroComprobante());
+        dto.setSerieNotaCredito(d.getSerieNotaCredito());
+        dto.setNumeroNotaCredito(d.getNumeroNotaCredito());
+        dto.setTipoNotaCredito(d.getTipoNotaCredito());
+        dto.setDescripcionTipoNotaCredito(d.getDescripcionTipoNc());
+        dto.setMotivoSustento(d.getMotivo());
+        dto.setFechaHora(d.getFechaHora());
+        dto.setSubtotalDevuelto(d.getSubtotalDevuelto());
+        dto.setIgvDevuelto(d.getIgvDevuelto());
+        dto.setTotalDevuelto(d.getTotalDevuelto());
+        dto.setMedioReembolso(d.getMedioReembolso());
+        dto.setHashCpe(d.getHashCpe());
+        dto.setQrCodeUrl(d.getQrCodeUrl());
+        dto.setEstadoSunat(d.getEstadoSunat());
+
+        if (d.getVenta().getCliente() != null) {
+            Cliente c = d.getVenta().getCliente();
+            ClienteDto cDto = new ClienteDto();
+            cDto.setId(c.getId());
+            cDto.setTipoDocumento(c.getTipoDocumento());
+            cDto.setNumeroDocumento(c.getNumeroDocumento());
+            cDto.setNombresORazonSocial(c.getNombresORazonSocial());
+            dto.setCliente(cDto);
+        }
+
+        if (d.getDetalles() != null) {
+            dto.setDetalles(d.getDetalles().stream().map(det -> {
+                DetalleNotaCreditoDto detDto = new DetalleNotaCreditoDto();
+                detDto.setId(det.getId());
+                detDto.setProductoId(det.getProductoId());
+                detDto.setNombreProducto(det.getNombreProducto());
+                detDto.setLoteId(det.getLoteId());
+                detDto.setNumeroLote(det.getNumeroLote());
+                detDto.setCantidadDevuelta(det.getCantidad());
+                detDto.setPrecioUnitario(det.getPrecioUnitario());
+                detDto.setSubtotal(det.getMontoReembolsado());
+                detDto.setReingresaAStock(det.getReingresaAStock());
+                return detDto;
+            }).collect(Collectors.toList()));
+        }
+
+        return dto;
+    }
+}
 }

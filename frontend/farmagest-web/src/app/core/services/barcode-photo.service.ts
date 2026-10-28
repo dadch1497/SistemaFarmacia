@@ -21,7 +21,7 @@ export class BarcodePhotoService {
 
   async iniciarVideo(video: HTMLVideoElement, onCodigo: (codigo: string) => void): Promise<{ stop(): void }> {
     const reader = await this.crearLector();
-    return reader.decodeFromVideoElement(video, (result, _error, controls) => {
+    return reader.decodeFromVideoElement(video, (result: any, _error: any, controls: any) => {
       if (!result) return;
       const codigo = result.getText().trim();
       if (!codigo || codigo.length > 128 || !/^[\x20-\x7E]+$/.test(codigo)) return;

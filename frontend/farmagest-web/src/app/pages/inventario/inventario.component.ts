@@ -49,6 +49,32 @@ export class InventarioComponent implements OnInit {
   kardexMovimientos: MovimientoKardex[] = [];
   modalKardexAbierto: boolean = false;
 
+  // Modal Acta DIGEMID de Baja y Destrucción
+  modalActaDigemidAbierto: boolean = false;
+  actaConfig = {
+    numeroActa: 'ACTA-DIGEMID-2026-004',
+    establecimiento: 'BOTICA FARMA GESTIÓN S.A.C. - SUCURSAL CENTRAL',
+    ruc: '20601234567',
+    diris: 'DIRIS LIMA ESTE / DIGEMID - MINSA',
+    codigoEstablecimiento: 'EF-LIMA-2024-8902',
+    directorTecnico: 'Q.F. Alejandro Morales Rivas',
+    colegiatura: 'CQFP N° 18452',
+    representanteLegal: 'Carlos Mendoza Salazar (DNI 45678912)',
+    fechaEmision: new Date().toISOString().substring(0, 10),
+    lugar: 'Av. Nicolás Ayllón 1250, Ate, Lima'
+  };
+  lotesParaActa: Array<{
+    loteId: number;
+    productoId: number;
+    nombre: string;
+    registroSanitario: string;
+    numeroLote: string;
+    fechaVencimiento: string;
+    cantidad: number;
+    costoUnitario: number;
+    motivo: string;
+  }> = [];
+
   // Modal Ajuste / Merma
   modalAjusteAbierto: boolean = false;
   lotesDisponiblesParaAjuste: Lote[] = [];
@@ -277,6 +303,42 @@ export class InventarioComponent implements OnInit {
   getNombreProducto(productoId: number): string {
     const p = this.productosCatalogo().get(productoId);
     return p ? p.nombre : `Producto #${productoId}`;
+  }
+
+  abrirModalActaDigemid(): void {
+    const mapa = this.productosCatalogo();
+    const items = this.lotesPorVencer().map(l => {
+      const prod = mapa.get(l.productoId);
+      return {
+        loteId: l.id,
+        productoId: l.productoId,
+        nombre: prod ? prod.nombre : `Producto #${l.productoId}`,
+        registroSanitario: 'RS-N-28491-PE',
+        numeroLote: l.numeroLote,
+        fechaVencimiento: l.fechaVencimiento,
+        cantidad: l.cantidadActual,
+        costoUnitario: l.costoUnitario || 0,
+        motivo: 'Vencimiento de vida útil / Merma sanitaria'
+      };
+    });
+    this.lotesParaActa = items;
+    this.modalActaDigemidAbierto = true;
+  }
+
+  cerrarModalActaDigemid(): void {
+    this.modalActaDigemidAbierto = false;
+  }
+
+  imprimirActaDigemid(): void {
+    window.print();
+  }
+
+  totalUnidadesBaja(): number {
+    return this.lotesParaActa.reduce((acc, item) => acc + (item.cantidad || 0), 0);
+  }
+
+  totalValorizadoBaja(): number {
+    return this.lotesParaActa.reduce((acc, item) => acc + ((item.cantidad || 0) * (item.costoUnitario || 0)), 0);
   }
 
   mostrarExito(msg: string): void {

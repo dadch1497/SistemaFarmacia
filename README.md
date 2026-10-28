@@ -54,12 +54,15 @@ Todos           ──( *.* )─────────────────
 
 ## 4. Guía de Puesta en Marcha (Despliegue)
 
-### Requisitos Previos:
-- Docker y Docker Compose instalados.
-- JDK 17 y Maven 3.x (si se desea compilar localmente).
-- Node.js 18+ y Angular CLI (para desarrollo frontend).
+### Opción A: Modo Rápido en Windows (Sin Docker - Listo en 10 segundos)
+Si no dispones de Docker o deseas probar el sistema de inmediato con todos los servicios emulados:
+1. Haz doble clic en el archivo **`iniciar-farmagest.bat`** en la raíz del proyecto (o usa el acceso directo en el Escritorio).
+2. El lanzador levantará el API Gateway en el puerto `8080`, iniciará Angular en el puerto `4200` y esperará activamente la compilación para abrir tu navegador en **`http://localhost:4200`**.
+3. Para sincronizar tus cambios con GitHub con un solo clic, ejecuta **`sync-github.bat`**.
 
-### Arranque Completo con Docker Compose:
+### Opción B: Arranque Completo con Docker Compose (Contenedores Microservicios)
+Requisitos: Docker Desktop y Docker Compose.
+Ejecutar desde la raíz:
 Desde la raíz del proyecto ejecutar:
 ```bash
 docker compose -f infra/docker-compose.yml up -d

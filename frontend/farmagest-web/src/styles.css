@@ -68,9 +68,16 @@ button, input, select, textarea {
   text-decoration: none;
 }
 
-.btn-primario {
+.btn-primario,
+.btn-primary {
   background-color: var(--color-verde-oscuro);
-  color: #FFFFFF;
+  color: #FFFFFF !important;
+}
+
+.btn-primario:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
+  background-color: #082d29;
+  color: #FFFFFF !important;
 }
 
 .btn-primario:hover:not(:disabled) {

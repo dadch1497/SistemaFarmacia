@@ -10,7 +10,13 @@
     </div>
 
     <!-- Botón para Admin -->
-    <div *ngIf="authService.isAdmin()">
+    <div *ngIf="authService.isAdmin()" style="display: flex; gap: 10px; align-items: center;">
+      <button class="btn btn-secondary" (click)="abrirModalCargaMasiva()" style="display: flex; align-items: center; gap: 6px;">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+        </svg>
+        📥 Carga Masiva CSV
+      </button>
       <button class="btn btn-primary" (click)="abrirModalNuevo()">
         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -419,6 +425,86 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="cerrarModalNuevo()">Cancelar</button>
         <button class="btn btn-primary" [disabled]="leyendoCodigo || cargando()" (click)="guardarNuevoProducto()">Guardar Producto</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal Carga Masiva de Productos -->
+  <div *ngIf="modalCargaMasivaAbierto" class="modal-backdrop">
+    <div class="modal" style="max-width: 900px; width: 95%;">
+      <div class="modal-header">
+        <h2 class="modal-title">📥 Carga Masiva de Medicamentos e Inventario</h2>
+        <button class="btn-close" (click)="cerrarModalCargaMasiva()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px 18px; border-radius: 8px; margin-bottom: 18px;">
+          <p style="margin: 0 0 8px 0; font-weight: 600; color: #166534;">
+            Instrucciones para la importación masiva:
+          </p>
+          <p style="margin: 0 0 10px 0; font-size: 13px; color: #15803d;">
+            Descarga la plantilla oficial en formato CSV, complétala con tu catálogo y selecciónala para previsualizar los medicamentos antes de registrar.
+          </p>
+          <button class="btn btn-secondary btn-sm" (click)="descargarPlantillaCsv()">
+            📄 Descargar Plantilla CSV Oficial
+          </button>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="font-weight: 600; display: block; margin-bottom: 8px;">Seleccionar archivo CSV:</label>
+          <input type="file" accept=".csv" (change)="onArchivoCsvSeleccionado($event)" class="input" style="padding: 8px;" />
+        </div>
+
+        <div *ngIf="errorCargaMasiva" class="alert alert-danger" style="margin-bottom: 15px;">
+          {{ errorCargaMasiva }}
+        </div>
+
+        <!-- Tabla Previsualización -->
+        <div *ngIf="productosPrevisualizacion.length > 0">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <strong style="color: #0f172a;">Previsualización: {{ productosPrevisualizacion.length }} medicamento(s) listos</strong>
+            <span class="badge" style="background-color: #dbeafe; color: #1e40af;">Validado</span>
+          </div>
+          <div style="max-height: 260px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+            <table class="tabla-farmagest" style="font-size: 13px;">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Medicamento</th>
+                  <th>Presentación</th>
+                  <th>Categoría</th>
+                  <th class="text-right">P. Venta</th>
+                  <th class="text-right">Stock</th>
+                  <th>Lote</th>
+                  <th>Vencimiento</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of productosPrevisualizacion">
+                  <td><code>{{ p.codigoBarras }}</code></td>
+                  <td><strong>{{ p.nombre }}</strong></td>
+                  <td>{{ p.presentacion }}</td>
+                  <td>{{ p.categoria }}</td>
+                  <td class="text-right font-mono">S/ {{ p.precioVenta | number:'1.2-2' }}</td>
+                  <td class="text-right font-bold">{{ p.stockInicial }}</td>
+                  <td><span class="code-badge">{{ p.numeroLote }}</span></td>
+                  <td><span class="venc-badge">{{ p.fechaVencimiento }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalCargaMasiva()">Cancelar</button>
+        <button 
+          class="btn btn-primary" 
+          [disabled]="productosPrevisualizacion.length === 0 || cargando()" 
+          (click)="confirmarCargaMasiva()">
+          {{ cargando() ? 'Importando...' : 'Confirmar e Importar ' + productosPrevisualizacion.length + ' Productos' }}
+        </button>
       </div>
     </div>
   </div>

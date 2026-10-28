@@ -89,4 +89,8 @@ export class CatalogoService {
   obtenerHistorialPrecios(productoId: number): Observable<HistorialPrecio[]> {
     return this.http.get<HistorialPrecio[]>(`${this.apiUrl}/productos/${productoId}/historial-precios`);
   }
+
+  cargaMasiva(productos: any[]): Observable<{ totalImportados: number; productos: Producto[] }> {
+    return this.http.post<{ totalImportados: number; productos: Producto[] }>(`${this.apiUrl}/productos/carga-masiva`, productos);
+  }
 }

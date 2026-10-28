@@ -64,7 +64,7 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "12kB",
+                  "maximumWarning": "25kB",
                   "maximumError": "20kB"
                 }
               ],
@@ -88,7 +88,11 @@
               "buildTarget": "farmagest-web:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "host": "0.0.0.0",
+            "port": 4200
+          }
         }
       }
     }

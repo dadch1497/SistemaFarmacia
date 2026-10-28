@@ -484,3 +484,38 @@
 .my-2 { margin-top: 0.5rem; margin-bottom: 0.5rem; }
 .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
 .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+
+
+/* Estilos de Impresión Oficial DIGEMID A4 */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #seccion-acta-digemid, #seccion-acta-digemid * {
+    visibility: visible;
+  }
+  #seccion-acta-digemid {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    margin: 0;
+    padding: 20px;
+    background: #ffffff !important;
+    box-sizing: border-box;
+    z-index: 999999;
+  }
+  .modal-backdrop {
+    background: none !important;
+    position: static !important;
+  }
+  .modal {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .modal-header, .modal-footer, .btn, .header-section, .tabs-nav, .alerta-banner {
+    display: none !important;
+  }
+}

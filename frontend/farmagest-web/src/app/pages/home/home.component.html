@@ -24,6 +24,9 @@
 
     <!-- Controles Vendedor -->
     <div class="vendedor-header-actions" *ngIf="authService.isVendedor()">
+      <a routerLink="/devoluciones" class="btn btn-secondary" style="font-weight: 700; border-color: #0B3D38; color: #0B3D38; background-color: #E6F4F1; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        ↩ Devolución de ventas
+      </a>
       <button class="btn btn-secondary btn-refresh" (click)="actualizarDatos()">
         ↻ Actualizar
       </button>
@@ -31,6 +34,29 @@
         🛒 Ir a Vender (POS)
       </a>
     </div>
+  </div>
+
+  <!-- Acceso Rápido Destacado: Devolución de ventas con notas crédito -->
+  <div style="background: linear-gradient(135deg, #E6F4F1 0%, #ffffff 100%); border: 2.5px solid #0B3D38; border-radius: 14px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: 0 6px 18px -2px rgba(11, 61, 56, 0.16); margin-bottom: 1.5rem;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="background-color: #0B3D38; color: #ffffff; width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 4px 8px rgba(11, 61, 56, 0.25); flex-shrink: 0;">
+        ↩
+      </div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <h3 style="margin: 0; font-size: 17.5px; font-weight: 800; color: #0B3D38;">
+            Devolución de ventas con notas crédito (SUNAT Tipo 07)
+          </h3>
+          <span style="background-color: #0B3D38; color: #ffffff; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 6px; letter-spacing: 0.05em;">MÓDULO COMPLETO</span>
+        </div>
+        <p style="margin: 4px 0 0 0; font-size: 13.5px; color: #334155;">
+          Emisión reglamentaria de Notas de Crédito Electrónicas (BC01 / FC01), anulación o devolución parcial, reversión de caja y reingreso a stock.
+        </p>
+      </div>
+    </div>
+    <a routerLink="/devoluciones" class="btn btn-primary" style="background-color: #0B3D38; border-color: #082d29; color: #ffffff; font-weight: 800; font-size: 14px; padding: 12px 22px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; box-shadow: 0 4px 10px rgba(11, 61, 56, 0.28);">
+      ↩ Abrir Devolución de Ventas con Notas Crédito →
+    </a>
   </div>
 
   <!-- Estado de Carga / Error General -->

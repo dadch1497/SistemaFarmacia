@@ -1,8 +1,8 @@
 export type EstadoSesionCaja = 'ABIERTA' | 'CERRADA' | 'ARQUEADA';
 export type TipoDocumento = 'DNI' | 'RUC' | 'CE' | 'PASAPORTE' | 'SIN_DOCUMENTO';
 export type TipoComprobante = 'BOLETA' | 'FACTURA' | 'NOTA_VENTA';
-export type MedioPago = 'EFECTIVO' | 'TARJETA' | 'YAPE_PLIN';
-export type EstadoVenta = 'COMPLETADA' | 'ANULADA';
+export type MedioPago = 'EFECTIVO' | 'TARJETA' | 'YAPE_PLIN' | 'CREDITO';
+export type EstadoVenta = 'COMPLETADA' | 'ANULADA' | 'CON_NOTA_CREDITO';
 
 export interface Caja {
   id: number;
@@ -55,6 +55,9 @@ export interface Cliente {
   telefono?: string;
   email?: string;
   activo: boolean;
+  limiteCredito?: number;
+  saldoDeudor?: number;
+  diasCredito?: number;
 }
 
 export interface CrearClienteRequest {
@@ -174,6 +177,11 @@ export interface Venta {
   estado: EstadoVenta;
   fechaHora: string;
   observaciones?: string;
+  hashCpe?: string;
+  qrCodeUrl?: string;
+  estadoSunat?: string;
+  mensajeSunat?: string;
+  notaCreditoReferencia?: string;
   detalles: DetalleVenta[];
 }
 
@@ -194,4 +202,82 @@ export interface GuardarVentaEsperaRequest {
 
 export interface AnularVentaRequest {
   motivo: string;
+}
+
+export interface AmortizarDeudaRequest {
+  monto: number;
+  medioPago: MedioPago;
+  referencia?: string;
+}
+
+// ==========================================
+// NOTAS DE CRÉDITO ELECTRÓNICAS (SUNAT TIPO 07)
+// ==========================================
+export type TipoNotaCredito =
+  | '01' // Anulación de la operación
+  | '02' // Anulación por error en el RUC
+  | '03' // Corrección por error en la descripción
+  | '04' // Descuento global
+  | '05' // Descuento por ítem
+  | '06' // Devolución total
+  | '07'; // Devolución por ítem (parcial)
+
+export interface DetalleNotaCredito {
+  id?: number;
+  detalleVentaId?: number;
+  productoId: number;
+  nombreProducto: string;
+  loteId?: number;
+  numeroLote?: string;
+  cantidadDevuelta: number;
+  precioUnitario: number;
+  subtotal: number;
+  reingresaAStock: boolean;
+  motivoItem?: string;
+}
+
+export interface NotaCredito {
+  id: number;
+  sucursalId: number;
+  sesionCajaId?: number;
+  ventaId: number;
+  tipoComprobanteModificado: TipoComprobante;
+  serieComprobanteModificado: string;
+  numeroComprobanteModificado: string;
+  serieNotaCredito: string;
+  numeroNotaCredito: string;
+  tipoNotaCredito: TipoNotaCredito;
+  descripcionTipoNotaCredito: string;
+  motivoSustento: string;
+  cliente?: Cliente;
+  fechaHora: string;
+  subtotalDevuelto: number;
+  igvDevuelto: number;
+  totalDevuelto: number;
+  medioReembolso: MedioPago;
+  reingresoStockRealizado: boolean;
+  hashCpe: string;
+  qrCodeUrl: string;
+  estadoSunat: string;
+  detalles: DetalleNotaCredito[];
+}
+
+export interface ItemDevolucionRequest {
+  detalleVentaId?: number;
+  productoId: number;
+  nombreProducto?: string;
+  loteId?: number;
+  numeroLote?: string;
+  cantidadDevuelta: number;
+  precioUnitario: number;
+  reingresaAStock: boolean;
+  motivoItem?: string;
+}
+
+export interface EmitirNotaCreditoRequest {
+  ventaId: number;
+  tipoNotaCredito: TipoNotaCredito;
+  motivoSustento: string;
+  medioReembolso?: MedioPago;
+  items: ItemDevolucionRequest[];
 }

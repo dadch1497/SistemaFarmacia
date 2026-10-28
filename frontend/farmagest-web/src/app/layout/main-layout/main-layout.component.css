@@ -236,3 +236,49 @@
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
   }
 }
+
+
+/* Acceso Directo Devolución de Ventas en Topbar */
+.btn-topbar-devolucion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #0B3D38;
+  color: #FFFFFF !important;
+  font-size: 0.825rem;
+  font-weight: 700;
+  padding: 0.45rem 0.95rem;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 2px 5px rgba(11, 61, 56, 0.25);
+  border: 1px solid #082d29;
+  transition: all 0.2s ease;
+}
+
+.btn-topbar-devolucion:hover {
+  background-color: #082d29;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(11, 61, 56, 0.35);
+}
+
+.btn-topbar-devolucion .icon-devolucion {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.nav-badge-nc {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 800;
+  background-color: #A2D2CC;
+  color: #0B3D38;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 768px) {
+  .btn-topbar-devolucion .text-devolucion {
+    display: none;
+  }
+}

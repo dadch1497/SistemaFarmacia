@@ -61,6 +61,13 @@ spring:
           predicates:
             - Path=/api/reportes/**
 
+        - id: ms-sunat-route
+          uri: ${SUNAT_SERVICE_URL:http://ms-sunat-php:80}
+          predicates:
+            - Path=/api/sunat/**
+          filters:
+            - StripPrefix=1
+
 eureka:
   client:
     serviceUrl:

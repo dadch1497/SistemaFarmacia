@@ -10,7 +10,250 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
         </svg>
         <span>FarmaGest POS — Botica Farma Ochenta</span>
+      
+  <!-- ======================================================== -->
+  <!-- MODAL POS: BUSCAR Y EMITIR NOTA DE CRÉDITO / DEVOLUCIÓN  -->
+  <!-- ======================================================== -->
+  <div *ngIf="modalDevolucionPosAbierto" class="modal-backdrop">
+    <div class="modal" style="max-width: 850px; width: 95%; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h2 class="modal-title">↩ Devolución de Venta y Emisión de Nota de Crédito (POS)</h2>
+        <button class="btn-close" (click)="cerrarModalDevolucionPos()">&times;</button>
       </div>
+
+      <div class="modal-body">
+        <!-- Buscador de comprobante -->
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
+          <label style="font-weight: 700; font-size: 13px; display: block; margin-bottom: 6px; color: #0f172a;">
+            Ingrese el número o serie del comprobante emitido:
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input 
+              type="text" 
+              [(ngModel)]="codigoBusquedaDevolucion" 
+              (keyup.enter)="buscarComprobanteParaDevolucion()"
+              placeholder="Ej: B001-00001024, F001-00000412 o solo 00001024..." 
+              class="input" 
+              style="flex: 1;" />
+            <button class="btn btn-primary" (click)="buscarComprobanteParaDevolucion()" [disabled]="buscandoComprobanteDevolucion">
+              {{ buscandoComprobanteDevolucion ? 'Buscando...' : '🔍 Buscar Venta' }}
+            </button>
+          </div>
+          <div *ngIf="errorDevolucionPos" style="color: #dc2626; font-size: 12.5px; font-weight: 600; margin-top: 8px;">
+            ⚠️ {{ errorDevolucionPos }}
+          </div>
+        </div>
+
+        <!-- Información de la Venta Encontrada -->
+        <div *ngIf="ventaParaDevolverPos()">
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; font-size: 12.5px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+              <div>
+                <span style="color: #1e40af; font-weight: 600;">Comprobante:</span>
+                <strong> {{ ventaParaDevolverPos()?.tipoComprobante }} {{ ventaParaDevolverPos()?.serieComprobante }}-{{ ventaParaDevolverPos()?.numeroComprobante }}</strong>
+              </div>
+              <div>
+                <span style="color: #1e40af; font-weight: 600;">Cliente:</span>
+                <strong> {{ ventaParaDevolverPos()?.cliente?.nombresORazonSocial }}</strong>
+              </div>
+              <div>
+                <span style="color: #1e40af; font-weight: 600;">Pago Original:</span>
+                <span class="chip-pago">{{ ventaParaDevolverPos()?.medioPago }}</span>
+              </div>
+              <div>
+                <span style="color: #1e40af; font-weight: 600;">Total Venta:</span>
+                <strong style="color: #0f172a;">S/ {{ ventaParaDevolverPos()?.total | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opciones de Nota de Crédito SUNAT -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="font-weight: 600; font-size: 12px; margin-bottom: 4px; display: block;">Tipo SUNAT (Cat. 09):</label>
+              <select [(ngModel)]="tipoNotaCreditoPos" class="input" style="width: 100%; padding: 6px;">
+                <option value="07">07 - Devolución por ítem</option>
+                <option value="06">06 - Devolución total</option>
+                <option value="01">01 - Anulación de la operación</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: 600; font-size: 12px; margin-bottom: 4px; display: block;">Medio de Reembolso:</label>
+              <select [(ngModel)]="medioReembolsoPos" class="input" style="width: 100%; padding: 6px;">
+                <option value="EFECTIVO">Efectivo (Salida de caja)</option>
+                <option value="CREDITO" *ngIf="ventaParaDevolverPos()?.medioPago === 'CREDITO'">Crédito (Abonar a cuenta corriente)</option>
+                <option value="TARJETA">Extorno Tarjeta</option>
+                <option value="YAPE_PLIN">Billetera (Yape/Plin)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label style="font-weight: 600; font-size: 12px; margin-bottom: 4px; display: block;">Motivo / Sustento de la Devolución (SUNAT):</label>
+            <input 
+              type="text" 
+              [(ngModel)]="motivoSustentoPos" 
+              placeholder="Ej: Cambio de medicamento por indicación médica, presentación errónea..." 
+              class="input" 
+              style="width: 100%; padding: 7px;" />
+          </div>
+
+          <!-- Tabla de Medicamentos a Devolver -->
+          <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 6px;">Medicamentos de la venta:</h4>
+          <div style="border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin-bottom: 14px;">
+            <table class="tabla-farmagest" style="font-size: 12px; width: 100%;">
+              <thead>
+                <tr style="background: #f8fafc;">
+                  <th style="width: 40px; text-align: center;">Dev.</th>
+                  <th>Medicamento</th>
+                  <th>Lote</th>
+                  <th class="text-center">Cant. Original</th>
+                  <th class="text-center" style="width: 90px;">Cant. Dev.</th>
+                  <th class="text-right">P. Unit</th>
+                  <th class="text-right">Subtotal</th>
+                  <th class="text-center">Reingreso</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let it of itemsDevolucionPos" [style.background]="it.seleccionado ? '#f0fdf4' : 'transparent'">
+                  <td style="text-align: center;">
+                    <input type="checkbox" [(ngModel)]="it.seleccionado" (change)="onItemDevolucionPosToggle(it)" />
+                  </td>
+                  <td><strong>{{ it.nombreProducto }}</strong></td>
+                  <td><span class="code-badge">{{ it.numeroLote }}</span></td>
+                  <td class="text-center font-bold">{{ it.cantidadVendida }}</td>
+                  <td class="text-center">
+                    <input 
+                      type="number" 
+                      [(ngModel)]="it.cantidadDevolver" 
+                      [min]="0" 
+                      [max]="it.cantidadVendida" 
+                      (input)="onCantidadDevolverPosChange(it)"
+                      [disabled]="!it.seleccionado"
+                      style="width: 60px; text-align: center; padding: 3px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 4px;" />
+                  </td>
+                  <td class="text-right font-mono">S/ {{ it.precioUnitario | number:'1.2-2' }}</td>
+                  <td class="text-right font-mono font-bold" style="color: #dc2626;">S/ {{ it.subtotal | number:'1.2-2' }}</td>
+                  <td class="text-center">
+                    <label style="font-size: 11px; cursor: pointer;">
+                      <input type="checkbox" [(ngModel)]="it.reingresaAStock" [disabled]="!it.seleccionado" />
+                      {{ it.reingresaAStock ? 'Kardex' : 'Merma' }}
+                    </label>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Total devuelto -->
+          <div style="background: #E6F4F1; border: 1px solid #A2D2CC; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 12px; color: #0B3D38;">
+              Base: S/ {{ calcularSubtotalDevolucionPos() | number:'1.2-2' }} | IGV: S/ {{ calcularIgvDevolucionPos() | number:'1.2-2' }}
+            </div>
+            <div>
+              <span style="font-weight: 700; color: #0B3D38; font-size: 12px; margin-right: 8px;">TOTAL REEMBOLSO:</span>
+              <strong style="font-size: 20px; color: #0B3D38; font-family: monospace;">S/ {{ calcularTotalDevolucionPos() | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="cerrarModalDevolucionPos()">Cerrar</button>
+        <button 
+          *ngIf="ventaParaDevolverPos()" 
+          class="btn btn-primary" 
+          (click)="confirmarDevolucionPos()" 
+          [disabled]="calcularTotalDevolucionPos() <= 0 || !motivoSustentoPos.trim() || procesandoDevolucionPos"
+          style="background-color: #0B3D38; border-color: #082d29;">
+          {{ procesandoDevolucionPos ? 'Procesando...' : 'Emitir Nota de Crédito' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL POS: NOTA DE CRÉDITO EMITIDA / TICKET DEVOLUCIÓN   -->
+  <!-- ======================================================== -->
+  <div *ngIf="modalNotaCreditoEmitidaPosAbierto && notaCreditoEmitidaPos()" class="modal-backdrop">
+    <div class="modal modal-ticket" style="max-width: 480px; width: 95%;">
+      <div class="modal-header">
+        <h3 class="modal-title">📑 Nota de Crédito Emitida (SUNAT)</h3>
+        <button class="btn-close" (click)="cerrarModalNotaCreditoEmitidaPos()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="ticket-recibo" style="background: white; padding: 16px; border: 1px solid #0f172a; border-radius: 4px;">
+          <div class="ticket-recibo-header" style="text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 10px;">
+            <h4 style="margin: 0; font-size: 16px; font-weight: 800;">BOTICA FARMA OCHENTA</h4>
+            <p style="margin: 0; font-size: 11px;">RUC: 20601234567</p>
+            <div style="margin: 8px 0; border: 1px solid #0f172a; padding: 4px; border-radius: 3px; background: #f8fafc;">
+              <h5 style="margin: 0; font-size: 12px; font-weight: 800;">NOTA DE CRÉDITO ELECTRÓNICA</h5>
+              <h4 style="margin: 2px 0 0 0; font-size: 15px; font-weight: 900; color: #1e3a8a;">
+                {{ notaCreditoEmitidaPos()?.serieNotaCredito }}-{{ notaCreditoEmitidaPos()?.numeroNotaCredito }}
+              </h4>
+            </div>
+            <span class="badge-sunat-ok" style="font-size: 10px;">✔ SUNAT: ACEPTADA</span>
+            <p style="font-size: 11px; margin: 6px 0 2px 0;">Fecha: {{ notaCreditoEmitidaPos()?.fechaHora | date:'dd/MM/yyyy HH:mm' }}</p>
+            <p style="font-size: 11px; margin: 0;"><strong>Modifica:</strong> {{ notaCreditoEmitidaPos()?.tipoComprobanteModificado }} {{ notaCreditoEmitidaPos()?.serieComprobanteModificado }}-{{ notaCreditoEmitidaPos()?.numeroComprobanteModificado }}</p>
+            <p style="font-size: 11px; margin: 0;"><strong>Motivo:</strong> {{ notaCreditoEmitidaPos()?.motivoSustento }}</p>
+            <div style="font-size: 11px; margin-top: 4px; text-align: left; background: #f8fafc; padding: 4px 6px;">
+              Cliente: {{ notaCreditoEmitidaPos()?.cliente?.nombresORazonSocial }} ({{ notaCreditoEmitidaPos()?.cliente?.numeroDocumento }})
+            </div>
+          </div>
+
+          <table class="ticket-table" style="width: 100%; font-size: 11px; border-collapse: collapse; margin-bottom: 10px;">
+            <thead>
+              <tr style="border-bottom: 1px solid #0f172a;">
+                <th style="text-align: center;">Cant.</th>
+                <th style="text-align: left;">Descripción</th>
+                <th style="text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let it of notaCreditoEmitidaPos()?.detalles">
+                <td style="text-align: center; font-weight: bold;">{{ it.cantidadDevuelta }}</td>
+                <td>{{ it.nombreProducto }}</td>
+                <td style="text-align: right; font-weight: bold;">S/ {{ it.subtotal | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="font-size: 12px; margin-left: auto; width: 200px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span>Op. Gravada:</span>
+              <span>S/ {{ notaCreditoEmitidaPos()?.subtotalDevuelto | number:'1.2-2' }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>I.G.V. (18%):</span>
+              <span>S/ {{ notaCreditoEmitidaPos()?.igvDevuelto | number:'1.2-2' }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 13px; color: #b91c1c; border-top: 1px solid #0f172a; padding-top: 2px;">
+              <span>TOTAL DEVUELTO:</span>
+              <span>S/ {{ notaCreditoEmitidaPos()?.totalDevuelto | number:'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <!-- QR y Hash -->
+          <div style="text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+            <img [src]="notaCreditoEmitidaPos()?.qrCodeUrl" alt="QR SUNAT" style="width: 100px; height: 100px; margin: 0 auto; display: block;" />
+            <div style="font-size: 9px; font-family: monospace; color: #64748b; margin-top: 4px;">
+              Hash: {{ notaCreditoEmitidaPos()?.hashCpe }}
+            </div>
+            <div style="font-size: 9px; color: #64748b;">Representación Impresa de la NOTA DE CRÉDITO ELECTRÓNICA</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="cerrarModalNotaCreditoEmitidaPos()">Cerrar</button>
+        <button class="btn btn-primary" (click)="imprimirNotaCreditoPos()">
+          <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          Imprimir Nota de Crédito
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
 
       <!-- Estado de Caja -->
       <div *ngIf="cajaActiva()" class="caja-status-chip activa">
@@ -44,6 +287,13 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
         En Espera ({{ ventasEspera().length }})
+      </button>
+
+      <button class="btn btn-sm" (click)="abrirModalDevolucionPos()" style="background-color: #0B3D38; color: #ffffff; border: 1px solid #082d29; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; box-shadow: 0 2px 4px rgba(11, 61, 56, 0.25);">
+        <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+        </svg>
+        ↩ Devolución de ventas (Notas Crédito)
       </button>
 
       <button *ngIf="carrito().length > 0" class="btn btn-outline-danger btn-sm" (click)="limpiarCarrito()">
@@ -180,6 +430,25 @@
           <button type="button" class="medio-btn" [class.active]="medioPago === 'EFECTIVO'" [attr.aria-pressed]="medioPago === 'EFECTIVO'" (click)="medioPago = 'EFECTIVO'; recalcularTotales()"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M5 12h1m12 0h1"/></svg>Efectivo</button>
           <button type="button" class="medio-btn" [class.active]="medioPago === 'TARJETA'" [attr.aria-pressed]="medioPago === 'TARJETA'" (click)="medioPago = 'TARJETA'"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 10h20M6 16h4"/></svg>Tarjeta</button>
           <button type="button" class="medio-btn" [class.active]="medioPago === 'YAPE_PLIN'" [attr.aria-pressed]="medioPago === 'YAPE_PLIN'" (click)="medioPago = 'YAPE_PLIN'"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 5h4m-3 14h2"/></svg>Yape / Plin</button>
+          <button type="button" class="medio-btn" [class.active]="medioPago === 'CREDITO'" [attr.aria-pressed]="medioPago === 'CREDITO'" (click)="seleccionarMedioPagoCredito()"><svg aria-hidden="true" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Crédito</button>
+        </div>
+        <div *ngIf="medioPago === 'CREDITO'" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px; margin: 8px 0; font-size: 12px;">
+          <div style="font-weight: 700; color: #1e40af; margin-bottom: 4px;">Cuenta Corriente del Cliente:</div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+            <span>Límite Crédito:</span>
+            <strong>S/ {{ (clienteSeleccionado()?.limiteCredito || 0) | number:'1.2-2' }}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+            <span>Saldo Deudor:</span>
+            <span style="color: #b91c1c; font-weight: 600;">S/ {{ (clienteSeleccionado()?.saldoDeudor || 0) | number:'1.2-2' }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+            <span>Disponible:</span>
+            <strong style="color: #15803d;">S/ {{ creditoDisponibleCliente() | number:'1.2-2' }}</strong>
+          </div>
+          <div *ngIf="creditoInsuficiente()" style="color: #dc2626; font-weight: bold; margin-top: 4px;">
+            ⚠️ El total supera la línea de crédito disponible.
+          </div>
         </div>
         <div *ngIf="medioPago === 'EFECTIVO'" class="efectivo-vuelto-row"><div><label for="cart-cash">Efectivo recibido (S/)</label><input id="cart-cash" type="number" [(ngModel)]="montoRecibido" step="0.50" class="input-efectivo"/></div><div class="vuelto-group"><span>Vuelto</span><strong>S/ {{ calcularVuelto() | number:'1.2-2' }}</strong></div></div>
         <div class="checkout-actions"><button type="button" class="cart-hold" (click)="ponerEnEspera()" [disabled]="!carrito().length">Poner en espera</button><button type="button" class="btn-checkout" (click)="procesarCobro()" [disabled]="!carrito().length || !cajaActiva() || !!mensajeDocumento() || cargando()">Cobrar S/ {{ calcularTotalPagar() | number:'1.2-2' }}</button></div>
@@ -446,6 +715,20 @@
             <div *ngIf="ultimaVenta()?.medioPago === 'EFECTIVO'" class="fila">
               <span>Vuelto Entregado:</span>
               <strong>S/ {{ ultimaVenta()?.vuelto | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <!-- Bloque Oficial SUNAT: QR y Hash CPE -->
+          <div class="ticket-sunat-qr" style="text-align: center; margin: 15px 0 10px 0; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+            <img [src]="obtenerQrUrl()" alt="Código QR SUNAT" style="width: 130px; height: 130px; margin: 0 auto; display: block; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px;" />
+            <div style="font-size: 9.5px; color: #64748b; margin-top: 6px; font-family: monospace; word-break: break-all;">
+              <strong>Hash CPE:</strong> {{ ultimaVenta()?.hashCpe || '4uS+k8h2G6nL+z1P/YmQ3w==' }}
+            </div>
+            <div style="font-size: 10px; color: #475569; margin-top: 4px; font-weight: 600;">
+              Representación Impresa del Comprobante de Pago Electrónico
+            </div>
+            <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">
+              Consulte su comprobante en: sunat.gob.pe
             </div>
           </div>
 
