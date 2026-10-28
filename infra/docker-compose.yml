@@ -276,6 +276,7 @@ services:
       EUREKA_URI: http://eureka-server:8761/eureka/
       JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
       SUNAT_PHP_URL: http://ms-sunat-php:80
+      CODART_API_TOKEN: ${CODART_API_TOKEN:-}
     depends_on:
       mysql:
         condition: service_healthy

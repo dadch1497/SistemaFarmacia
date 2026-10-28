@@ -1,0 +1,8 @@
+CREATE TABLE guia_documento (
+ ingreso_id BIGINT PRIMARY KEY,
+ nombre VARCHAR(180) NOT NULL,
+ tipo VARCHAR(40) NOT NULL,
+ contenido MEDIUMBLOB NOT NULL,
+ creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ CONSTRAINT fk_guia_ingreso FOREIGN KEY (ingreso_id) REFERENCES ingreso_mercaderia(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

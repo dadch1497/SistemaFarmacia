@@ -18,7 +18,7 @@ function load(relativePath, className, globals = {}) {
     exports: {}, require, URL, File,
     Component: () => target => target, Injectable: () => target => target,
     Input: () => () => {}, Output: () => () => {}, ViewChild: () => () => {},
-    CommonModule: {}, FormsModule: {}, RouterLink: {}, BarcodePhotoComponent: {},
+    CommonModule: {}, FormsModule: {}, RouterLink: {}, BarcodePhotoComponent: {}, RecepcionDocumentoComponent: {}, GuiaAdjuntaComponent: {}, GuiaCompraComponent: {},
     EventEmitter: Output,
     signal: initial => { let value = initial; return Object.assign(() => value, {
       set: next => { value = next; }, update: fn => { value = fn(value); }

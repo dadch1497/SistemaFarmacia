@@ -2,6 +2,7 @@ package pe.farmagest.inventario.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "movimiento_kardex", indexes = {
@@ -27,6 +28,9 @@ public class MovimientoKardex {
     @Column(name = "tipo_movimiento", nullable = false, length = 30)
     private TipoMovimiento tipoMovimiento;
 
+    @Column(name="costo_unitario_registrado", precision=10, scale=2)
+    private BigDecimal costoUnitarioRegistrado;
+
     @Column(name = "cantidad", nullable = false)
     private Integer cantidad; // Positivo (ingreso) o negativo (salida/merma)
 
@@ -51,7 +55,7 @@ public class MovimientoKardex {
     @PrePersist
     protected void onCreate() {
         if (this.fechaHora == null) {
-            this.fechaHora = LocalDateTime.now();
+            this.fechaHora = LocalDateTime.now(java.time.ZoneOffset.UTC);
         }
     }
 
@@ -62,6 +66,7 @@ public class MovimientoKardex {
                             String referenciaId, String motivo, Long usuarioId) {
         this.productoId = productoId;
         this.lote = lote;
+        this.costoUnitarioRegistrado = lote != null && lote.getCostoUnitario() != null && lote.getCostoUnitario().signum() > 0 ? lote.getCostoUnitario() : null;
         this.sucursalId = sucursalId;
         this.tipoMovimiento = tipoMovimiento;
         this.cantidad = cantidad;
@@ -70,8 +75,11 @@ public class MovimientoKardex {
         this.referenciaId = referenciaId;
         this.motivo = motivo;
         this.usuarioId = usuarioId;
-        this.fechaHora = LocalDateTime.now();
+        this.fechaHora = LocalDateTime.now(java.time.ZoneOffset.UTC);
     }
+
+    public BigDecimal getCostoUnitarioRegistrado() { return costoUnitarioRegistrado; }
+    public void setCostoUnitarioRegistrado(BigDecimal value) { costoUnitarioRegistrado=value; }
 
     public Long getId() {
         return id;
