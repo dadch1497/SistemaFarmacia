@@ -15,7 +15,9 @@ import {
   RegistrarIngresoRequest
 } from '../../core/models/compras.models';
 import { Producto } from '../../core/models/catalogo.models';
-import { BarcodePhotoComponent } from '../../shared/barcode-photo/barcode-photo.component';
+import { GuiaCompraComponent } from '../../shared/guia-compra/guia-compra.component';
+import { RecepcionDocumentoComponent } from '../../shared/recepcion-documento/recepcion-documento.component';
+import { RecepcionPreparada, fechaDocumento } from '../../core/models/recepcion-documento';
 
 interface DetalleOrdenItemForm {
   productoId: number;
@@ -38,7 +40,7 @@ interface DetalleIngresoItemForm {
 @Component({
   selector: 'app-compras',
   standalone: true,
-  imports: [CommonModule, FormsModule, BarcodePhotoComponent],
+  imports: [CommonModule, FormsModule, RecepcionDocumentoComponent, GuiaCompraComponent],
   templateUrl: './compras.component.html',
   styleUrls: ['./compras.component.css']
 })
@@ -115,6 +117,7 @@ export class ComprasComponent implements OnInit {
   // ------------------------------------------
   modalIngresoAbierto: boolean = false;
   leyendoCodigo = false;
+  documentoPendiente = false;
   avisoEscaneo = signal('');
   ingresoForm: {
     ordenCompraId: number | null;
@@ -140,8 +143,8 @@ export class ComprasComponent implements OnInit {
     productoId: null,
     numeroLote: '',
     fechaVencimiento: '',
-    cantidadRecibida: 50,
-    costoUnitarioReal: 10.00
+    cantidadRecibida: 0,
+    costoUnitarioReal: 0
   };
 
   // Modal Detalle Ingreso
@@ -451,22 +454,21 @@ export class ComprasComponent implements OnInit {
     this.modalDetalleOrdenAbierto = false;
     this.tabActivo = 'INGRESOS';
 
-    const unAnoDespues = new Date();
-    unAnoDespues.setFullYear(unAnoDespues.getFullYear() + 1);
-    const fechaDefecto = unAnoDespues.toISOString().split('T')[0];
+    this.documentoPendiente = false;
+    this.avisoEscaneo.set('');
 
     this.ingresoForm = {
       ordenCompraId: orden.id,
-      numeroGuia: `GR01-${Math.floor(1000 + Math.random() * 9000)}`,
-      numeroFacturaProveedor: `F001-${Math.floor(100000 + Math.random() * 900000)}`,
+      numeroGuia: '',
+      numeroFacturaProveedor: '',
       observaciones: `Recepción física correspondiente a la Orden ${orden.numeroOrden}`,
       items: orden.detalles.map(d => {
         const prod = this.productos().find(p => p.id === d.productoId);
         return {
           productoId: d.productoId,
-          nombreProducto: prod ? prod.nombre : `Producto #${d.productoId}`,
-          numeroLote: `LOT-${Math.floor(1000 + Math.random() * 9000)}`,
-          fechaVencimiento: fechaDefecto,
+          nombreProducto: prod ? prod.nombre : (d.nombreProducto || `Producto #${d.productoId}`),
+          numeroLote: '',
+          fechaVencimiento: '',
           cantidadRecibida: d.cantidadSolicitada,
           costoUnitarioReal: d.costoPactado,
           subtotal: Number((d.cantidadSolicitada * d.costoPactado).toFixed(2))
@@ -491,9 +493,8 @@ export class ComprasComponent implements OnInit {
   }
 
   abrirModalNuevoIngreso(): void {
+    this.documentoPendiente = false;
     this.avisoEscaneo.set('');
-    const unAnoDespues = new Date();
-    unAnoDespues.setFullYear(unAnoDespues.getFullYear() + 1);
 
     this.ingresoForm = {
       ordenCompraId: null,
@@ -504,11 +505,11 @@ export class ComprasComponent implements OnInit {
     };
 
     this.itemIngresoTemporal = {
-      productoId: this.productos().length > 0 ? this.productos()[0].id : null,
+      productoId: null,
       numeroLote: '',
-      fechaVencimiento: unAnoDespues.toISOString().split('T')[0],
-      cantidadRecibida: 50,
-      costoUnitarioReal: 10.00
+      fechaVencimiento: '',
+      cantidadRecibida: 0,
+      costoUnitarioReal: 0
     };
     this.alCambiarProductoIngresoTemporal();
 
@@ -571,15 +572,13 @@ export class ComprasComponent implements OnInit {
       subtotal: subtotal
     });
 
-    const unAnoDespues = new Date();
-    unAnoDespues.setFullYear(unAnoDespues.getFullYear() + 1);
 
     this.itemIngresoTemporal = {
-      productoId: this.productos().length > 0 ? this.productos()[0].id : null,
+      productoId: null,
       numeroLote: '',
-      fechaVencimiento: unAnoDespues.toISOString().split('T')[0],
-      cantidadRecibida: 50,
-      costoUnitarioReal: 10.00
+      fechaVencimiento: '',
+      cantidadRecibida: 0,
+      costoUnitarioReal: 0
     };
     this.alCambiarProductoIngresoTemporal();
   }
@@ -609,12 +608,49 @@ export class ComprasComponent implements OnInit {
     return Number(this.ingresoForm.items.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2));
   }
 
+  actualizarSubtotalIngreso(item: DetalleIngresoItemForm): void {
+    item.subtotal = Number.isFinite(item.cantidadRecibida) && Number.isFinite(item.costoUnitarioReal)
+      ? Number((item.cantidadRecibida * item.costoUnitarioReal).toFixed(2)) : 0;
+  }
+
   calcularTotalIngresoDto(ingreso: IngresoMercaderia): number {
     if (!ingreso.detalles) return 0;
     return Number(ingreso.detalles.reduce((sum, d) => sum + (d.cantidadRecibida * d.costoUnitarioReal), 0).toFixed(2));
   }
 
+  ordenesParaRecepcion(): OrdenCompra[] {
+    return this.ordenes().filter(o => o.estado === 'APROBADA' || o.estado === 'EN_TRANSITO');
+  }
+
+  aplicarDocumentoRecepcion(preparada: RecepcionPreparada): void {
+    const { documento } = preparada;
+    this.ingresoForm.ordenCompraId = preparada.ordenId;
+    if (documento.guia.trim()) this.ingresoForm.numeroGuia = documento.guia.trim();
+    if (documento.factura.trim()) this.ingresoForm.numeroFacturaProveedor = documento.factura.trim();
+    this.ingresoForm.items = documento.filas.map(fila => ({
+      productoId: fila.productoId!,
+      nombreProducto: preparada.productos.find(p => p.id === fila.productoId)?.nombre || fila.descripcion,
+      numeroLote: fila.lote.trim().toUpperCase(),
+      fechaVencimiento: fila.vencimiento,
+      cantidadRecibida: fila.cantidad!,
+      costoUnitarioReal: fila.costo!,
+      subtotal: Number((fila.cantidad! * fila.costo!).toFixed(2))
+    }));
+    this.documentoPendiente = false;
+    this.avisoEscaneo.set('Documento revisado aplicado. Verifica los ítems de recepción y confirma el ingreso al terminar.');
+  }
+
   guardarIngreso(): void {
+    if (this.documentoPendiente || this.leyendoCodigo || this.cargando()) {
+      this.mostrarError('Aplica el documento revisado o descártalo antes de confirmar la recepción.');
+      return;
+    }
+    if (this.ingresoForm.items.some(it => !it.numeroLote.trim() || !fechaDocumento(it.fechaVencimiento) ||
+      !Number.isInteger(it.cantidadRecibida) || it.cantidadRecibida <= 0 ||
+      !Number.isFinite(it.costoUnitarioReal) || it.costoUnitarioReal <= 0)) {
+      this.mostrarError('Completa el lote y vencimiento reales de cada fila, con cantidad y costo mayores a cero.');
+      return;
+    }
     if (!this.ingresoForm.numeroGuia.trim()) {
       this.mostrarError('El número de guía de remisión es obligatorio');
       return;

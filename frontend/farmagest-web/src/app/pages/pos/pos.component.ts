@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
+import { timeout } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VentasService } from '../../core/services/ventas.service';
@@ -65,7 +66,6 @@ export class PosComponent implements OnInit {
   // Cliente
   clienteSeleccionado = signal<Cliente | null>(null);
   docBusqueda: string = '';
-  modalNuevoClienteAbierto: boolean = false;
   nuevoClienteForm: {
     tipoDocumento: 'DNI' | 'RUC';
     numeroDocumento: string;
@@ -429,38 +429,107 @@ export class PosComponent implements OnInit {
       : 'La boleta supera S/ 700. Valida un DNI de 8 dígitos para continuar.';
   }
 
-  buscarCliente(): void {
-    if (!this.documentoBusquedaValido()) return;
-    const doc = this.docBusqueda.trim();
-    if (!doc) return;
+  private readonly fichaAbierta = signal(false);
+  get modalNuevoClienteAbierto(): boolean { return this.fichaAbierta(); }
+  set modalNuevoClienteAbierto(value: boolean) { this.fichaAbierta.set(value); }
 
-    this.ventasService.buscarClientePorDocumento(doc).subscribe({
-      next: (cli) => {
-        this.clienteSeleccionado.set(cli);
-        this.mostrarExito(`Cliente encontrado: ${cli.nombresORazonSocial}`);
+  clientePorConfirmar: Cliente | null = null;
+  origenFicha = '';
+  private readonly guardandoFicha = signal(false);
+  get guardandoCliente(): boolean { return this.guardandoFicha(); }
+  set guardandoCliente(value: boolean) { this.guardandoFicha.set(value); }
+
+  abrirFichaCliente(cliente: Cliente, origen: string): void {
+    this.clientePorConfirmar = cliente;
+    this.origenFicha = origen;
+    this.nuevoClienteForm = { tipoDocumento: cliente.tipoDocumento === 'RUC' ? 'RUC' : 'DNI',
+      numeroDocumento: cliente.numeroDocumento, nombresORazonSocial: cliente.nombresORazonSocial,
+      direccion: cliente.direccion || '', telefono: cliente.telefono || '', email: cliente.email || '' };
+    this.modalNuevoClienteAbierto = true;
+  }
+
+  cerrarFichaCliente(): void {
+    if (this.guardandoCliente) return;
+    this.modalNuevoClienteAbierto = false;
+    this.clientePorConfirmar = null;
+  }
+
+  private readonly consultaDocumentoPendiente = signal(false);
+  get consultandoDocumento(): boolean { return this.consultaDocumentoPendiente(); }
+  set consultandoDocumento(value: boolean) { this.consultaDocumentoPendiente.set(value); }
+
+  buscarCliente(): void {
+    if (!this.documentoBusquedaValido() || this.consultandoDocumento) return;
+    const doc = this.docBusqueda.trim();
+    const tipo = this.tipoComprobante;
+    this.consultandoDocumento = true;
+    const vigente = () => this.docBusqueda.trim() === doc && this.tipoComprobante === tipo;
+    const manual = () => {
+      this.clientePorConfirmar = null;
+      this.origenFicha = 'Registro manual';
+      this.nuevoClienteForm = { tipoDocumento: doc.length === 11 ? 'RUC' : 'DNI', numeroDocumento: doc,
+        nombresORazonSocial: '', direccion: '', telefono: '', email: '' };
+      this.modalNuevoClienteAbierto = true;
+    };
+    this.ventasService.buscarClientePorDocumento(doc).pipe(timeout(12000)).subscribe({
+      next: cli => {
+        this.consultandoDocumento = false;
+        if (!vigente()) return;
+        this.abrirFichaCliente(cli, 'Cliente guardado · sin consulta externa');
       },
-      error: () => {
-        this.nuevoClienteForm.numeroDocumento = doc;
-        this.nuevoClienteForm.tipoDocumento = doc.length === 11 ? 'RUC' : 'DNI';
-        this.modalNuevoClienteAbierto = true;
+      error: err => {
+        if (!vigente()) { this.consultandoDocumento = false; return; }
+        if (err.status !== 404) {
+          this.consultandoDocumento = false;
+          this.mostrarError('No se pudo consultar los clientes guardados. Intenta nuevamente.');
+          return;
+        }
+        const consulta = doc.length === 11 ? this.ventasService.consultarRucYGuardar(doc) : this.ventasService.consultarDniYGuardar(doc);
+        consulta.pipe(timeout(20000)).subscribe({
+          next: cli => {
+            this.consultandoDocumento = false;
+            if (!vigente()) return;
+            this.abrirFichaCliente(cli, `${doc.length === 11 ? 'RUC' : 'DNI'} consultado · revisa los datos antes de continuar`);
+          },
+          error: error => {
+            this.consultandoDocumento = false;
+            if (!vigente()) return;
+            this.mostrarError(error.error?.detail || 'No se pudo consultar el documento. Puedes registrar el cliente manualmente.');
+            if ([404, 429, 502, 503].includes(error.status)) manual();
+          }
+        });
       }
     });
   }
 
   guardarNuevoCliente(): void {
-    if (!this.nuevoClienteForm.numeroDocumento || !this.nuevoClienteForm.nombresORazonSocial) {
-      this.mostrarError('Número de documento y nombres son obligatorios');
-      return;
+    if (this.guardandoCliente) return;
+    const datos = {...this.nuevoClienteForm};
+    if (!datos.numeroDocumento.trim() || !datos.nombresORazonSocial.trim()) {
+      this.mostrarError('Número de documento y nombres son obligatorios'); return;
     }
-
-    this.ventasService.crearCliente(this.nuevoClienteForm).subscribe({
-      next: (cli) => {
-        this.clienteSeleccionado.set(cli);
-        this.modalNuevoClienteAbierto = false;
-        this.mostrarExito(`Cliente registrado: ${cli.nombresORazonSocial}`);
-      },
-      error: (err) => this.mostrarError('Error al registrar cliente: ' + (err.error?.message || err.message))
-    });
+    if (datos.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.email)) {
+      this.mostrarError('Revisa el correo electrónico'); return;
+    }
+    const anterior = this.clientePorConfirmar;
+    const aceptar = (cliente: Cliente) => {
+      this.guardandoCliente = false;
+      this.clienteSeleccionado.set(cliente);
+      this.cerrarFichaCliente();
+      this.mostrarExito(`Cliente confirmado: ${cliente.nombresORazonSocial}`);
+    };
+    if (anterior && ['direccion', 'telefono', 'email'].every(campo =>
+      (anterior[campo as 'direccion'|'telefono'|'email'] || '') === datos[campo as 'direccion'|'telefono'|'email'])) {
+      aceptar(anterior); return;
+    }
+    this.guardandoCliente = true;
+    const solicitud = anterior
+      ? this.ventasService.actualizarContactoCliente(anterior.id, datos)
+      : this.ventasService.crearCliente(datos);
+    solicitud.pipe(timeout(12000)).subscribe({next: aceptar, error: err => {
+      this.guardandoCliente = false;
+      this.mostrarError('No se pudieron guardar los datos: ' + (err.error?.message || err.error?.detail || 'Intenta nuevamente.'));
+    }});
   }
 
   seleccionarClienteGenerico(): void {

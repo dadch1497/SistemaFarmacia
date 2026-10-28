@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface LoteRepository extends JpaRepository<Lote, Long> {
+    List<Lote> findBySucursalIdAndCantidadActualGreaterThan(Integer sucursalId, Integer cantidad);
 
     List<Lote> findByProductoIdAndSucursalIdOrderByFechaVencimientoAsc(Long productoId, Integer sucursalId);
 

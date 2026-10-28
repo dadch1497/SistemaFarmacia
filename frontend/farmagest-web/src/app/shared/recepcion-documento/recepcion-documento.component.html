@@ -1,0 +1,64 @@
+<section class="document-reader" aria-label="Lectura asistida de factura o guía">
+  <header class="reader-heading"><span class="step-number">1</span><div><h4>Foto de tu guía o factura</h4><p>Una foto para completar los datos de la recepción.</p></div><span class="local-badge">Lectura local</span></header>
+  <div class="content">
+    <div class="upload-card" [class.has-document]="documento">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h7"/></svg>
+      <strong>{{ nombreArchivo || 'Agrega una foto del documento' }}</strong>
+      <p>{{ nombreArchivo ? 'Puedes ver la imagen y corregir cualquier dato antes de continuar.' : 'Captura la guía completa o selecciona una imagen guardada.' }}</p>
+      <div class="actions">
+        <button type="button" class="primary camera-button" (click)="abrirCamara()" [disabled]="leyendo() || vinculando() || camaraAbierta()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 7h4l2-3h4l2 3h4v14H4z"/><circle cx="12" cy="14" r="4"/></svg>Capturar guía</button>
+        <label class="button">Subir PDF o foto<input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" (change)="seleccionar($event)" [disabled]="leyendo() || vinculando() || camaraAbierta()" aria-label="Subir PDF o foto de la guía o factura" /></label>
+      </div>
+      <small>PDF (hasta 10 páginas), JPG, PNG o WebP · hasta 12 MB</small>
+    </div>
+    <div class="document-camera" [hidden]="!camaraAbierta()">
+      <video #videoDocumento autoplay muted playsinline aria-label="Vista previa de la cámara para fotografiar la guía"></video>
+      <p>Encuadra toda la página, mantén la cámara firme y evita reflejos.</p>
+      <div class="actions"><button type="button" class="primary" (click)="capturar()" [disabled]="!camaraLista()">Capturar y leer guía</button><button type="button" (click)="cerrarCamara()">Cerrar cámara</button></div>
+    </div>
+    <div *ngIf="leyendo() || vinculando()" class="reading-state" role="status"><strong>{{ vinculando() ? 'Seleccionando productos del catálogo…' : 'Leyendo tu documento…' }}</strong><progress [value]="progreso()" max="100" aria-label="Progreso de lectura"></progress><button type="button" (click)="cancelarLectura()">Cancelar lectura</button></div>
+    <p *ngIf="error()" class="error notice" role="alert">{{ error() }}</p>
+    <p *ngIf="aviso()" class="notice" role="status">{{ aviso() }}</p>
+    <app-guia-adjunta *ngIf="archivoOriginal && !aplicado" [archivo]="archivoOriginal" [editable]="false" />
+    <div class="document-tools" *ngIf="preview || documento"><details *ngIf="preview"><summary>Ver imagen original</summary><img [src]="preview" alt="Guía o factura original para contrastar la lectura" /></details><button type="button" class="text-button" (click)="descartar()">Descartar documento</button></div>
+    <div *ngIf="documento && !leyendo() && !vinculando()" class="review">
+      <div class="review-heading"><span class="step-number">2</span><div><h4>Revisa los datos reconocidos</h4><p>Comprueba las cantidades, el costo y los datos del lote.</p></div></div>
+      <div class="fields document-fields">
+        <label class="wide">Orden de compra<select [(ngModel)]="ordenId" (ngModelChange)="cambiarOrden()"><option [ngValue]="null">Sin orden vinculada</option><option *ngFor="let orden of ordenes" [ngValue]="orden.id">{{ orden.numeroOrden }} · {{ orden.proveedor?.razonSocial }}</option></select></label>
+        <label>Proveedor leído<input [(ngModel)]="documento.proveedor" (ngModelChange)="editar()" maxlength="200" /></label>
+        <label>RUC del emisor<input [(ngModel)]="documento.ruc" (ngModelChange)="editar()" maxlength="11" inputmode="numeric" /></label>
+        <label>Nº guía<input [(ngModel)]="documento.guia" (ngModelChange)="editar()" maxlength="50" /></label>
+        <label>Nº factura<input [(ngModel)]="documento.factura" (ngModelChange)="editar()" maxlength="50" /></label>
+      </div>
+      <div class="match-summary"><span><strong>{{ documento.filas.length }}</strong> productos leídos</span><span class="matched"><strong>{{ vinculados() }}</strong> seleccionados</span><span [class.pending]="porRevisar() > 0"><strong>{{ porRevisar() }}</strong> por revisar</span></div>
+      <div class="match-help"><p>El sistema selecciona coincidencias exactas y únicas. Si un producto no existe o hay varias coincidencias, selecciónalo abajo. No se crean productos automáticamente.</p><button type="button" (click)="vincularCatalogo()">Vincular productos</button></div>
+      <details class="catalog-search"><summary>¿Falta un producto en el selector? Buscar en el catálogo</summary><div class="search"><label>Nombre o código del catálogo<input [(ngModel)]="consultaProducto" placeholder="Escribe el nombre del producto" (keydown.enter)="$event.preventDefault(); buscarProductos()" /></label><button type="button" (click)="buscarProductos()" [disabled]="buscando() || !consultaProducto.trim()">{{ buscando() ? 'Buscando…' : 'Buscar' }}</button></div></details>
+      <p *ngIf="!documento.filas.length" class="notice">No se detectó una tabla de productos. Revisa el texto reconocido o añade las filas que falten.</p>
+      <article *ngFor="let fila of documento.filas; let i = index" class="line" [class.excluded]="!fila.incluir" [class.needs-match]="fila.incluir && !fila.productoId">
+        <div class="line-header"><strong><span class="row-index">{{ i + 1 }}</span>{{ fila.descripcion || 'Producto por identificar' }}</strong><label class="check"><input type="checkbox" [(ngModel)]="fila.incluir" (ngModelChange)="editar()" /> Incluir</label></div>
+        <p *ngIf="fila.unidadDocumento" class="notice">Unidad en la guía: <strong>{{ fila.unidadDocumento }}</strong>. Comprueba que corresponda a la presentación del catálogo.</p>
+        <label class="product-label">Producto seleccionado *<select [(ngModel)]="fila.productoId" (ngModelChange)="editar()"><option [ngValue]="null">Selecciona el producto correspondiente…</option><option *ngFor="let p of opciones()" [ngValue]="p.id">{{ p.nombre }} · {{ p.presentacion || 'Verificar presentación' }}</option></select></label>
+        <span class="match-status" [class.unmatched]="!fila.productoId">{{ fila.productoId ? 'Producto vinculado · verifica su presentación' : 'Sin coincidencia única · requiere selección' }}</span>
+        <div class="fields row-fields">
+          <label>Cantidad *<input type="number" min="1" step="1" [(ngModel)]="fila.cantidad" (ngModelChange)="editar()" /></label>
+          <label>Costo unitario (S/) *<input type="number" min="0.01" step="0.01" [(ngModel)]="fila.costo" (ngModelChange)="editar()" /><button *ngIf="costoOrden(fila) !== null" type="button" class="text-button" (click)="usarCosto(fila)">Usar S/ {{ costoOrden(fila) | number:'1.2-2' }} de la orden</button></label>
+          <label>Nº lote *<input [(ngModel)]="fila.lote" (ngModelChange)="editar()" maxlength="50" placeholder="Lote del empaque" /></label>
+          <label>Vencimiento *<input type="date" [(ngModel)]="fila.vencimiento" (ngModelChange)="editar()" /></label>
+        </div>
+        <details class="source-detail"><summary>Ver texto de origen o corregir identificación</summary><p>{{ fila.origen }}</p><div class="fields"><label>Descripción leída<input [(ngModel)]="fila.descripcion" (ngModelChange)="editar()" maxlength="200" /></label><label>Código del documento (si aparece)<input [(ngModel)]="fila.codigo" (ngModelChange)="editar()" maxlength="128" /></label></div></details>
+        <p *ngIf="fila.incluir && errores(fila).length" class="error">{{ errores(fila).join(' · ') }}</p>
+      </article>
+      <button type="button" (click)="agregarFila()">+ Añadir producto faltante</button>
+      <section class="comparison" aria-label="Comparación con orden de compra">
+        <h4>Comparación con la compra</h4><p>Las cantidades y los costos deben corresponder a la misma presentación.</p>
+        <ul *ngIf="diferencias().length"><li *ngFor="let diferencia of diferencias()">{{ diferencia }}</li></ul>
+        <p *ngIf="!diferencias().length">Cantidades, costos y RUC coinciden con la orden seleccionada.</p>
+        <label *ngIf="diferencias().length" class="check"><input type="checkbox" [(ngModel)]="diferenciasRevisadas" [disabled]="aplicado" /> Revisé las diferencias con la orden de compra.</label>
+        <small>La comparación es contra la orden completa; no descuenta entregas anteriores ni aprueba cambios de costo.</small>
+      </section>
+      <div class="apply-review"><label class="check"><input type="checkbox" [(ngModel)]="revisado" [disabled]="aplicado" /> Verifiqué productos, unidades, costos, lotes y vencimientos. Este borrador reemplazará los ítems actuales del ingreso.</label><button type="button" class="primary" (click)="aplicar()" [disabled]="!puedeAplicar()">{{ aplicado ? 'Productos aplicados al ingreso' : 'Aplicar productos revisados' }}</button><small>El stock se actualizará después, al confirmar el ingreso al almacén.</small></div>
+      <details class="source-detail"><summary>Corrección avanzada del texto reconocido</summary><p *ngIf="confianza !== null">Confianza del texto: {{ confianza }} %. No garantiza la exactitud de los campos.</p><label>Texto extraído<textarea [(ngModel)]="texto" rows="8" maxlength="50000" (ngModelChange)="editar()"></textarea></label><small>Puedes separar columnas con |: Descripción | Cantidad | Costo | Lote | Vencimiento. Regenerar reemplaza las correcciones del borrador.</small><button type="button" (click)="reanalizar()">Regenerar borrador desde el texto</button></details>
+    </div>
+    <p class="privacy">La foto se lee en tu dispositivo. Revisa los datos contra la guía y los productos físicos; no se inventan campos ausentes.</p>
+  </div>
+</section>

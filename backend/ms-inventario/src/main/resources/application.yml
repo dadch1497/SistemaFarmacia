@@ -5,6 +5,11 @@ spring:
   application:
     name: ms-inventario
 
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 9MB
+
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/db_inventario?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${DB_USER:farmagest_user}

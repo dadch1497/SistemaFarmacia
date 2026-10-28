@@ -160,7 +160,7 @@
           </div>
           <div *ngIf="tipoComprobante === 'FACTURA' || mostrarDni || calcularTotalPagar() > 700" class="client-document" id="cart-dni">
             <label for="cart-document">{{ tipoComprobante === 'FACTURA' ? 'RUC del cliente (obligatorio)' : 'DNI del cliente' }}</label>
-            <div class="document-row"><input id="cart-document" type="text" inputmode="numeric" [attr.maxlength]="tipoComprobante === 'FACTURA' ? 11 : 8" [attr.pattern]="tipoComprobante === 'FACTURA' ? '[0-9]{11}' : '[0-9]{8}'" [(ngModel)]="docBusqueda" (input)="normalizarDocumento()" (keyup.enter)="buscarCliente()" [placeholder]="tipoComprobante === 'FACTURA' ? '11 dígitos' : '8 dígitos'" [attr.aria-invalid]="!!mensajeDocumento()" aria-describedby="cart-document-help"/><button type="button" class="cart-outline" (click)="buscarCliente()" [disabled]="!documentoBusquedaValido()">{{ tipoComprobante === 'FACTURA' ? 'Buscar' : 'Validar' }}</button></div>
+            <div class="document-row"><input id="cart-document" type="text" inputmode="numeric" [attr.maxlength]="tipoComprobante === 'FACTURA' ? 11 : 8" [attr.pattern]="tipoComprobante === 'FACTURA' ? '[0-9]{11}' : '[0-9]{8}'" [(ngModel)]="docBusqueda" (input)="normalizarDocumento()" (keyup.enter)="buscarCliente()" [placeholder]="tipoComprobante === 'FACTURA' ? '11 dígitos' : '8 dígitos'" [attr.aria-invalid]="!!mensajeDocumento()" aria-describedby="cart-document-help"/><button type="button" class="cart-outline" (click)="buscarCliente()" [disabled]="!documentoBusquedaValido() || consultandoDocumento">{{ consultandoDocumento ? 'Buscando…' : (tipoComprobante === 'FACTURA' ? 'Buscar' : 'Validar') }}</button></div>
             <p *ngIf="mensajeDocumento()" id="cart-document-help" class="document-error" role="status">{{ mensajeDocumento() }}</p>
             <p *ngIf="tipoComprobante === 'FACTURA' && !mensajeDocumento()" class="client-found">{{ clienteSeleccionado()?.nombresORazonSocial }} · {{ clienteSeleccionado()?.numeroDocumento }}</p>
           </div>
@@ -322,48 +322,34 @@
   <!-- MODAL: REGISTRAR NUEVO CLIENTE -->
   <!-- ========================================================================= -->
   <div *ngIf="modalNuevoClienteAbierto" class="modal-backdrop">
-    <div class="modal-box">
+    <form class="modal-box client-review" role="dialog" aria-modal="true" aria-labelledby="client-review-title" (ngSubmit)="guardarNuevoCliente()" #fichaCliente="ngForm">
       <div class="modal-header">
-        <h3>Registrar Nuevo Cliente</h3>
-        <button class="modal-close" (click)="modalNuevoClienteAbierto = false">&times;</button>
+        <div><small class="client-review-eyebrow">FICHA DEL CLIENTE</small><h3 id="client-review-title">{{ clientePorConfirmar ? 'Revisar y confirmar datos' : 'Completar datos del cliente' }}</h3></div>
+        <button type="button" class="modal-close" aria-label="Cerrar ficha del cliente" [disabled]="guardandoCliente" (click)="cerrarFichaCliente()">&times;</button>
       </div>
       <div class="modal-body">
+        <p class="client-review-source">{{ origenFicha || 'Registro manual' }}</p>
+        <p class="client-review-help">Comprueba el documento y los nombres del cliente antes de aceptar.</p>
         <div class="form-grid">
           <div class="form-group">
-            <label>Tipo Documento *</label>
-            <select [(ngModel)]="nuevoClienteForm.tipoDocumento" class="input">
-              <option value="DNI">DNI</option>
-              <option value="RUC">RUC</option>
-              <option value="CE">Carnet de Extranjería</option>
-            </select>
+            <label for="client-type">Tipo de documento</label>
+            <select id="client-type" name="tipo" [(ngModel)]="nuevoClienteForm.tipoDocumento" class="input" [disabled]="!!clientePorConfirmar || guardandoCliente"><option value="DNI">DNI</option><option value="RUC">RUC</option></select>
           </div>
           <div class="form-group">
-            <label>Número Documento *</label>
-            <input type="text" [(ngModel)]="nuevoClienteForm.numeroDocumento" class="input"/>
+            <label for="client-number">Número de documento *</label>
+            <input id="client-number" name="numero" type="text" inputmode="numeric" required [pattern]="nuevoClienteForm.tipoDocumento === 'DNI' ? '[0-9]{8}' : '[0-9]{11}'" [maxlength]="nuevoClienteForm.tipoDocumento === 'DNI' ? 8 : 11" [(ngModel)]="nuevoClienteForm.numeroDocumento" [readonly]="!!clientePorConfirmar" [disabled]="guardandoCliente" class="input"/>
           </div>
           <div class="form-group full-width">
-            <label>Nombres / Razón Social *</label>
-            <input type="text" [(ngModel)]="nuevoClienteForm.nombresORazonSocial" class="input" placeholder="Nombre completo o empresa"/>
-          </div>
-          <div class="form-group full-width">
-            <label>Dirección</label>
-            <input type="text" [(ngModel)]="nuevoClienteForm.direccion" class="input" placeholder="Av. o Jr."/>
-          </div>
-          <div class="form-group">
-            <label>Teléfono</label>
-            <input type="text" [(ngModel)]="nuevoClienteForm.telefono" class="input"/>
-          </div>
-          <div class="form-group">
-            <label>Correo Electrónico</label>
-            <input type="email" [(ngModel)]="nuevoClienteForm.email" class="input"/>
+            <label for="client-name">Nombres y apellidos / Razón social *</label>
+            <input id="client-name" name="nombre" type="text" required maxlength="150" [(ngModel)]="nuevoClienteForm.nombresORazonSocial" [readonly]="!!clientePorConfirmar" [disabled]="guardandoCliente" class="input" placeholder="Nombre completo o empresa"/>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" (click)="modalNuevoClienteAbierto = false">Cancelar</button>
-        <button class="btn btn-primary" (click)="guardarNuevoCliente()">Guardar y Asignar</button>
+        <button type="button" class="btn btn-outline" [disabled]="guardandoCliente" (click)="cerrarFichaCliente()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="fichaCliente.invalid || guardandoCliente">{{ guardandoCliente ? 'Guardando…' : 'Aceptar datos y seleccionar' }}</button>
       </div>
-    </div>
+    </form>
   </div>
 
   <!-- ========================================================================= -->

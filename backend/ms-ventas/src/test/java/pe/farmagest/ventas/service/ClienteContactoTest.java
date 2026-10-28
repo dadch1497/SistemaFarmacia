@@ -1,0 +1,6 @@
+package pe.farmagest.ventas.service;
+import org.junit.jupiter.api.Test;import static org.junit.jupiter.api.Assertions.*;import static org.mockito.Mockito.*;import java.util.Optional;import pe.farmagest.ventas.entity.*;import pe.farmagest.ventas.repository.ClienteRepository;
+class ClienteContactoTest {
+ @Test void updatesOnlyContactPreservingIdentity(){var repo=mock(ClienteRepository.class);var cliente=new Cliente(TipoDocumento.DNI,"12345678","ANA PEREZ",null,null,null);cliente.setId(2L);when(repo.findById(2L)).thenReturn(Optional.of(cliente));when(repo.save(any())).thenAnswer(c->c.getArgument(0));var dto=new ClienteService(repo).actualizarContacto(2L," Avenida 1 ","999999999","ana@example.test");assertEquals("12345678",dto.getNumeroDocumento());assertEquals("ANA PEREZ",dto.getNombresORazonSocial());assertEquals("Avenida 1",dto.getDireccion());assertEquals("ana@example.test",dto.getEmail());}
+ @Test void cannotModifyGenericClient(){var repo=mock(ClienteRepository.class);var cliente=new Cliente(TipoDocumento.DNI,"00000000","GENERICO",null,null,null);when(repo.findById(1L)).thenReturn(Optional.of(cliente));assertThrows(IllegalStateException.class,()->new ClienteService(repo).actualizarContacto(1L,"","",""));verify(repo,never()).save(any());}
+}
