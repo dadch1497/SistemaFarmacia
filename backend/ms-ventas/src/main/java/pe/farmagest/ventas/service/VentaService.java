@@ -453,7 +453,7 @@ public class VentaService {
         for (Venta v : todas) {
             String serieNum = (v.getSerieComprobante() + "-" + v.getNumeroComprobante()).toLowerCase();
             if (serieNum.contains(query) || v.getNumeroComprobante().contains(query)) {
-                return mapearVentaDto(v);
+                return mapearADto(v, null);
             }
         }
         throw new IllegalArgumentException("Comprobante no encontrado: " + q);
@@ -509,5 +509,4 @@ public class VentaService {
 
         return dto;
     }
-}
 }
