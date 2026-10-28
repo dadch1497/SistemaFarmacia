@@ -2,10 +2,16 @@
 FROM maven:3.9.6-eclipse-temurin-17-alpine AS builder
 WORKDIR /app
 
-# Copy parent and module pom.xml for caching dependencies
+# Copy parent and all module pom.xml files for complete module tree
 COPY pom.xml .
 COPY eureka-server/pom.xml eureka-server/
-RUN mvn -B dependency:go-offline -pl eureka-server -am || true
+COPY api-gateway/pom.xml api-gateway/
+COPY ms-auth/pom.xml ms-auth/
+COPY ms-catalogo/pom.xml ms-catalogo/
+COPY ms-inventario/pom.xml ms-inventario/
+COPY ms-compras/pom.xml ms-compras/
+COPY ms-ventas/pom.xml ms-ventas/
+COPY ms-reportes/pom.xml ms-reportes/
 
 # Copy source and build
 COPY eureka-server/src eureka-server/src

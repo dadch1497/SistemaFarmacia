@@ -121,6 +121,7 @@ class SunatService
                 ->setCodProducto('PROD-' . ($it['productoId'] ?? ($idx + 1)))
                 ->setUnidad('NIU')
                 ->setCantidad($cant)
+                ->setMtoValorVenta($subt)
                 ->setMtoValorUnitario(round($pu / 1.18, 2))
                 ->setDescripcion('MEDICAMENTO / ITEM ' . ($it['productoId'] ?? ($idx + 1)))
                 ->setMtoBaseIgv($subt)
