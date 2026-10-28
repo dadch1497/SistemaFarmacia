@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
+    Optional<Cliente> findByNumeroDocumento(String numeroDocumento);
+
     Optional<Cliente> findByNumeroDocumentoAndActivoTrue(String numeroDocumento);
 
     @Query("SELECT c FROM Cliente c WHERE c.activo = true AND " +

@@ -76,7 +76,7 @@
   grid-template-columns: 1.55fr 1fr;
   gap: 1.25rem;
   flex: 1;
-  min-height: 0;
+  min-height: 1220px;
 }
 
 /* Columna Izquierda: Catálogo */
@@ -85,7 +85,8 @@
   flex-direction: column;
   gap: 0.75rem;
   min-height: 0;
-  height: 100%;
+  min-width: 0;
+  align-self: stretch;
 }
 
 .search-bar-pos {
@@ -125,7 +126,9 @@
   overflow-y: auto;
   padding-right: 0.4rem;
   flex: 1;
-  max-height: calc(100vh - 210px);
+  min-height: 0;
+  align-content: start;
+  grid-auto-rows: max-content;
 }
 
 .producto-card {
@@ -583,3 +586,17 @@
 .btn-link { background: none; border: none; color: var(--color-verde-accion); font-weight: 700; cursor: pointer; text-decoration: underline; font-size: 0.85rem; }
 .btn-outline-danger { background: none; border: 1px solid #FFCDD2; color: #C62828; font-weight: 600; border-radius: 6px; cursor: pointer; }
 .code-badge { font-family: monospace; font-size: 0.85rem; background: #F1F4F3; padding: 0.2rem 0.4rem; border-radius: 4px; }
+
+.client-review {width:min(640px,calc(100vw - 32px));border:1px solid #DDE5E2;border-radius:20px;color:#17332E}
+.client-review .modal-header {background:#F4F8F7;align-items:center}
+.client-review-eyebrow {color:#0F4F46;font-size:11px;font-weight:800;letter-spacing:.08em}
+.client-review-source {display:inline-block;background:#E3F1ED;color:#0F4F46;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;margin:0 0 10px}
+.client-review-help {font-size:12px;color:#4F625D;line-height:1.6;margin:0 0 16px}
+.client-review .form-grid {gap:18px;margin-bottom:18px}
+.client-review label {display:block;font-weight:700;margin-bottom:6px}
+.client-review label small {font-weight:400;color:#4F625D}
+.client-review .input {width:100%;box-sizing:border-box;min-height:46px;border:1px solid #C9D6D2;border-radius:10px;padding:10px 12px;font:inherit}
+.client-review input[readonly] {background:#F4F8F7;color:#17332E}
+.client-review button {min-height:44px}
+.client-review :is(input,select,button):focus-visible {outline:2px solid #0F4F46;outline-offset:2px}
+@media(max-width:560px){.client-review .form-grid{grid-template-columns:1fr}.client-review .modal-footer{flex-wrap:wrap}.client-review .modal-footer button{flex:1}}

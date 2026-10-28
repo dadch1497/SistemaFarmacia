@@ -71,6 +71,18 @@ export class VentasService {
     return this.http.get<Cliente>(`${this.apiVentas}/clientes/documento/${numero}`);
   }
 
+  consultarRucYGuardar(ruc: string): Observable<Cliente> {
+    return this.http.post<Cliente>(`${this.apiVentas}/clientes/consulta-ruc`, { ruc });
+  }
+
+  consultarDniYGuardar(dni: string): Observable<Cliente> {
+    return this.http.post<Cliente>(`${this.apiVentas}/clientes/consulta-dni`, { dni });
+  }
+
+  actualizarContactoCliente(id: number, contacto: {direccion: string; telefono: string; email: string}): Observable<Cliente> {
+    return this.http.patch<Cliente>(`${this.apiVentas}/clientes/${id}/contacto`, contacto);
+  }
+
   crearCliente(request: CrearClienteRequest): Observable<Cliente> {
     return this.http.post<Cliente>(`${this.apiVentas}/clientes`, request);
   }

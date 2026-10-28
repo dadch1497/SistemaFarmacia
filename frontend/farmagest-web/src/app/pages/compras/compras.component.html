@@ -440,17 +440,22 @@
   <!-- MODAL: REGISTRAR RECEPCIÓN FÍSICA DE MERCADERÍA (CON LOTES Y VENCIMIENTO) -->
   <!-- ========================================================================= -->
   <div *ngIf="modalIngresoAbierto" class="modal-backdrop">
-    <div class="modal-box modal-box-lg">
+    <div class="modal-box modal-box-lg reception-dialog" role="dialog" aria-modal="true" aria-labelledby="titulo-recepcion">
       <div class="modal-header">
-        <h3>Recepción Física de Mercadería (Ingreso con Lotes)</h3>
-        <button class="modal-close" (click)="modalIngresoAbierto = false">&times;</button>
+        <div><span class="reception-eyebrow">ALMACÉN · NUEVO INGRESO</span><h3 id="titulo-recepcion">Recepción de mercadería</h3><p>Lee tu guía, revisa los productos y confirma el ingreso.</p></div>
+        <button class="modal-close" aria-label="Cerrar recepción" (click)="modalIngresoAbierto = false">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="modal-prod-info mb-3">
-          <strong>Control de Trazabilidad FEFO:</strong> Cada producto recibido debe registrar obligatoriamente su 
-          <strong>Número de Lote</strong> y <strong>Fecha de Vencimiento</strong> para garantizar la rotación y semaforización de vencimientos.
-        </div>
+        <ol class="receipt-steps" aria-label="Pasos de recepción"><li><span>1</span> Foto de la guía</li><li><span>2</span> Revisar productos</li><li><span>3</span> Confirmar ingreso</li></ol>
+        <p *ngIf="mensajeError()" class="receipt-error" role="alert">{{ mensajeError()?.includes('403') || mensajeError()?.includes('401') ? 'Tu sesión no permite consultar el catálogo. Inicia sesión nuevamente para seleccionar productos.' : mensajeError() }}</p>
+        <app-guia-compra *ngIf="ingresoForm.ordenCompraId" [ordenId]="ingresoForm.ordenCompraId" />
+        <details class="manual-receipt" [open]="!ingresoForm.ordenCompraId"><summary>Leer una guía externa (opcional)</summary>
+        <app-recepcion-documento [productos]="productos()" [ordenes]="ordenesParaRecepcion()" [ordenId]="ingresoForm.ordenCompraId"
+          (pendienteCambio)="documentoPendiente = $event" (preparado)="aplicarDocumentoRecepcion($event)" />
+        </details>
+        <p *ngIf="documentoPendiente" class="modal-prod-info mb-3" role="status">Hay un documento pendiente de revisión: aplica su borrador o descártalo para continuar.</p>
 
+        <section class="receipt-final"><div class="receipt-section-title"><span class="step-number">3</span><div><h4>Datos del ingreso</h4><p>Se completan al aplicar la guía revisada. También puedes corregirlos aquí.</p></div></div>
         <div class="form-grid">
           <div class="form-group">
             <label>Nº Guía de Remisión *</label>
@@ -467,16 +472,11 @@
         </div>
 
         <div class="section-divider">
-          <h4>Ítems a Ingresar (Lote y Vencimiento Obligatorios)</h4>
+          <h4>Productos listos para ingresar</h4>
         </div>
 
-        <!-- Fila para agregar ítem de recepción -->
-        <app-barcode-photo
-          [puedeRegistrar]="esAdmin"
-          (productoSeleccionado)="seleccionarProductoPorCodigo($event)"
-          (productoEscaneado)="agregarProductoEscaneado($event)"
-          (ocupadoCambio)="leyendoCodigo = $event"/>
-        <p *ngIf="avisoEscaneo()" class="modal-prod-info mb-3" role="status">{{ avisoEscaneo() }}</p>
+        <p *ngIf="avisoEscaneo()" class="receipt-success" role="status">{{ avisoEscaneo() }}</p>
+        <details class="manual-receipt"><summary>Agregar un producto manualmente</summary><p>Úsalo solo si faltó un artículo en la lectura. No vuelvas a agregar los productos ya incluidos.</p>
         <div class="add-item-row-recepcion">
           <div class="form-group flex-2">
             <label>Producto *</label>
@@ -509,6 +509,8 @@
           </div>
         </div>
 
+        </details>
+
         <!-- Tabla de ítems con lote listos para ingresar -->
         <div class="table-responsive mt-3">
           <table class="table-compact">
@@ -525,17 +527,17 @@
             </thead>
             <tbody>
               <tr *ngIf="ingresoForm.items.length === 0">
-                <td colspan="7" class="text-center py-4 text-muted">Agregue los productos con sus números de lote y fecha de vencimiento.</td>
+                <td colspan="7" class="text-center py-4 text-muted">Aún no hay productos. Sube la guía y aplica el borrador revisado para verlos aquí.</td>
               </tr>
               <tr *ngFor="let it of ingresoForm.items; let i = index">
                 <td><strong>{{ it.nombreProducto }}</strong></td>
-                <td><span class="code-badge">{{ it.numeroLote }}</span></td>
-                <td><span class="venc-badge">{{ it.fechaVencimiento }}</span></td>
-                <td class="text-right font-bold">{{ it.cantidadRecibida }}</td>
-                <td class="text-right">S/ {{ it.costoUnitarioReal | number:'1.2-2' }}</td>
+                <td><input class="input" [(ngModel)]="it.numeroLote" maxlength="50" [attr.aria-label]="'Lote de ' + it.nombreProducto" placeholder="Lote real" /></td>
+                <td><input class="input" type="date" [(ngModel)]="it.fechaVencimiento" [attr.aria-label]="'Vencimiento de ' + it.nombreProducto" /></td>
+                <td><input class="input" type="number" min="1" step="1" [(ngModel)]="it.cantidadRecibida" (ngModelChange)="actualizarSubtotalIngreso(it)" [attr.aria-label]="'Cantidad de ' + it.nombreProducto" /></td>
+                <td><input class="input" type="number" min="0.01" step="0.01" [(ngModel)]="it.costoUnitarioReal" (ngModelChange)="actualizarSubtotalIngreso(it)" [attr.aria-label]="'Costo unitario de ' + it.nombreProducto" /></td>
                 <td class="text-right font-bold text-accent">S/ {{ it.subtotal | number:'1.2-2' }}</td>
                 <td class="text-center">
-                  <button class="btn-icon-danger" (click)="eliminarItemIngreso(i)">&times;</button>
+                  <button class="btn-icon-danger" [attr.aria-label]="'Quitar ' + it.nombreProducto" (click)="eliminarItemIngreso(i)">&times;</button>
                 </td>
               </tr>
             </tbody>
@@ -548,10 +550,11 @@
             <span>S/ {{ calcularTotalIngreso() | number:'1.2-2' }}</span>
           </div>
         </div>
+        </section>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" (click)="modalIngresoAbierto = false">Cancelar</button>
-        <button class="btn btn-primary" (click)="guardarIngreso()" [disabled]="leyendoCodigo || cargando()">Confirmar Recepción y Actualizar Stock</button>
+        <button class="btn btn-primary" (click)="guardarIngreso()" [disabled]="documentoPendiente || leyendoCodigo || cargando() || !ingresoForm.items.length">Confirmar ingreso al almacén</button>
       </div>
     </div>
   </div>
@@ -577,6 +580,8 @@
           <div><strong>Observaciones:</strong> {{ ordenSeleccionada.observaciones || '-' }}</div>
         </div>
 
+        <app-guia-compra *ngIf="ordenSeleccionada.estado !== 'PENDIENTE' && ordenSeleccionada.estado !== 'CANCELADA'" [ordenId]="ordenSeleccionada.id" />
+        <p *ngIf="ordenSeleccionada.estado === 'PENDIENTE'" class="modal-prod-info">La guía de recepción se habilitará al aprobar esta compra.</p>
         <table class="table-compact">
           <thead>
             <tr>
@@ -646,6 +651,7 @@
           <div><strong>Total:</strong> S/ {{ calcularTotalIngresoDto(ingresoSeleccionado) | number:'1.2-2' }}</div>
         </div>
 
+        <app-guia-compra [ordenId]="ingresoSeleccionado.ordenCompraId || null" [ingresoId]="ingresoSeleccionado.id" />
         <table class="table-compact">
           <thead>
             <tr>

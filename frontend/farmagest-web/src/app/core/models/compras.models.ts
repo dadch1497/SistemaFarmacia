@@ -1,4 +1,4 @@
-export type EstadoOrden = 'PENDIENTE' | 'APROBADA' | 'EN_TRANSITO' | 'RECIBIDA' | 'CANCELADA';
+export type EstadoOrden = 'PENDIENTE' | 'APROBADA' | 'EN_TRANSITO' | 'RECIBIDA' | 'RECIBIDA_PARCIAL' | 'RECIBIDA_TOTAL' | 'CANCELADA';
 
 export interface Proveedor {
   id: number;
@@ -72,6 +72,7 @@ export interface DetalleIngresoDto {
 }
 
 export interface IngresoMercaderia {
+  tieneGuiaAdjunta?: boolean;
   id: number;
   numeroGuia: string;
   numeroFacturaProveedor?: string;

@@ -20,6 +20,7 @@ public class ComprasService {
     private final ProveedorRepository proveedorRepository;
     private final ProveedorService proveedorService;
     private final ComprasEventPublisher eventPublisher;
+    private final GuiaDocumentoService guias;
 
     public ComprasService(
             OrdenCompraRepository ordenCompraRepository,
@@ -28,7 +29,8 @@ public class ComprasService {
             DetalleIngresoRepository detalleIngresoRepository,
             ProveedorRepository proveedorRepository,
             ProveedorService proveedorService,
-            ComprasEventPublisher eventPublisher
+            ComprasEventPublisher eventPublisher,
+            GuiaDocumentoService guias
     ) {
         this.ordenCompraRepository = ordenCompraRepository;
         this.detalleOrdenCompraRepository = detalleOrdenCompraRepository;
@@ -37,6 +39,7 @@ public class ComprasService {
         this.proveedorRepository = proveedorRepository;
         this.proveedorService = proveedorService;
         this.eventPublisher = eventPublisher;
+        this.guias = guias;
     }
 
     public List<OrdenCompraDto> listarOrdenes(Integer sucursalId) {
@@ -106,6 +109,15 @@ public class ComprasService {
      */
     @Transactional
     public IngresoMercaderiaDto registrarIngreso(RegistrarIngresoRequest req, Long usuarioId) {
+        return crearIngreso(req, usuarioId, null);
+    }
+
+    @Transactional
+    public IngresoMercaderiaDto registrarIngresoConGuia(RegistrarIngresoRequest req, Long usuarioId, org.springframework.web.multipart.MultipartFile archivo) {
+        return crearIngreso(req, usuarioId, guias.validar(archivo));
+    }
+
+    private IngresoMercaderiaDto crearIngreso(RegistrarIngresoRequest req, Long usuarioId, GuiaDocumento guia) {
         IngresoMercaderia ingreso = new IngresoMercaderia();
         ingreso.setNumeroGuia(req.getNumeroGuia());
         ingreso.setNumeroFacturaProveedor(req.getNumeroFacturaProveedor());
@@ -135,6 +147,7 @@ public class ComprasService {
         }
 
         ingreso = ingresoRepository.save(ingreso);
+        if (guia != null) guias.guardar(ingreso.getId(), guia);
 
         // Publicar evento en RabbitMQ para que ms-inventario sume lotes y stock
         eventPublisher.emitirIngresoRegistrado(ingreso);
@@ -172,6 +185,7 @@ public class ComprasService {
         IngresoMercaderiaDto dto = new IngresoMercaderiaDto();
         dto.setId(ing.getId());
         dto.setNumeroGuia(ing.getNumeroGuia());
+        dto.setTieneGuiaAdjunta(guias.tiene(ing.getId()));
         dto.setNumeroFacturaProveedor(ing.getNumeroFacturaProveedor());
         dto.setOrdenCompraId(ing.getOrdenCompra() != null ? ing.getOrdenCompra().getId() : null);
         dto.setNumeroOrdenCompra(ing.getOrdenCompra() != null ? ing.getOrdenCompra().getNumeroOrden() : null);

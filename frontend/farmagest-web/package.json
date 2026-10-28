@@ -8,7 +8,11 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:barcode": "node --test tests/barcode-photo.test.cjs"
+    "test:barcode": "node --test tests/barcode-photo.test.cjs",
+    "test:documento": "node --test tests/recepcion-documento.test.cjs",
+    "test:guia": "node --test tests/guia-interna.test.cjs",
+    "test:inventario": "node --test tests/reporte-inventario.test.cjs",
+    "test:conteo": "node --test tests/conteo.test.cjs"
   },
   "private": true,
   "packageManager": "npm@11.13.0",
@@ -19,10 +23,16 @@
     "@angular/forms": "^22.0.0",
     "@angular/platform-browser": "^22.0.0",
     "@angular/router": "^22.0.0",
+    "@tesseract.js-data/spa": "1.0.0",
     "@zxing/browser": "0.2.1",
     "@zxing/library": "0.23.0",
+    "jspdf": "4.2.1",
+    "jspdf-autotable": "5.0.9",
+    "pdfjs-dist": "6.4.299",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "tesseract.js": "7.0.0",
+    "tslib": "^2.3.0",
+    "write-excel-file": "4.1.1"
   },
   "devDependencies": {
     "@angular/build": "^22.0.0",

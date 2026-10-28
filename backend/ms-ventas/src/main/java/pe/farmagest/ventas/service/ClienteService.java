@@ -61,6 +61,17 @@ public class ClienteService {
         return mapearADto(guardado);
     }
 
+    @Transactional
+    public ClienteDto actualizarContacto(Long id, String direccion, String telefono, String email) {
+        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
+        if (!Boolean.TRUE.equals(cliente.getActivo()) || "00000000".equals(cliente.getNumeroDocumento()))
+            throw new IllegalStateException("No se puede modificar el contacto de este cliente");
+        cliente.setDireccion(direccion == null ? null : direccion.trim());
+        cliente.setTelefono(telefono == null ? null : telefono.trim());
+        cliente.setEmail(email == null ? null : email.trim());
+        return mapearADto(clienteRepository.save(cliente));
+    }
+
     public ClienteDto mapearADto(Cliente c) {
         return new ClienteDto(
                 c.getId(),

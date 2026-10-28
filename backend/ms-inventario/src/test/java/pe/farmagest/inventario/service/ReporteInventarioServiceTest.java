@@ -1,0 +1,23 @@
+package pe.farmagest.inventario.service;
+import org.junit.jupiter.api.Test;
+import pe.farmagest.inventario.entity.*;
+import pe.farmagest.inventario.repository.*;
+import org.springframework.web.server.ResponseStatusException;
+import java.math.BigDecimal;import java.time.*;import java.util.*;
+import static org.junit.jupiter.api.Assertions.*;import static org.mockito.Mockito.*;import static org.mockito.ArgumentMatchers.*;
+class ReporteInventarioServiceTest {
+ final MovimientoKardexRepository kardex=mock(MovimientoKardexRepository.class);final LoteRepository lotes=mock(LoteRepository.class);final ProductoStockRepository stocks=mock(ProductoStockRepository.class);
+ final ReporteInventarioService service=new ReporteInventarioService(kardex,lotes,stocks);
+ MovimientoKardex movimiento(TipoMovimiento tipo,int cantidad,BigDecimal costo){var k=new MovimientoKardex();k.setId(1L);k.setProductoId(1L);k.setSucursalId(1);k.setTipoMovimiento(tipo);k.setCantidad(cantidad);k.setSaldoResultante(10);k.setCostoUnitarioRegistrado(costo);k.setFechaHora(LocalDateTime.of(2026,10,27,16,0));return k;}
+ @Test void sumsSignsAndSeparatesMermaFromSobrantesAndUnknownHistoricalCosts(){
+  var a=movimiento(TipoMovimiento.INGRESO_COMPRA,10,new BigDecimal("2.50"));var b=movimiento(TipoMovimiento.SALIDA_VENTA,-3,new BigDecimal("2.50"));var c=movimiento(TipoMovimiento.AJUSTE_MERMA,-2,new BigDecimal("2.50"));var d=movimiento(TipoMovimiento.AJUSTE_SOBRANTE,1,null);var e=movimiento(TipoMovimiento.AJUSTE_VENCIMIENTO,-4,null);
+  var r=service.construir(1,LocalDate.now(),LocalDate.now(),List.of(a,b,c,d,e),List.of(),List.of(),Instant.now());
+  assertEquals(11,r.resumen().entradas());assertEquals(9,r.resumen().salidas());assertEquals(3,r.resumen().ajustes());assertEquals(6,r.resumen().unidadesMerma());assertEquals(new BigDecimal("5.00"),r.resumen().costoMermasRegistrado());assertEquals(4,r.resumen().unidadesMermaSinCosto());
+ }
+ @Test void missingHistoricalCostNeverUsesCurrentLotCost(){var k=movimiento(TipoMovimiento.AJUSTE_MERMA,-3,null);k.setLote(new Lote(1L,1,"L1",LocalDate.of(2028,1,1),5,2,new BigDecimal("99")));var r=service.construir(1,LocalDate.now(),LocalDate.now(),List.of(k),List.of(),List.of(),Instant.now());assertNull(r.movimientos().get(0).costoMovimiento());assertEquals(3,r.resumen().unidadesMermaSinCosto());assertEquals(BigDecimal.ZERO,r.resumen().costoMermasRegistrado());}
+ @Test void capturesCostAtMovementTimeAndLaterLotChangesCannotRewriteIt(){var l=new Lote(1L,1,"L",LocalDate.of(2028,1,1),10,10,new BigDecimal("3.50"));var k=new MovimientoKardex(1L,l,1,TipoMovimiento.AJUSTE_MERMA,-1,9,"AJUSTE","A1","Rotura",1L);l.setCostoUnitario(new BigDecimal("9.00"));assertEquals(new BigDecimal("3.50"),k.getCostoUnitarioRegistrado());}
+ @Test void valuesPerLotAndDetectsConsolidatedDifferencesAndUnknownCosts(){var a=new Lote(1L,1,"A",LocalDate.of(2028,1,1),10,10,new BigDecimal("2"));var b=new Lote(1L,1,"B",LocalDate.of(2025,1,1),5,5,new BigDecimal("3"));var c=new Lote(2L,1,"C",LocalDate.of(2028,1,1),4,4,BigDecimal.ZERO);var s=new ProductoStock(1L,1,20,1,100);var r=service.construir(1,LocalDate.now(),LocalDate.now(),List.of(),List.of(a,b,c),List.of(s),Instant.parse("2026-10-27T16:00:00Z"));assertEquals(new BigDecimal("35"),r.resumen().valorActualConocido());assertEquals(4,r.resumen().unidadesActualesSinCosto());assertEquals(5,r.valoracion().get(0).diferencia());assertEquals(5,r.valoracion().get(0).unidadesNoDisponibles());}
+ @Test void convertsLimaDateToInclusiveStartAndExclusiveNextDayUtc(){var desde=LocalDate.of(2026,10,1);var hasta=LocalDate.of(2026,10,27);when(kardex.reporte(anyInt(),any(),any(),any(),any())).thenReturn(List.of());when(lotes.findBySucursalIdAndCantidadActualGreaterThan(1,0)).thenReturn(List.of());when(stocks.findBySucursalId(1)).thenReturn(List.of());service.consultar(1,desde,hasta,null);verify(kardex).reporte(eq(1),isNull(),eq(LocalDateTime.of(2026,10,1,5,0)),eq(LocalDateTime.of(2026,10,28,5,0)),any());verify(kardex,never()).save(any());}
+ @Test void rejectsInvalidOrUnboundedRangesWithoutReadingData(){assertThrows(ResponseStatusException.class,()->service.consultar(1,LocalDate.of(2026,10,27),LocalDate.of(2026,10,1),null));assertThrows(ResponseStatusException.class,()->service.consultar(1,LocalDate.of(2025,1,1),LocalDate.of(2026,10,1),null));verifyNoInteractions(kardex,lotes,stocks);}
+ @Test void refusesTruncationOfLargeReports(){var row=movimiento(TipoMovimiento.SALIDA_VENTA,-1,null);when(kardex.reporte(anyInt(),any(),any(),any(),any())).thenReturn(Collections.nCopies(10001,row));assertEquals(422,assertThrows(ResponseStatusException.class,()->service.consultar(1,LocalDate.now(),LocalDate.now(),null)).getStatusCode().value());}
+}
