@@ -7,8 +7,8 @@ return [
     |--------------------------------------------------------------------------
     */
     'ruc'         => getenv('SUNAT_RUC') ?: '10734577583',
-    'usuario_sol' => getenv('SUNAT_USUARIO_SOL') ?: '73457758',
-    'clave_sol'   => getenv('SUNAT_CLAVE_SOL') ?: 'Altamirano10',
+    'usuario_sol' => getenv('SUNAT_USUARIO_SOL') ?: 'FACTURA1',
+    'clave_sol'   => getenv('SUNAT_CLAVE_SOL') ?: 'Farma2026*',
     'ambiente'    => getenv('SUNAT_ENV') ?: 'PRODUCCION',
 
     /*
