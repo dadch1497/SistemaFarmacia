@@ -18,7 +18,10 @@ import {
   GuardarVentaEsperaRequest,
   AnularVentaRequest,
   NotaCredito,
-  EmitirNotaCreditoRequest
+  EmitirNotaCreditoRequest,
+  SireEstado,
+  ComprobanteSire,
+  SirePropuestaResponse
 } from '../models/ventas.models';
 
 @Injectable({
@@ -27,6 +30,7 @@ import {
 export class VentasService {
   private readonly apiVentas = 'http://localhost:8080/api/ventas';
   private readonly apiCaja = 'http://localhost:8080/api/caja';
+  private readonly apiSire = 'http://localhost:8080/api/sire';
 
   constructor(private http: HttpClient) {}
 
@@ -161,5 +165,21 @@ export class VentasService {
   buscarComprobante(q: string): Observable<Venta> {
     const params = new HttpParams().set('q', q.trim());
     return this.http.get<Venta>(`${this.apiVentas}/buscar-comprobante`, { params });
+  }
+
+  // ==========================================
+  // SIRE - Sistema Integrado de Registros Electrónicos (SUNAT)
+  // ==========================================
+  obtenerEstadoSire(): Observable<SireEstado> {
+    return this.http.get<SireEstado>(`${this.apiSire}/estado`);
+  }
+
+  obtenerPropuestaSire(periodo: string = '202610'): Observable<SirePropuestaResponse> {
+    const params = new HttpParams().set('periodo', periodo);
+    return this.http.get<SirePropuestaResponse>(`${this.apiSire}/rvie/propuesta`, { params });
+  }
+
+  sincronizarSire(): Observable<SireEstado> {
+    return this.http.post<SireEstado>(`${this.apiSire}/sincronizar`, {});
   }
 }

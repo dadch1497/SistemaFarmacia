@@ -35,15 +35,15 @@ return [
     */
     'empresa' => [
         'ruc'              => getenv('SUNAT_RUC') ?: '10734577583',
-        'razon_social'     => getenv('EMPRESA_RAZON_SOCIAL') ?: 'FARMACIA FARMAGEST',
-        'nombre_comercial' => getenv('EMPRESA_NOMBRE_COMERCIAL') ?: 'FARMAGEST',
+        'razon_social'     => getenv('EMPRESA_RAZON_SOCIAL') ?: 'ALTAMIRANO MASIAS DIEGO GABRIEL',
+        'nombre_comercial' => getenv('EMPRESA_NOMBRE_COMERCIAL') ?: 'BOTICA FARMA OCHENTA',
         'direccion'        => [
             'ubigeo'       => '150101',
             'departamento' => 'LIMA',
             'provincia'    => 'LIMA',
-            'distrito'     => 'LIMA',
+            'distrito'     => 'ATE',
             'urbanizacion' => '-',
-            'direccion'    => 'AV. PRINCIPAL 123'
+            'direccion'    => 'AV. NICOLAS AYLLON 1497'
         ]
     ]
 ];

@@ -281,3 +281,67 @@ export interface EmitirNotaCreditoRequest {
   medioReembolso?: MedioPago;
   items: ItemDevolucionRequest[];
 }
+
+
+export interface SireEstado {
+  conectado: boolean;
+  ambiente: string;
+  ruc: string;
+  razonSocial: string;
+  usuarioSol: string;
+  tokenValido: boolean;
+  tokenType: string;
+  expiresIn: number;
+  ultimaSincronizacion: string;
+  mensaje?: string;
+}
+
+export interface ComprobanteSire {
+  periodo: string;
+  fechaEmision: string;
+  fechaVcto: string;
+  tipoComprobante: string;
+  tipoComprobanteTexto?: string;
+  serie: string;
+  numero: string;
+  numeroFinal?: string;
+  tipoDocIdentidad: string;
+  numDocIdentidad: string;
+  razonSocial: string;
+  valorExportacion: number;
+  biGravada: number;
+  descuentoBi: number;
+  igv: number;
+  descuentoIgv: number;
+  montoExonerado: number;
+  montoInafecto: number;
+  isc: number;
+  biIvap: number;
+  ivap: number;
+  icbper: number;
+  otrosTributos: number;
+  total: number;
+  moneda: string;
+  tipoCambio: number;
+  fechaDocModificado?: string;
+  tipoCpModificado?: string;
+  serieCpModificado?: string;
+  nroCpModificado?: string;
+  car: string;
+  estado: string;
+}
+
+export interface SirePropuestaResponse {
+  periodo: string;
+  rucEmisor: string;
+  razonSocial: string;
+  nombreComercial: string;
+  conectadoSunat: boolean;
+  resumen: {
+    totalComprobantes: number;
+    totalGravado: number;
+    totalIgv: number;
+    totalImporte: number;
+  };
+  comprobantes: ComprobanteSire[];
+}

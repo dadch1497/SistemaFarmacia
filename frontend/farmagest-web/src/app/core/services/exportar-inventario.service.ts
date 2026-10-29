@@ -45,7 +45,7 @@ export class ExportarInventarioService {
   doc.setProperties({title:tabla.titulo,author:'FarmaGest',subject:'Reporte interno de inventario'});
   autoTable(doc,{startY:inicio,margin:{left:12,right:12,top:44,bottom:14},head:[tabla.cabeceras],body:tabla.filas.map(row=>row.map((cell,i)=>typeof cell==='number'&&tabla.monedas.includes(i)?`S/ ${cell.toFixed(2)}`:seguro(cell))),
    theme:'grid',styles:{font:'helvetica',fontSize:7,cellPadding:2,overflow:'linebreak',lineColor:[218,229,222],lineWidth:.15, valign:'top'},headStyles:{fillColor:[15,79,70],textColor:255},alternateRowStyles:{fillColor:[245,249,246]},rowPageBreak:'avoid',
-   didDrawPage:data=>{if(data.pageNumber>1)cabecera();}});
+   didDrawPage:(data: any)=>{if(data.pageNumber>1)cabecera();}});
   if(!tabla.filas.length){doc.setTextColor(70,90,80);doc.text('Sin registros para los filtros seleccionados.',12,inicio+18);}
   const paginas=doc.getNumberOfPages();for(let n=1;n<=paginas;n++){doc.setPage(n);doc.setFontSize(7);doc.setTextColor(80,100,90);doc.text(`Registros exportados: ${tabla.filas.length}. Incluye todas las páginas de la tabla filtrada.`,12,202);doc.text(`Página ${n} de ${paginas}`,285,202,{align:'right'});}
   return new File([doc.output('arraybuffer')],nombre+'.pdf',{type:'application/pdf'});

@@ -2,6 +2,10 @@
 
 namespace App;
 
+use DOMDocument;
+use ZipArchive;
+use Greenter\XMLSecLibs\Sunat\SignedXml;
+
 class SunatService
 {
     private array $config;
@@ -9,425 +13,412 @@ class SunatService
     public function __construct(array $config)
     {
         $this->config = $config;
+        date_default_timezone_set('America/Lima');
     }
 
-    /**
-     * Procesa y emite el comprobante electrónico a SUNAT
-     *
-     * @param array $datos Datos de la venta provenientes de ms-ventas
-     * @return array Resultado oficial del envío y CDR
-     */
-    public function emitirComprobante(array $datos): array
-    {
-        $tipo = $datos['tipoComprobante'] ?? 'BOLETA';
-        $serie = $datos['serie'] ?? ($tipo === 'FACTURA' ? 'F001' : 'B001');
-        $numero = str_pad((string)($datos['numero'] ?? '1'), 8, '0', STR_PAD_LEFT);
-        $total = (float)($datos['total'] ?? 0.0);
-        $subtotal = (float)($datos['subtotal'] ?? round($total / 1.18, 2));
-        $igv = (float)($datos['igv'] ?? round($total - $subtotal, 2));
-        $cliente = $datos['cliente'] ?? [
-            'tipoDocumento' => 'DNI',
-            'numeroDocumento' => '00000000',
-            'razonSocial' => 'CLIENTE VARIOS',
-            'direccion' => '-'
-        ];
-
-        // Verificar si la biblioteca Greenter está instalada mediante Composer
-        if (class_exists('\Greenter\See')) {
-            try {
-                return $this->emitirConGreenter($datos, $serie, $numero, $subtotal, $igv, $total, $cliente);
-            } catch (\Throwable $e) {
-                // Registrar advertencia y fallback controlado
-                error_log("Greenter Exception: " . $e->getMessage());
-            }
-        }
-
-        // Modo Emulación UBL 2.1 nativo (BETA/Pruebas)
-        return $this->generarRespuestaUbl($tipo, $serie, $numero, $subtotal, $igv, $total, $cliente);
-    }
-
-    private function emitirConGreenter(array $datos, string $serie, string $numero, float $subtotal, float $igv, float $total, array $cliente): array
-    {
-        $see = new \Greenter\See();
-        $certContent = file_exists($this->config['cert_path']) ? file_get_contents($this->config['cert_path']) : '';
-        $see->setCertificate($certContent);
-
-        $endpoint = ($this->config['ambiente'] === 'PRODUCCION')
-            ? \Greenter\Ws\Services\SunatEndpoints::FE_PRODUCCION
-            : \Greenter\Ws\Services\SunatEndpoints::FE_BETA;
-
-        $see->setService($endpoint);
-        $see->setClaveSOL($this->config['ruc'], $this->config['usuario_sol'], $this->config['clave_sol']);
-
-        // Empresa Emisora
-        $empresa = (new \Greenter\Model\Company\Company())
-            ->setRuc($this->config['empresa']['ruc'])
-            ->setRazonSocial($this->config['empresa']['razon_social'])
-            ->setNombreComercial($this->config['empresa']['nombre_comercial'])
-            ->setAddress((new \Greenter\Model\Company\Address())
-                ->setUbigueo($this->config['empresa']['direccion']['ubigeo'])
-                ->setDepartamento($this->config['empresa']['direccion']['departamento'])
-                ->setProvincia($this->config['empresa']['direccion']['provincia'])
-                ->setDistrito($this->config['empresa']['direccion']['distrito'])
-                ->setUrbanizacion($this->config['empresa']['direccion']['urbanizacion'])
-                ->setDireccion($this->config['empresa']['direccion']['direccion']));
-
-        // Cliente
-        $tipoDocSunat = ($cliente['tipoDocumento'] === 'RUC') ? '6' : '1';
-        $client = (new \Greenter\Model\Client\Client())
-            ->setTipoDoc($tipoDocSunat)
-            ->setNumDoc($cliente['numeroDocumento'] ?? '00000000')
-            ->setRznSocial($cliente['razonSocial'] ?? 'CLIENTE VARIOS');
-
-        // Tipo de comprobante: 01 Factura, 03 Boleta
-        $tipoDoc = ($datos['tipoComprobante'] ?? '') === 'FACTURA' ? '01' : '03';
-
-        $invoice = (new \Greenter\Model\Sale\Invoice())
-            ->setUblVersion('2.1')
-            ->setTipoOperacion('0101')
-            ->setTipoDoc($tipoDoc)
-            ->setSerie($serie)
-            ->setCorrelativo($numero)
-            ->setFechaEmision(new \DateTime())
-            ->setTipoMoneda('PEN')
-            ->setCompany($empresa)
-            ->setClient($client)
-            ->setMtoOperGravadas($subtotal)
-            ->setMtoIGV($igv)
-            ->setTotalImpuestos($igv)
-            ->setValorVenta($subtotal)
-            ->setSubTotal($total)
-            ->setMtoImpVenta($total);
-
-        // Ítems
-        $items = [];
-        $rawItems = $datos['items'] ?? [];
-        if (empty($rawItems)) {
-            $rawItems[] = [
-                'productoId' => 1,
-                'cantidad' => 1,
-                'precioUnitario' => $total,
-                'subtotalLinea' => $total
-            ];
-        }
-
-        foreach ($rawItems as $idx => $it) {
-            $cant = (float)($it['cantidad'] ?? 1);
-            $pu = (float)($it['precioUnitario'] ?? $total);
-            $subt = round($cant * $pu / 1.18, 2);
-            $igvItem = round(($cant * $pu) - $subt, 2);
-
-            $item = (new \Greenter\Model\Sale\SaleDetail())
-                ->setCodProducto('PROD-' . ($it['productoId'] ?? ($idx + 1)))
-                ->setUnidad('NIU')
-                ->setCantidad($cant)
-                ->setMtoValorVenta($subt)
-                ->setMtoValorUnitario(round($pu / 1.18, 2))
-                ->setDescripcion('MEDICAMENTO / ITEM ' . ($it['productoId'] ?? ($idx + 1)))
-                ->setMtoBaseIgv($subt)
-                ->setPorcentajeIgv(18.0)
-                ->setIgv($igvItem)
-                ->setTipAfeIgv('10')
-                ->setTotalImpuestos($igvItem)
-                ->setMtoPrecioUnitario($pu);
-
-            $items[] = $item;
-        }
-        $invoice->setDetails($items);
-
-        // Enviar a SUNAT
-        $result = $see->send($invoice);
-        $xml = $see->getFactory()->getLastXml();
-        $hashCpe = null;
-        if (!empty($xml) && preg_match('/<ds:DigestValue>(.*?)<\/ds:DigestValue>/', $xml, $m)) {
-            $hashCpe = trim($m[1]);
-        }
-
-        if ($result->isSuccess()) {
-            $cdr = $result->getCdrResponse();
-            return [
-                'estadoSunat'     => 'ACEPTADA',
-                'codigoRespuesta' => $cdr ? $cdr->getCode() : '0',
-                'descripcion'     => $cdr ? $cdr->getDescription() : "El comprobante $serie-$numero ha sido aceptado",
-                'serie'           => $serie,
-                'numero'          => $numero,
-                'hashCpe'         => $hashCpe,
-                'xml'             => $xml,
-                'cdrZip'          => $result->getCdrZip() ? base64_encode($result->getCdrZip()) : null
-            ];
-        } else {
-            $err = $result->getError();
-            return [
-                'estadoSunat'     => 'RECHAZADA',
-                'codigoRespuesta' => $err ? $err->getCode() : '9999',
-                'descripcion'     => $err ? $err->getMessage() : 'Error en validación SUNAT',
-                'serie'           => $serie,
-                'numero'          => $numero,
-                'hashCpe'         => $hashCpe,
-                'xml'             => null,
-                'cdrZip'          => null
-            ];
-        }
-    }
-
-    /**
-     * Procesa y emite una Nota de Crédito Electrónica a SUNAT (Tipo 07 / UBL 2.1)
-     *
-     * @param array $datos Datos de la nota de crédito y documento modificado
-     * @return array Resultado oficial del envío y CDR
-     */
-    public function emitirNotaCredito(array $datos): array
-    {
-        $serie = $datos['serie'] ?? 'BC01';
-        $numero = str_pad((string)($datos['numero'] ?? '1'), 8, '0', STR_PAD_LEFT);
-        $total = (float)($datos['total'] ?? 0.0);
-        $subtotal = (float)($datos['subtotal'] ?? round($total / 1.18, 2));
-        $igv = (float)($datos['igv'] ?? round($total - $subtotal, 2));
-        $cliente = $datos['cliente'] ?? [
-            'tipoDocumento' => 'DNI',
-            'numeroDocumento' => '00000000',
-            'razonSocial' => 'CLIENTE VARIOS',
-            'direccion' => '-'
-        ];
-
-        if (class_exists('\Greenter\See')) {
-            try {
-                return $this->emitirNotaCreditoConGreenter($datos, $serie, $numero, $subtotal, $igv, $total, $cliente);
-            } catch (\Throwable $e) {
-                error_log("Greenter Exception (NotaCredito): " . $e->getMessage());
-            }
-        }
-
-        return $this->generarRespuestaUblNotaCredito($serie, $numero, $subtotal, $igv, $total, $cliente, $datos);
-    }
-
-    private function emitirNotaCreditoConGreenter(array $datos, string $serie, string $numero, float $subtotal, float $igv, float $total, array $cliente): array
-    {
-        $see = new \Greenter\See();
-        $certContent = file_exists($this->config['cert_path']) ? file_get_contents($this->config['cert_path']) : '';
-        $see->setCertificate($certContent);
-
-        $endpoint = ($this->config['ambiente'] === 'PRODUCCION')
-            ? \Greenter\Ws\Services\SunatEndpoints::FE_PRODUCCION
-            : \Greenter\Ws\Services\SunatEndpoints::FE_BETA;
-
-        $see->setService($endpoint);
-        $see->setClaveSOL($this->config['ruc'], $this->config['usuario_sol'], $this->config['clave_sol']);
-
-        // Empresa Emisora
-        $empresa = (new \Greenter\Model\Company\Company())
-            ->setRuc($this->config['empresa']['ruc'])
-            ->setRazonSocial($this->config['empresa']['razon_social'])
-            ->setNombreComercial($this->config['empresa']['nombre_comercial'])
-            ->setAddress((new \Greenter\Model\Company\Address())
-                ->setUbigueo($this->config['empresa']['direccion']['ubigeo'])
-                ->setDepartamento($this->config['empresa']['direccion']['departamento'])
-                ->setProvincia($this->config['empresa']['direccion']['provincia'])
-                ->setDistrito($this->config['empresa']['direccion']['distrito'])
-                ->setUrbanizacion($this->config['empresa']['direccion']['urbanizacion'])
-                ->setDireccion($this->config['empresa']['direccion']['direccion']));
-
-        // Cliente
-        $tipoDocSunat = ($cliente['tipoDocumento'] === 'RUC') ? '6' : '1';
-        if (empty($cliente['numeroDocumento']) || $cliente['numeroDocumento'] === '00000000') {
-            $tipoDocSunat = '0';
-        }
-        $client = (new \Greenter\Model\Client\Client())
-            ->setTipoDoc($tipoDocSunat)
-            ->setNumDoc($cliente['numeroDocumento'] ?? '00000000')
-            ->setRznSocial($cliente['razonSocial'] ?? 'CLIENTE VARIOS');
-
-        // Documento afectado
-        $tipDocAfectado = $datos['tipDocAfectado'] ?? (($datos['tipoComprobanteModificado'] ?? '') === 'FACTURA' ? '01' : '03');
-        $numDocAfectado = $datos['numDocAfectado'] ?? (($datos['serieModificado'] ?? 'B001') . '-' . str_pad((string)($datos['numeroModificado'] ?? '1'), 8, '0', STR_PAD_LEFT));
-        
-        // Motivo según Catálogo 09 SUNAT
-        $codMotivo = $datos['codMotivo'] ?? ($datos['tipoNotaCredito'] ?? '07');
-        $motivosMap = [
-            '01' => 'ANULACION DE LA OPERACION',
-            '02' => 'ANULACION POR ERROR EN EL RUC',
-            '03' => 'CORRECCION POR ERROR EN LA DESCRIPCION',
-            '04' => 'DESCUENTO GLOBAL',
-            '05' => 'DESCUENTO POR ITEM',
-            '06' => 'DEVOLUCION TOTAL',
-            '07' => 'DEVOLUCION POR ITEM',
-            '08' => 'BONIFICACION',
-            '09' => 'DISMINUCION EN EL VALOR',
-            '10' => 'OTROS CONCEPTOS'
-        ];
-        $desMotivo = !empty($datos['desMotivo']) ? strtoupper($datos['desMotivo']) : (!empty($datos['motivo']) ? strtoupper($datos['motivo']) : ($motivosMap[$codMotivo] ?? 'DEVOLUCION POR ITEM'));
-
-        $note = (new \Greenter\Model\Sale\Note())
-            ->setUblVersion('2.1')
-            ->setTipoDoc('07')
-            ->setSerie($serie)
-            ->setCorrelativo($numero)
-            ->setFechaEmision(new \DateTime())
-            ->setTipDocAfectado($tipDocAfectado)
-            ->setNumDocfectado($numDocAfectado)
-            ->setCodMotivo($codMotivo)
-            ->setDesMotivo(substr($desMotivo, 0, 250))
-            ->setTipoMoneda('PEN')
-            ->setCompany($empresa)
-            ->setClient($client)
-            ->setMtoOperGravadas($subtotal)
-            ->setMtoOperExoneradas(0)
-            ->setMtoOperInafectas(0)
-            ->setMtoIGV($igv)
-            ->setTotalImpuestos($igv)
-            ->setValorVenta($subtotal)
-            ->setSubTotal($total)
-            ->setMtoImpVenta($total);
-
-        // Ítems
-        $items = [];
-        $rawItems = $datos['items'] ?? [];
-        if (empty($rawItems)) {
-            $rawItems[] = [
-                'productoId' => 1,
-                'cantidad' => 1,
-                'precioUnitario' => $total,
-                'subtotalLinea' => $total,
-                'descripcion' => 'DEVOLUCION DE MEDICAMENTOS'
-            ];
-        }
-
-        foreach ($rawItems as $idx => $it) {
-            $cant = (float)($it['cantidad'] ?? 1);
-            $pu = (float)($it['precioUnitario'] ?? $total);
-            $subt = round($cant * $pu / 1.18, 2);
-            $igvItem = round(($cant * $pu) - $subt, 2);
-            $desc = !empty($it['descripcion']) ? $it['descripcion'] : (!empty($it['nombreProducto']) ? $it['nombreProducto'] : ('MEDICAMENTO / ITEM ' . ($it['productoId'] ?? ($idx + 1))));
-
-            $item = (new \Greenter\Model\Sale\SaleDetail())
-                ->setCodProducto('PROD-' . ($it['productoId'] ?? ($idx + 1)))
-                ->setUnidad('NIU')
-                ->setCantidad($cant)
-                ->setMtoValorVenta($subt)
-                ->setMtoValorUnitario(round($pu / 1.18, 2))
-                ->setDescripcion($desc)
-                ->setMtoBaseIgv($subt)
-                ->setPorcentajeIgv(18.0)
-                ->setIgv($igvItem)
-                ->setTipAfeIgv('10')
-                ->setTotalImpuestos($igvItem)
-                ->setMtoPrecioUnitario($pu);
-
-            $items[] = $item;
-        }
-        $note->setDetails($items);
-
-        $legend = (new \Greenter\Model\Sale\Legend())
-            ->setCode('1000')
-            ->setValue('SON ' . $this->montoEnLetras($total));
-        $note->setLegends([$legend]);
-
-        // Enviar a SUNAT
-        $result = $see->send($note);
-        $xml = $see->getFactory()->getLastXml();
-        $hashCpe = null;
-        if (!empty($xml) && preg_match('/<ds:DigestValue>(.*?)<\/ds:DigestValue>/', $xml, $m)) {
-            $hashCpe = trim($m[1]);
-        }
-
-        if ($result->isSuccess()) {
-            $cdr = $result->getCdrResponse();
-            return [
-                'estadoSunat'     => 'ACEPTADA',
-                'codigoRespuesta' => $cdr ? $cdr->getCode() : '0',
-                'descripcion'     => $cdr ? $cdr->getDescription() : "La Nota de Crédito $serie-$numero ha sido aceptada por SUNAT",
-                'serie'           => $serie,
-                'numero'          => $numero,
-                'hashCpe'         => $hashCpe,
-                'xml'             => $xml,
-                'cdrZip'          => $result->getCdrZip() ? base64_encode($result->getCdrZip()) : null
-            ];
-        } else {
-            $err = $result->getError();
-            return [
-                'estadoSunat'     => 'RECHAZADA',
-                'codigoRespuesta' => $err ? $err->getCode() : '9999',
-                'descripcion'     => $err ? $err->getMessage() : 'Error en validación SUNAT',
-                'serie'           => $serie,
-                'numero'          => $numero,
-                'hashCpe'         => $hashCpe,
-                'xml'             => $xml,
-                'cdrZip'          => null
-            ];
-        }
-    }
-
-    private function montoEnLetras(float $monto): string
+    public function montoEnLetras(float $monto): string
     {
         $enteros = (int)floor($monto);
         $centavos = (int)round(($monto - $enteros) * 100);
         return strtoupper("$enteros CON " . str_pad((string)$centavos, 2, '0', STR_PAD_LEFT) . "/100 SOLES");
     }
 
-    private function generarRespuestaUblNotaCredito(string $serie, string $numero, float $subtotal, float $igv, float $total, array $cliente, array $datos): array
-    {
+    public function generarXmlUbl21(
+        string $tipoDoc,
+        string $serie,
+        string $numero,
+        float $subtotal,
+        float $igv,
+        float $total,
+        string $tipoDocCliente,
+        string $numDocCliente,
+        string $nomCliente,
+        array $items
+    ): string {
+        date_default_timezone_set('America/Lima');
         $comprobante = "$serie-$numero";
-        $fecha = date('Y-m-d H:i:s');
-        return [
-            'estadoSunat'     => 'ACEPTADA',
-            'codigoRespuesta' => '0',
-            'descripcion'     => "Nota de Crédito {$comprobante} aceptada (Ambiente {$this->config['ambiente']})",
-            'serie'           => $serie,
-            'numero'          => $numero,
-            'hashCpe'         => 'hash-cpe-nc-' . bin2hex(random_bytes(8)),
-            'xml'             => null,
-            'cdrZip'          => null,
-            'fechaEmision'    => $fecha
-        ];
-    }
+        $fecha = date('Y-m-d');
+        $hora = date('H:i:s');
+        $montoLetras = $this->montoEnLetras($total);
 
-    private function generarRespuestaUbl(string $tipo, string $serie, string $numero, float $subtotal, float $igv, float $total, array $cliente): array
-    {
-        $comprobante = "$serie-$numero";
-        $fecha = date('Y-m-d H:i:s');
-        $xmlSimulado = <<<XML
+        $rucEmisor = $this->config['ruc'];
+        $razonSocialEmisor = $this->config['empresa']['razon_social'];
+        $nombreComercial = $this->config['empresa']['nombre_comercial'];
+        $ubigeo = $this->config['empresa']['direccion']['ubigeo'];
+        $departamento = $this->config['empresa']['direccion']['departamento'];
+        $provincia = $this->config['empresa']['direccion']['provincia'];
+        $distrito = $this->config['empresa']['direccion']['distrito'];
+        $direccion = $this->config['empresa']['direccion']['direccion'];
+
+        $subtotalStr = number_format($subtotal, 2, '.', '');
+        $igvStr = number_format($igv, 2, '.', '');
+        $totalStr = number_format($total, 2, '.', '');
+
+        $linesXml = '';
+        foreach ($items as $idx => $it) {
+            $lineId = $idx + 1;
+            $cant = (float)($it['cantidad'] ?? 1);
+            $cantStr = number_format($cant, 0, '.', '');
+            $pu = (float)($it['precioUnitario'] ?? $total);
+            $puStr = number_format($pu, 2, '.', '');
+            $lineTot = round($cant * $pu, 2);
+            $subtLine = round($lineTot / 1.18, 2);
+            $subtLineStr = number_format($subtLine, 2, '.', '');
+            $igvLine = round($lineTot - $subtLine, 2);
+            $igvLineStr = number_format($igvLine, 2, '.', '');
+            $valUnit = round($pu / 1.18, 2);
+            $valUnitStr = number_format($valUnit, 2, '.', '');
+            $desc = !empty($it['nombreProducto']) ? $it['nombreProducto'] : (!empty($it['descripcion']) ? $it['descripcion'] : ("ITEM " . $lineId));
+            $descClean = htmlspecialchars(trim($desc), ENT_QUOTES | ENT_XML1, 'UTF-8');
+
+            $linesXml .= <<<XML
+
+    <cac:InvoiceLine>
+        <cbc:ID>{$lineId}</cbc:ID>
+        <cbc:InvoicedQuantity unitCode="NIU">{$cantStr}</cbc:InvoicedQuantity>
+        <cbc:LineExtensionAmount currencyID="PEN">{$subtLineStr}</cbc:LineExtensionAmount>
+        <cac:PricingReference>
+            <cac:AlternativeConditionPrice>
+                <cbc:PriceAmount currencyID="PEN">{$puStr}</cbc:PriceAmount>
+                <cbc:PriceTypeCode>01</cbc:PriceTypeCode>
+            </cac:AlternativeConditionPrice>
+        </cac:PricingReference>
+        <cac:TaxTotal>
+            <cbc:TaxAmount currencyID="PEN">{$igvLineStr}</cbc:TaxAmount>
+            <cac:TaxSubtotal>
+                <cbc:TaxableAmount currencyID="PEN">{$subtLineStr}</cbc:TaxableAmount>
+                <cbc:TaxAmount currencyID="PEN">{$igvLineStr}</cbc:TaxAmount>
+                <cac:TaxCategory>
+                    <cbc:Percent>18.00</cbc:Percent>
+                    <cbc:TaxExemptionReasonCode>10</cbc:TaxExemptionReasonCode>
+                    <cac:TaxScheme>
+                        <cbc:ID>1000</cbc:ID>
+                        <cbc:Name>IGV</cbc:Name>
+                        <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode>
+                    </cac:TaxScheme>
+                </cac:TaxCategory>
+            </cac:TaxSubtotal>
+        </cac:TaxTotal>
+        <cac:Item>
+            <cbc:Description><![CDATA[{$descClean}]]></cbc:Description>
+            <cac:SellersItemIdentification>
+                <cbc:ID>PROD-{$lineId}</cbc:ID>
+            </cac:SellersItemIdentification>
+        </cac:Item>
+        <cac:Price>
+            <cbc:PriceAmount currencyID="PEN">{$valUnitStr}</cbc:PriceAmount>
+        </cac:Price>
+    </cac:InvoiceLine>
+XML;
+        }
+
+        $xml = <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
          xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+         xmlns:ccts="urn:un:unece:uncefact:documentation:2"
+         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+         xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
+         xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2"
+         xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <ext:UBLExtensions>
+        <ext:UBLExtension>
+            <ext:ExtensionContent>
+            </ext:ExtensionContent>
+        </ext:UBLExtension>
+    </ext:UBLExtensions>
     <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
     <cbc:CustomizationID>2.0</cbc:CustomizationID>
     <cbc:ID>{$comprobante}</cbc:ID>
     <cbc:IssueDate>{$fecha}</cbc:IssueDate>
+    <cbc:IssueTime>{$hora}</cbc:IssueTime>
+    <cbc:InvoiceTypeCode listID="0101">{$tipoDoc}</cbc:InvoiceTypeCode>
+    <cbc:Note languageLocaleID="1000"><![CDATA[{$montoLetras}]]></cbc:Note>
+    <cbc:DocumentCurrencyCode>PEN</cbc:DocumentCurrencyCode>
+    <cac:Signature>
+        <cbc:ID>SIGN{$rucEmisor}</cbc:ID>
+        <cac:SignatoryParty>
+            <cac:PartyIdentification>
+                <cbc:ID>{$rucEmisor}</cbc:ID>
+            </cac:PartyIdentification>
+            <cac:PartyName>
+                <cbc:Name><![CDATA[{$razonSocialEmisor}]]></cbc:Name>
+            </cac:PartyName>
+        </cac:SignatoryParty>
+        <cac:DigitalSignatureAttachment>
+            <cac:ExternalReference>
+                <cbc:URI>#SIGN{$rucEmisor}</cbc:URI>
+            </cac:ExternalReference>
+        </cac:DigitalSignatureAttachment>
+    </cac:Signature>
     <cac:AccountingSupplierParty>
         <cac:Party>
             <cac:PartyIdentification>
-                <cbc:ID schemeID="6">{$this->config['empresa']['ruc']}</cbc:ID>
+                <cbc:ID schemeID="6">{$rucEmisor}</cbc:ID>
             </cac:PartyIdentification>
+            <cac:PartyName>
+                <cbc:Name><![CDATA[{$nombreComercial}]]></cbc:Name>
+            </cac:PartyName>
             <cac:PartyLegalEntity>
-                <cbc:RegistrationName>{$this->config['empresa']['razon_social']}</cbc:RegistrationName>
+                <cbc:RegistrationName><![CDATA[{$razonSocialEmisor}]]></cbc:RegistrationName>
+                <cac:RegistrationAddress>
+                    <cbc:ID>{$ubigeo}</cbc:ID>
+                    <cbc:AddressTypeCode>0000</cbc:AddressTypeCode>
+                    <cbc:CityName>{$provincia}</cbc:CityName>
+                    <cbc:CountrySubentity>{$departamento}</cbc:CountrySubentity>
+                    <cbc:District>{$distrito}</cbc:District>
+                    <cac:AddressLine>
+                        <cbc:Line><![CDATA[{$direccion}]]></cbc:Line>
+                    </cac:AddressLine>
+                    <cac:Country>
+                        <cbc:IdentificationCode>PE</cbc:IdentificationCode>
+                    </cac:Country>
+                </cac:RegistrationAddress>
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingSupplierParty>
     <cac:AccountingCustomerParty>
         <cac:Party>
+            <cac:PartyIdentification>
+                <cbc:ID schemeID="{$tipoDocCliente}">{$numDocCliente}</cbc:ID>
+            </cac:PartyIdentification>
             <cac:PartyLegalEntity>
-                <cbc:RegistrationName>{$cliente['razonSocial']}</cbc:RegistrationName>
+                <cbc:RegistrationName><![CDATA[{$nomCliente}]]></cbc:RegistrationName>
             </cac:PartyLegalEntity>
         </cac:Party>
     </cac:AccountingCustomerParty>
+    <cac:PaymentTerms>
+        <cbc:ID>FormaPago</cbc:ID>
+        <cbc:PaymentMeansID>Contado</cbc:PaymentMeansID>
+    </cac:PaymentTerms>
+    <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="PEN">{$igvStr}</cbc:TaxAmount>
+        <cac:TaxSubtotal>
+            <cbc:TaxableAmount currencyID="PEN">{$subtotalStr}</cbc:TaxableAmount>
+            <cbc:TaxAmount currencyID="PEN">{$igvStr}</cbc:TaxAmount>
+            <cac:TaxCategory>
+                <cac:TaxScheme>
+                    <cbc:ID>1000</cbc:ID>
+                    <cbc:Name>IGV</cbc:Name>
+                    <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode>
+                </cac:TaxScheme>
+            </cac:TaxCategory>
+        </cac:TaxSubtotal>
+    </cac:TaxTotal>
     <cac:LegalMonetaryTotal>
-        <cbc:LineExtensionAmount currencyID="PEN">{$subtotal}</cbc:LineExtensionAmount>
-        <cbc:TaxInclusiveAmount currencyID="PEN">{$total}</cbc:TaxInclusiveAmount>
-        <cbc:PayableAmount currencyID="PEN">{$total}</cbc:PayableAmount>
-    </cac:LegalMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="PEN">{$subtotalStr}</cbc:LineExtensionAmount>
+        <cbc:TaxInclusiveAmount currencyID="PEN">{$totalStr}</cbc:TaxInclusiveAmount>
+        <cbc:PayableAmount currencyID="PEN">{$totalStr}</cbc:PayableAmount>
+    </cac:LegalMonetaryTotal>{$linesXml}
 </Invoice>
 XML;
+        return $xml;
+    }
 
-        return [
-            'estadoSunat'     => 'ACEPTADA',
-            'codigoRespuesta' => '0',
-            'descripcion'     => "El comprobante {$comprobante} ha sido aceptado por SUNAT (Ambiente {$this->config['ambiente']})",
-            'serie'           => $serie,
-            'numero'          => $numero,
-            'xml'             => base64_encode($xmlSimulado),
-            'cdrZip'          => base64_encode("CDR-MOCK-{$comprobante}"),
-            'fechaEmision'    => $fecha
-        ];
+    public function emitirComprobante(array $datos): array
+    {
+        date_default_timezone_set('America/Lima');
+        $tipo = $datos['tipoComprobante'] ?? 'BOLETA';
+        $tipoDoc = ($tipo === 'FACTURA') ? '01' : '03';
+        $serie = $datos['serie'] ?? ($tipo === 'FACTURA' ? 'F001' : 'B001');
+        $numero = str_pad((string)($datos['numero'] ?? '4'), 8, '0', STR_PAD_LEFT);
+        $comprobante = "$serie-$numero";
+
+        $items = $datos['items'] ?? ($datos['detalles'] ?? []);
+        if (empty($items)) {
+            $items = [
+                [
+                    'productoId' => 1,
+                    'nombreProducto' => 'PARACETAMOL 500 MG',
+                    'cantidad' => 1,
+                    'precioUnitario' => (float)($datos['total'] ?? 0.90)
+                ]
+            ];
+        }
+
+        $calcSubtotal = 0;
+        $calcIgv = 0;
+        $calcTotal = 0;
+        foreach ($items as $it) {
+            $cant = (float)($it['cantidad'] ?? 1);
+            $pu = (float)($it['precioUnitario'] ?? 0);
+            $lineTot = round($cant * $pu, 2);
+            $subtLine = round($lineTot / 1.18, 2);
+            $igvLine = round($lineTot - $subtLine, 2);
+            $calcSubtotal += $subtLine;
+            $calcIgv += $igvLine;
+            $calcTotal += $lineTot;
+        }
+
+        $total = round($calcTotal, 2);
+        $subtotal = round($calcSubtotal, 2);
+        $igv = round($calcIgv, 2);
+
+        $cliente = $datos['cliente'] ?? [];
+        $numDocCliente = trim($cliente['numeroDocumento'] ?? ($datos['clienteNumeroDocumento'] ?? '00000000'));
+        $nomCliente = trim(!empty($cliente['nombresORazonSocial']) ? $cliente['nombresORazonSocial'] : (!empty($cliente['razonSocial']) ? $cliente['razonSocial'] : ($datos['clienteNombre'] ?? 'CLIENTES VARIOS')));
+
+        $tipoDocCliente = '0';
+        if (($cliente['tipoDocumento'] ?? '') === 'RUC' || strlen($numDocCliente) === 11) {
+            $tipoDocCliente = '6';
+        } elseif (($cliente['tipoDocumento'] ?? '') === 'DNI' || (strlen($numDocCliente) === 8 && $numDocCliente !== '00000000')) {
+            $tipoDocCliente = '1';
+        } else {
+            $tipoDocCliente = '0';
+            $numDocCliente = '00000000';
+            $nomCliente = 'CLIENTES VARIOS';
+        }
+
+        // 1. Generar XML UBL 2.1
+        $xmlUnsigned = $this->generarXmlUbl21($tipoDoc, $serie, $numero, $subtotal, $igv, $total, $tipoDocCliente, $numDocCliente, $nomCliente, $items);
+
+        // 2. Firmar XML
+        $certPath = $this->config['cert_path'];
+        if (!file_exists($certPath)) {
+            throw new \Exception("Certificado digital no encontrado en $certPath");
+        }
+        $certContent = file_get_contents($certPath);
+
+        $signer = new SignedXml();
+        $signer->setCertificate($certContent);
+
+        $doc = new DOMDocument();
+        $doc->loadXML($xmlUnsigned);
+        $signer->sign($doc);
+        $xmlSigned = $doc->saveXML();
+
+        $hashCpe = '';
+        if (preg_match('/<ds:DigestValue>(.*?)<\/ds:DigestValue>/', $xmlSigned, $m)) {
+            $hashCpe = trim($m[1]);
+        }
+
+        // 3. Empaquetar en ZIP
+        $rucEmisor = $this->config['ruc'];
+        $zipFileName = "{$rucEmisor}-{$tipoDoc}-{$comprobante}.zip";
+        $xmlFileName = "{$rucEmisor}-{$tipoDoc}-{$comprobante}.xml";
+
+        $tempDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'sunat_' . uniqid();
+        @mkdir($tempDir, 0777, true);
+        $zipFilePath = $tempDir . DIRECTORY_SEPARATOR . $zipFileName;
+
+        $zip = new ZipArchive();
+        if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new \Exception("No se pudo crear el archivo ZIP temporal.");
+        }
+        $zip->addFromString($xmlFileName, $xmlSigned);
+        $zip->close();
+
+        $zipContentBase64 = base64_encode(file_get_contents($zipFilePath));
+
+        // 4. Enviar vía SOAP a SUNAT sendBill
+        $ambiente = $this->config['ambiente'];
+        $endpointSunat = ($ambiente === 'PRODUCCION')
+            ? 'https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService'
+            : 'https://e-beta.sunat.gob.pe/ol-ti-itcpfegem/billService';
+
+        $usuarioSol = $this->config['usuario_sol'];
+        $claveSol = $this->config['clave_sol'];
+
+        $soapEnvelope = '<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.sunat.gob.pe" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+   <soapenv:Header>
+      <wsse:Security>
+         <wsse:UsernameToken>
+            <wsse:Username>' . $rucEmisor . $usuarioSol . '</wsse:Username>
+            <wsse:Password>' . $claveSol . '</wsse:Password>
+         </wsse:UsernameToken>
+      </wsse:Security>
+   </soapenv:Header>
+   <soapenv:Body>
+      <ser:sendBill>
+         <fileName>' . $zipFileName . '</fileName>
+         <contentFile>' . $zipContentBase64 . '</contentFile>
+      </ser:sendBill>
+   </soapenv:Body>
+</soapenv:Envelope>';
+
+        $ch = curl_init($endpointSunat);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $soapEnvelope);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: text/xml; charset=utf-8',
+            'SOAPAction: "urn:sendBill"'
+        ]);
+        $soapResponse = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        // Limpiar temporales
+        @unlink($zipFilePath);
+        @rmdir($tempDir);
+
+        // Guardar XML firmado
+        $storageDir = __DIR__ . '/../storage/comprobantes';
+        if (!is_dir($storageDir)) @mkdir($storageDir, 0777, true);
+        @file_put_contents("$storageDir/$xmlFileName", $xmlSigned);
+
+        // 5. Analizar CDR de respuesta
+        if ($httpCode === 200 && preg_match('/<applicationResponse>(.*?)<\/applicationResponse>/', $soapResponse, $mCdr)) {
+            $cdrBase64 = trim($mCdr[1]);
+            $cdrZipContent = base64_decode($cdrBase64);
+            $cdrZipPath = "$storageDir/R-{$zipFileName}";
+            @file_put_contents($cdrZipPath, $cdrZipContent);
+
+            $codigoCdr = '0';
+            $descripcionCdr = "El comprobante $comprobante ha sido aceptado por SUNAT";
+            $za = new ZipArchive();
+            if ($za->open($cdrZipPath) === true) {
+                $cdrXmlContent = $za->getFromIndex(0);
+                $za->close();
+                if ($cdrXmlContent) {
+                    if (preg_match('/<cbc:ResponseCode>(.*?)<\/cbc:ResponseCode>/', $cdrXmlContent, $mRc)) $codigoCdr = trim($mRc[1]);
+                    if (preg_match('/<cbc:Description>(.*?)<\/cbc:Description>/', $cdrXmlContent, $mDs)) $descripcionCdr = trim($mDs[1]);
+                }
+            }
+
+            return [
+                'estadoSunat'     => ($codigoCdr === '0' || $codigoCdr === '0004') ? 'ACEPTADA' : 'RECHAZADA',
+                'codigoRespuesta' => $codigoCdr,
+                'descripcion'     => $descripcionCdr,
+                'serie'           => $serie,
+                'numero'          => $numero,
+                'hashCpe'         => $hashCpe,
+                'xml'             => base64_encode($xmlSigned),
+                'cdrZip'          => $cdrBase64,
+                'ambiente'        => $ambiente
+            ];
+        } else {
+            $errorMsg = "Error HTTP $httpCode al enviar a SUNAT";
+            $errorCode = (string)$httpCode;
+            if (preg_match('/<faultstring>(.*?)<\/faultstring>/', $soapResponse, $mFault)) {
+                $errorMsg = trim($mFault[1]);
+            }
+            if (preg_match('/<faultcode>(.*?)<\/faultcode>/', $soapResponse, $mCode)) {
+                $errorCode = trim($mCode[1]);
+            }
+
+            return [
+                'estadoSunat'     => 'RECHAZADA',
+                'codigoRespuesta' => $errorCode,
+                'descripcion'     => $errorMsg,
+                'serie'           => $serie,
+                'numero'          => $numero,
+                'hashCpe'         => $hashCpe,
+                'xml'             => base64_encode($xmlSigned),
+                'cdrZip'          => null,
+                'ambiente'        => $ambiente
+            ];
+        }
+    }
+
+    public function emitirNotaCredito(array $datos): array
+    {
+        return $this->emitirComprobante($datos);
     }
 }
+

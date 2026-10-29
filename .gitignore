@@ -36,3 +36,5 @@ backend/ms-sunat-php/vendor/
 Thumbs.db
 .DS_Store
 scratch/
+
+backend/ms-sunat-php/storage/
