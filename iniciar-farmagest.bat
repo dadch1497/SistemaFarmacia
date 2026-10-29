@@ -17,9 +17,26 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8080 ^| findstr LISTENING') 
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8089 ^| findstr LISTENING') do taskkill /F /PID %%a >nul 2>&1
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr :4200 ^| findstr LISTENING') do taskkill /F /PID %%a >nul 2>&1
 
-echo [1/3] Levantando Microservicio SUNAT Oficial en puerto 8089...
+:: Detectar ejecutable de PHP para el microservicio SUNAT
+set "PHP_BIN="
 if exist "C:\xampp\php\php.exe" (
-    start "FarmaGest-SUNAT" /min cmd /c "C:\xampp\php\php.exe -S 127.0.0.1:8089 -t \"%~dp0backend\ms-sunat-php\public\""
+    set "PHP_BIN=C:\xampp\php\php.exe"
+) else (
+    where php >nul 2>&1
+    if not errorlevel 1 (
+        set "PHP_BIN=php"
+    ) else if exist "C:\php\php.exe" (
+        set "PHP_BIN=C:\php\php.exe"
+    )
+)
+
+echo [1/3] Levantando Microservicio SUNAT Oficial en puerto 8089...
+if defined PHP_BIN (
+    echo     Usando PHP: %PHP_BIN%
+    start "FarmaGest-SUNAT" /min cmd /c "%PHP_BIN% -S 127.0.0.1:8089 -t \"%~dp0backend\ms-sunat-php\public\""
+) else (
+    echo     [ADVERTENCIA] No se encontro PHP en el sistema.
+    echo     Para emitir en vivo a SUNAT, instale XAMPP (C:\xampp\php) o PHP en el PATH.
 )
 
 echo [2/3] Levantando API Gateway ^& Microservicios en puerto 8080...

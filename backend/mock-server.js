@@ -404,6 +404,47 @@ let VENTAS = [
     items: [
       { id: 3, productoId: 2, nombreProducto: 'Ibuprofeno 400 mg', loteId: 2, numeroLote: 'L-2024-IBU1', cantidad: 1, precioUnitario: 0.90, costoUnitario: 0.40, descuentoLinea: 0.00, subtotalLinea: 0.90 }
     ]
+  },
+  {
+    id: 4,
+    sucursalId: 1,
+    cajaId: 1,
+    sesionCajaId: 1,
+    usuarioId: 1,
+    usuarioVendedorId: 1,
+    vendedorNombre: 'Administrador Farma Ochenta',
+    nombreVendedor: 'Administrador Farma Ochenta',
+    cliente: {
+      id: 1,
+      tipoDocumento: 'SIN_DOCUMENTO',
+      numeroDocumento: '00000000',
+      nombresORazonSocial: 'CLIENTE VARIOS',
+      direccion: 'Venta Mostrador'
+    },
+    tipoComprobante: 'BOLETA',
+    serieComprobante: 'B001',
+    numeroComprobante: '00000004',
+    subtotal: 0.42,
+    montoDescuento: 0.00,
+    descuentoTotal: 0.00,
+    igv: 0.08,
+    total: 0.50,
+    medioPago: 'EFECTIVO',
+    montoRecibido: 1.00,
+    vuelto: 0.50,
+    estado: 'COMPLETADA',
+    estadoSunat: 'ACEPTADA',
+    hashCpe: 'Hwo8zrwxGiEbg5dA2qR7FCEzMVI=',
+    descripcionSunat: 'La Boleta numero B001-00000004, ha sido aceptada',
+    mensajeSunat: 'La Boleta numero B001-00000004, ha sido aceptada',
+    fechaHora: '2026-10-29T00:04:29Z',
+    fechaVenta: '2026-10-29T00:04:29Z',
+    detalles: [
+      { id: 4, productoId: 1, nombreProducto: 'Paracetamol 500 mg', loteId: 1, numeroLote: 'L-2024-PAR', cantidad: 1, precioUnitario: 0.50, costoUnitario: 0.22, descuentoLinea: 0.00, subtotalLinea: 0.50 }
+    ],
+    items: [
+      { id: 4, productoId: 1, nombreProducto: 'Paracetamol 500 mg', loteId: 1, numeroLote: 'L-2024-PAR', cantidad: 1, precioUnitario: 0.50, costoUnitario: 0.22, descuentoLinea: 0.00, subtotalLinea: 0.50 }
+    ]
   }
 ];
 
@@ -577,7 +618,7 @@ function generarCarSire(ruc, tipoComp, serie, numero) {
 }
 
 function obtenerComprobantesSireRvie() {
-  return [
+  const base = [
     {
       periodo: '202610',
       fechaEmision: '28/10/2026',
@@ -2313,8 +2354,14 @@ if (pathname === '/api/ventas' && req.method === 'GET') {
       const ahora = new Date().toISOString();
       const hashSimulado = Buffer.from(`${serie}-${correlativo}-${totalFinal}-${ahora}`).toString('base64').substring(0, 28);
       const hashFinal = (sunatResult && sunatResult.hashCpe) ? sunatResult.hashCpe : hashSimulado;
-      const estadoSunatFinal = (sunatResult && sunatResult.estadoSunat) ? sunatResult.estadoSunat : 'ACEPTADA';
-      const descSunatFinal = (sunatResult && sunatResult.descripcion) ? sunatResult.descripcion : `El comprobante ${serie}-${correlativo} ha sido aceptado por SUNAT`;
+      const estadoSunatFinal = (sunatResult && sunatResult.estadoSunat) 
+        ? sunatResult.estadoSunat 
+        : (body.tipoComprobante === 'NOTA_VENTA' ? 'NO_APLICA' : 'PENDIENTE_ENVIO');
+      const descSunatFinal = (sunatResult && sunatResult.descripcion) 
+        ? sunatResult.descripcion 
+        : (body.tipoComprobante === 'NOTA_VENTA' 
+            ? 'Nota de venta interna (no requiere envío a SUNAT)' 
+            : 'Comprobante registrado localmente. Microservicio SUNAT (puerto 8089) no disponible.');
       const qrUrl = `https://sunat.gob.pe/cpe?ruc=10734577583&tipo=${body.tipoComprobante === 'FACTURA' ? '01' : '03'}&serie=${serie}&numero=${correlativo}&monto=${totalFinal}&fecha=${ahora.substring(0, 10)}&hash=${encodeURIComponent(hashFinal)}`;
 
       // Si la venta es al crédito, actualizar saldo deudor del cliente
