@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "sucursalId": 1,
+    "sesionCajaId": 1,
+    "ventaId": 3,
+    "tipoComprobanteModificado": "BOLETA",
+    "serieComprobanteModificado": "B001",
+    "numeroComprobanteModificado": "00000003",
+    "serieNotaCredito": "BC01",
+    "numeroNotaCredito": "00000001",
+    "tipoNotaCredito": "07",
+    "descripcionTipoNotaCredito": "Anulación de la operación",
+    "motivoSustento": "Devolución de comprobante B001-3",
+    "cliente": {
+      "id": 2,
+      "tipoDocumento": "DNI",
+      "numeroDocumento": "09189262",
+      "nombresORazonSocial": "YANETT CHAVEZ LEZCANO",
+      "direccion": "Lima"
+    },
+    "fechaHora": "2026-10-28T14:10:00Z",
+    "subtotalDevuelto": 0.76,
+    "igvDevuelto": 0.14,
+    "totalDevuelto": 0.90,
+    "medioReembolso": "EFECTIVO",
+    "reingresoStockRealizado": true,
+    "hashCpe": "eWdlc3Qtbm90YS1jcmVkaXRvLWJjMDE=",
+    "qrCodeUrl": "https://sunat.gob.pe/cpe?ruc=10734577583&tipo=07&serie=BC01&numero=00000001&monto=0.90&fecha=2026-10-28",
+    "estadoSunat": "ACEPTADA",
+    "detalles": [
+      {
+        "id": 1,
+        "productoId": 2,
+        "nombreProducto": "Ibuprofeno 400 mg",
+        "loteId": 2,
+        "numeroLote": "L-2024-IBU1",
+        "cantidadDevuelta": 1,
+        "precioUnitario": 0.90,
+        "subtotal": 0.90,
+        "reingresaAStock": true,
+        "motivoItem": "Devolución de medicamento"
+      }
+    ]
+  }
+]
