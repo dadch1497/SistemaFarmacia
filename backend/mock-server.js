@@ -13,6 +13,8 @@ const http = require('http');
 const url = require('url');
 const https = require('https');
 const querystring = require('querystring');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = 8080;
 
@@ -447,6 +449,83 @@ let VENTAS = [
     ]
   }
 ];
+
+// ==========================================
+// Persistencia en Disco (backend/data/)
+// ==========================================
+const DATA_DIR = path.join(__dirname, 'data');
+const VENTAS_FILE = path.join(DATA_DIR, 'ventas.json');
+const NOTAS_CREDITO_FILE = path.join(DATA_DIR, 'notas_credito.json');
+
+function guardarVentas() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(VENTAS_FILE, JSON.stringify(VENTAS, null, 2), 'utf8');
+    console.log(`[PERSISTENCIA] ${VENTAS.length} ventas guardadas en ventas.json`);
+  } catch (err) {
+    console.error('[PERSISTENCIA ERROR] Error guardando ventas.json:', err.message);
+  }
+}
+
+function cargarVentasPersistidas() {
+  try {
+    if (fs.existsSync(VENTAS_FILE)) {
+      const raw = fs.readFileSync(VENTAS_FILE, 'utf8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data) && data.length > 0) {
+        console.log(`[PERSISTENCIA] ${data.length} ventas cargadas desde ventas.json`);
+        return data;
+      }
+    }
+  } catch (err) {
+    console.error('[PERSISTENCIA ERROR] Error leyendo ventas.json:', err.message);
+  }
+  return null;
+}
+
+function guardarNotasCredito() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(NOTAS_CREDITO_FILE, JSON.stringify(NOTAS_CREDITO, null, 2), 'utf8');
+    console.log(`[PERSISTENCIA] ${NOTAS_CREDITO.length} notas de credito guardadas en notas_credito.json`);
+  } catch (err) {
+    console.error('[PERSISTENCIA ERROR] Error guardando notas_credito.json:', err.message);
+  }
+}
+
+function cargarNotasCreditoPersistidas() {
+  try {
+    if (fs.existsSync(NOTAS_CREDITO_FILE)) {
+      const raw = fs.readFileSync(NOTAS_CREDITO_FILE, 'utf8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.error('[PERSISTENCIA ERROR] Error leyendo notas_credito.json:', err.message);
+  }
+  return null;
+}
+
+// Cargar estado inicial desde disco si existe
+const ventasCargadas = cargarVentasPersistidas();
+if (ventasCargadas) {
+  VENTAS = ventasCargadas;
+} else {
+  guardarVentas();
+}
+
+const ncCargadas = cargarNotasCreditoPersistidas();
+if (ncCargadas) {
+  NOTAS_CREDITO = ncCargadas;
+} else {
+  guardarNotasCredito();
+}
 
 // Proveedores
 let PROVEEDORES = [
@@ -2162,6 +2241,8 @@ if (pathname === '/api/ventas/promociones' && req.method === 'GET') {
       };
 
       NOTAS_CREDITO.unshift(nuevaNotaCredito);
+      guardarNotasCredito();
+      guardarVentas();
       return sendJson(res, 201, nuevaNotaCredito);
     }
 
@@ -2225,6 +2306,7 @@ if (pathname === '/api/ventas' && req.method === 'GET') {
             fechaHora: new Date().toISOString()
           });
         });
+        guardarVentas();
         return sendJson(res, 200, v);
       }
       return sendJson(res, 404, { message: 'Venta no encontrada' });
@@ -2408,6 +2490,7 @@ if (pathname === '/api/ventas' && req.method === 'GET') {
         items: detallesVenta
       };
       VENTAS.unshift(nuevaVenta);
+      guardarVentas();
       AUDITORIA.unshift({
         id: AUDITORIA.length + 1,
         evento: 'VENTA_REGISTRADA',
