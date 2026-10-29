@@ -47,8 +47,11 @@ if ($method === 'GET' && ($uri === '/' || $uri === '/health' || $uri === '/actua
     exit();
 }
 
-// 2. Facturación Electrónica (Greenter / UBL XML)
-if ($method === 'POST' && ($uri === '/factura' || $uri === '/sunat/factura' || $uri === '/api/sunat/enviar')) {
+// 2. Facturación Electrónica y Notas de Crédito (Greenter / UBL XML)
+if ($method === 'POST' && (
+    $uri === '/factura' || $uri === '/sunat/factura' || $uri === '/api/sunat/enviar' ||
+    $uri === '/nota-credito' || $uri === '/sunat/nota-credito' || $uri === '/api/sunat/nota-credito'
+)) {
     $inputRaw = file_get_contents('php://input');
     $data = json_decode($inputRaw, true);
 
@@ -61,7 +64,19 @@ if ($method === 'POST' && ($uri === '/factura' || $uri === '/sunat/factura' || $
     }
 
     try {
-        $resultado = $sunatService->emitirComprobante($data);
+        $tipoDoc = $data['tipoComprobante'] ?? ($data['tipoDocumento'] ?? '');
+        $esNotaCredito = (
+            $tipoDoc === 'NOTA_CREDITO' || 
+            $tipoDoc === '07' || 
+            strpos($uri, 'nota-credito') !== false
+        );
+
+        if ($esNotaCredito) {
+            $resultado = $sunatService->emitirNotaCredito($data);
+        } else {
+            $resultado = $sunatService->emitirComprobante($data);
+        }
+
         http_response_code(200);
         echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     } catch (\Throwable $e) {

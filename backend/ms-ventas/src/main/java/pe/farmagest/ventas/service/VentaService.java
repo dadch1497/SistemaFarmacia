@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -418,11 +419,30 @@ public class VentaService {
         devolucion.setIgvDevuelto(igvDevuelto);
 
         devolucion.setHashCpe("hash-cpe-nc-" + UUID.randomUUID().toString().substring(0, 16));
-        devolucion.setQrCodeUrl("https://sunat.gob.pe/cpe?ruc=20601234567&tipo=07&serie=" + serieNC + "&numero=" + correlativoNC);
-        devolucion.setEstadoSunat("ACEPTADA");
+        devolucion.setQrCodeUrl("https://sunat.gob.pe/cpe?ruc=10734577583&tipo=07&serie=" + serieNC + "&numero=" + correlativoNC);
+        devolucion.setEstadoSunat("PENDIENTE");
 
         // Guardar devolución
         Devolucion guardada = devolucionRepository.save(devolucion);
+
+        // Envío formal a SUNAT vía ms-sunat-php (Greenter UBL 2.1)
+        try {
+            Map<String, Object> sunatResp = sunatPhpClient.enviarNotaCredito(guardada);
+            if (sunatResp != null && !sunatResp.isEmpty()) {
+                String estado = (String) sunatResp.get("estadoSunat");
+                if (estado != null) {
+                    guardada.setEstadoSunat(estado);
+                }
+                String hash = (String) sunatResp.get("hashCpe");
+                if (hash != null) {
+                    guardada.setHashCpe(hash);
+                    guardada.setQrCodeUrl("https://sunat.gob.pe/cpe?ruc=10734577583&tipo=07&serie=" + serieNC + "&numero=" + correlativoNC + "&monto=" + guardada.getTotalDevuelto() + "&hash=" + hash);
+                }
+                guardada = devolucionRepository.save(guardada);
+            }
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(VentaService.class).warn("Error al emitir Nota de Crédito ante SUNAT vía PHP: {}", e.getMessage());
+        }
 
         // Si es devolución total, anular venta
         if ("01".equals(request.getTipoNotaCredito()) || "06".equals(request.getTipoNotaCredito())) {
