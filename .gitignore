@@ -27,8 +27,6 @@ dist/
 .angular/
 
 # PHP / Composer
-vendor/
-backend/ms-sunat-php/vendor/
 *.pfx
 
 # Logs y SO
@@ -38,3 +36,4 @@ Thumbs.db
 scratch/
 
 backend/ms-sunat-php/storage/
+!backend/ms-sunat-php/storage/comprobantes/*

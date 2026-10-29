@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ccts="urn:un:unece:uncefact:documentation:2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2" xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <ext:UBLExtensions>
+        <ext:UBLExtension>
+            <ext:ExtensionContent>
+            <ds:Signature Id="GreenterSign"><ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><ds:Reference URI=""><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><ds:DigestValue>Hwo8zrwxGiEbg5dA2qR7FCEzMVI=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>RXuNyMKWk10vb4xYbteD3gthPd4kPu6+RGJt9ulC21BWibcGUVEMNm/EAYF0yM6F21nkFb2Kg5VQKAeW8cWIHSktg3IpPbv3svKH7uRFCxet9pAzOk/6AfQsKA08v2DIDec4Pz2bmrST/49xSu//a5M13uq27/U1byPgpYfdTfiW4/1JCPyjwwbngfJ3bHrPuVX5S2ymVNGVisP9C2nhuWd1a/Iwhllj4zKbMNEz9f6MRIJ6i9WqM/QmjTIXHtIIOUsY72BGBZ/i2P5IS43rwvfKjxPAKrZOIRVNvqjkYe5dpXfmFsSMZEK7Zc5915cjs5MRiHwsW6zLgA1SWqn5bA==</ds:SignatureValue><ds:KeyInfo><ds:X509Data><ds:X509Certificate>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</ds:X509Certificate><ds:X509Certificate>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</ds:X509Certificate><ds:X509Certificate>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</ds:X509Certificate><ds:X509Certificate>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</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature></ext:ExtensionContent>
+        </ext:UBLExtension>
+    </ext:UBLExtensions>
+    <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+    <cbc:CustomizationID>2.0</cbc:CustomizationID>
+    <cbc:ID>B001-00000004</cbc:ID>
+    <cbc:IssueDate>2026-10-29</cbc:IssueDate>
+    <cbc:IssueTime>00:04:29</cbc:IssueTime>
+    <cbc:InvoiceTypeCode listID="0101">03</cbc:InvoiceTypeCode>
+    <cbc:Note languageLocaleID="1000"><![CDATA[0 CON 50/100 SOLES]]></cbc:Note>
+    <cbc:DocumentCurrencyCode>PEN</cbc:DocumentCurrencyCode>
+    <cac:Signature>
+        <cbc:ID>SIGN10734577583</cbc:ID>
+        <cac:SignatoryParty>
+            <cac:PartyIdentification>
+                <cbc:ID>10734577583</cbc:ID>
+            </cac:PartyIdentification>
+            <cac:PartyName>
+                <cbc:Name><![CDATA[ALTAMIRANO MASIAS DIEGO GABRIEL]]></cbc:Name>
+            </cac:PartyName>
+        </cac:SignatoryParty>
+        <cac:DigitalSignatureAttachment>
+            <cac:ExternalReference>
+                <cbc:URI>#SIGN10734577583</cbc:URI>
+            </cac:ExternalReference>
+        </cac:DigitalSignatureAttachment>
+    </cac:Signature>
+    <cac:AccountingSupplierParty>
+        <cac:Party>
+            <cac:PartyIdentification>
+                <cbc:ID schemeID="6">10734577583</cbc:ID>
+            </cac:PartyIdentification>
+            <cac:PartyName>
+                <cbc:Name><![CDATA[BOTICA FARMA OCHENTA]]></cbc:Name>
+            </cac:PartyName>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName><![CDATA[ALTAMIRANO MASIAS DIEGO GABRIEL]]></cbc:RegistrationName>
+                <cac:RegistrationAddress>
+                    <cbc:ID>150101</cbc:ID>
+                    <cbc:AddressTypeCode>0000</cbc:AddressTypeCode>
+                    <cbc:CityName>LIMA</cbc:CityName>
+                    <cbc:CountrySubentity>LIMA</cbc:CountrySubentity>
+                    <cbc:District>ATE</cbc:District>
+                    <cac:AddressLine>
+                        <cbc:Line><![CDATA[AV. NICOLAS AYLLON 1497]]></cbc:Line>
+                    </cac:AddressLine>
+                    <cac:Country>
+                        <cbc:IdentificationCode>PE</cbc:IdentificationCode>
+                    </cac:Country>
+                </cac:RegistrationAddress>
+            </cac:PartyLegalEntity>
+        </cac:Party>
+    </cac:AccountingSupplierParty>
+    <cac:AccountingCustomerParty>
+        <cac:Party>
+            <cac:PartyIdentification>
+                <cbc:ID schemeID="0">00000000</cbc:ID>
+            </cac:PartyIdentification>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName><![CDATA[CLIENTES VARIOS]]></cbc:RegistrationName>
+            </cac:PartyLegalEntity>
+        </cac:Party>
+    </cac:AccountingCustomerParty>
+    <cac:PaymentTerms>
+        <cbc:ID>FormaPago</cbc:ID>
+        <cbc:PaymentMeansID>Contado</cbc:PaymentMeansID>
+    </cac:PaymentTerms>
+    <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="PEN">0.08</cbc:TaxAmount>
+        <cac:TaxSubtotal>
+            <cbc:TaxableAmount currencyID="PEN">0.42</cbc:TaxableAmount>
+            <cbc:TaxAmount currencyID="PEN">0.08</cbc:TaxAmount>
+            <cac:TaxCategory>
+                <cac:TaxScheme>
+                    <cbc:ID>1000</cbc:ID>
+                    <cbc:Name>IGV</cbc:Name>
+                    <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode>
+                </cac:TaxScheme>
+            </cac:TaxCategory>
+        </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:LegalMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="PEN">0.42</cbc:LineExtensionAmount>
+        <cbc:TaxInclusiveAmount currencyID="PEN">0.50</cbc:TaxInclusiveAmount>
+        <cbc:PayableAmount currencyID="PEN">0.50</cbc:PayableAmount>
+    </cac:LegalMonetaryTotal>
+    <cac:InvoiceLine>
+        <cbc:ID>1</cbc:ID>
+        <cbc:InvoicedQuantity unitCode="NIU">1</cbc:InvoicedQuantity>
+        <cbc:LineExtensionAmount currencyID="PEN">0.42</cbc:LineExtensionAmount>
+        <cac:PricingReference>
+            <cac:AlternativeConditionPrice>
+                <cbc:PriceAmount currencyID="PEN">0.50</cbc:PriceAmount>
+                <cbc:PriceTypeCode>01</cbc:PriceTypeCode>
+            </cac:AlternativeConditionPrice>
+        </cac:PricingReference>
+        <cac:TaxTotal>
+            <cbc:TaxAmount currencyID="PEN">0.08</cbc:TaxAmount>
+            <cac:TaxSubtotal>
+                <cbc:TaxableAmount currencyID="PEN">0.42</cbc:TaxableAmount>
+                <cbc:TaxAmount currencyID="PEN">0.08</cbc:TaxAmount>
+                <cac:TaxCategory>
+                    <cbc:Percent>18.00</cbc:Percent>
+                    <cbc:TaxExemptionReasonCode>10</cbc:TaxExemptionReasonCode>
+                    <cac:TaxScheme>
+                        <cbc:ID>1000</cbc:ID>
+                        <cbc:Name>IGV</cbc:Name>
+                        <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode>
+                    </cac:TaxScheme>
+                </cac:TaxCategory>
+            </cac:TaxSubtotal>
+        </cac:TaxTotal>
+        <cac:Item>
+            <cbc:Description><![CDATA[Paracetamol 500 mg]]></cbc:Description>
+            <cac:SellersItemIdentification>
+                <cbc:ID>PROD-1</cbc:ID>
+            </cac:SellersItemIdentification>
+        </cac:Item>
+        <cac:Price>
+            <cbc:PriceAmount currencyID="PEN">0.42</cbc:PriceAmount>
+        </cac:Price>
+    </cac:InvoiceLine>
+</Invoice>
