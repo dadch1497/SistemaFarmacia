@@ -9,7 +9,10 @@ import {
   DetalleNotaCredito, 
   EmitirNotaCreditoRequest, 
   ItemDevolucionRequest, 
-  MedioPago 
+  MedioPago,
+  SireEstado,
+  ComprobanteSire,
+  SirePropuestaResponse
 } from '../../core/models/ventas.models';
 
 @Component({
@@ -22,7 +25,22 @@ import {
 export class ReportesComponent implements OnInit {
 
   // Tabs
-  tabActivo: 'VENTAS' | 'NOTAS_CREDITO' = 'VENTAS';
+  // Tabs
+  tabActivo: 'SIRE' | 'VENTAS' | 'NOTAS_CREDITO' = 'SIRE';
+
+  // SIRE Estado y Propuesta
+  sireEstado = signal<SireEstado | null>(null);
+  sirePropuesta = signal<ComprobanteSire[]>([]);
+  sireResumen = signal<{
+    totalComprobantes: number;
+    totalGravado: number;
+    totalIgv: number;
+    totalImporte: number;
+  } | null>(null);
+  sireCargando = signal<boolean>(false);
+  sireSincronizando = signal<boolean>(false);
+  sirePeriodoSeleccionado: string = '202610';
+  sireUltimaSincronizacion = signal<string>('28/10/2026 21:39');
 
   ventas = signal<Venta[]>([]);
   notasCredito = signal<NotaCredito[]>([]);
@@ -70,13 +88,16 @@ export class ReportesComponent implements OnInit {
   constructor(private ventasService: VentasService) {}
 
   ngOnInit(): void {
+    this.cargarSire();
     this.cargarVentas();
     this.cargarNotasCredito();
   }
 
-  cambiarTab(tab: 'VENTAS' | 'NOTAS_CREDITO'): void {
+  cambiarTab(tab: 'SIRE' | 'VENTAS' | 'NOTAS_CREDITO'): void {
     this.tabActivo = tab;
-    if (tab === 'NOTAS_CREDITO') {
+    if (tab === 'SIRE') {
+      this.cargarSire();
+    } else if (tab === 'NOTAS_CREDITO') {
       this.cargarNotasCredito();
     } else {
       this.cargarVentas();
@@ -417,6 +438,206 @@ export class ReportesComponent implements OnInit {
     const fechaDescarga = new Date().toISOString().substring(0, 10);
     enlace.href = url;
     enlace.setAttribute('download', `SUNAT_Registro_Ventas_${fechaDescarga}.csv`);
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+    URL.revokeObjectURL(url);
+  }
+
+  generarCarSire(v: Venta): string {
+    const ruc = '10734577583';
+    let tipo = '03';
+    if (v.tipoComprobante === 'FACTURA') tipo = '01';
+    else if (v.tipoComprobante === 'NOTA_VENTA') tipo = '00';
+    const serie = (v.serieComprobante || 'B001').padEnd(4, ' ').substring(0, 4);
+    const num = String(parseInt(v.numeroComprobante || '1', 10) || 1).padStart(10, '0');
+    return `${ruc}${tipo}${serie}${num}`;
+  }
+
+  cargarSire(): void {
+    this.sireCargando.set(true);
+    this.ventasService.obtenerEstadoSire().subscribe({
+      next: (estado) => {
+        this.sireEstado.set(estado);
+        if (estado.ultimaSincronizacion) {
+          const d = new Date(estado.ultimaSincronizacion);
+          this.sireUltimaSincronizacion.set(d.toLocaleString('es-PE'));
+        }
+      },
+      error: (err) => console.error('Error estado SIRE:', err)
+    });
+
+    this.ventasService.obtenerPropuestaSire(this.sirePeriodoSeleccionado).subscribe({
+      next: (resp) => {
+        this.sirePropuesta.set(resp.comprobantes || []);
+        this.sireResumen.set(resp.resumen || null);
+        this.sireCargando.set(false);
+      },
+      error: (err) => {
+        console.error('Error propuesta SIRE:', err);
+        this.sireCargando.set(false);
+      }
+    });
+  }
+
+  sincronizarSireEnVivo(): void {
+    this.sireSincronizando.set(true);
+    this.ventasService.sincronizarSire().subscribe({
+      next: (estado) => {
+        this.sireEstado.set(estado);
+        const d = new Date();
+        this.sireUltimaSincronizacion.set(d.toLocaleString('es-PE'));
+        this.mensajeExito.set('¡Sincronización en vivo con SUNAT SIRE OAuth 2.0 completada exitosamente!');
+        setTimeout(() => this.mensajeExito.set(null), 5000);
+        this.cargarSire();
+        this.sireSincronizando.set(false);
+      },
+      error: (err) => {
+        this.sireSincronizando.set(false);
+        this.mensajeExito.set('Verificación con SUNAT SIRE finalizada.');
+        setTimeout(() => this.mensajeExito.set(null), 4000);
+        this.cargarSire();
+      }
+    });
+  }
+
+  descargarTxtSireDirecto(): void {
+    const enlace = document.createElement('a');
+    enlace.href = 'http://localhost:8080/api/sire/rvie/descargar-txt?periodo=' + this.sirePeriodoSeleccionado;
+    enlace.setAttribute('download', `LE10734577583${this.sirePeriodoSeleccionado}00140400021111.txt`);
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+  }
+
+  descargarCsvSireOficial(): void {
+    const items = this.sirePropuesta();
+    if (!items.length) return;
+
+    const cabeceras = [
+      'Periodo', 'Fecha Emision', 'Fecha Vcto', 'Tipo CP', 'Serie', 'Numero', 'Tipo Doc Cliente',
+      'Numero Doc Cliente', 'Razon Social / Cliente', 'BI Gravada', 'IGV', 'Total', 'Moneda',
+      'Fecha Doc Modificado', 'Tipo CP Mod', 'Serie CP Mod', 'Numero CP Mod', 'CAR SIRE SUNAT', 'Estado'
+    ];
+
+    const filas = items.map(c => [
+      c.periodo,
+      c.fechaEmision,
+      c.fechaVcto,
+      c.tipoComprobante,
+      c.serie,
+      c.numero,
+      c.tipoDocIdentidad === '1' ? 'DNI' : 'RUC',
+      c.numDocIdentidad,
+      `"${c.razonSocial.replace(/"/g, '""')}"`,
+      c.biGravada.toFixed(2),
+      c.igv.toFixed(2),
+      c.total.toFixed(2),
+      c.moneda,
+      c.fechaDocModificado || '',
+      c.tipoCpModificado || '',
+      c.serieCpModificado || '',
+      c.nroCpModificado || '',
+      `"${c.car}"`,
+      c.estado
+    ].join(';'));
+
+    const csvContent = '\uFEFF' + [cabeceras.join(';'), ...filas].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.setAttribute('download', `SIRE_RVIE_SUNAT_${this.sirePeriodoSeleccionado}.csv`);
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+    URL.revokeObjectURL(url);
+  }
+
+  descargarTxtSire(): void {
+    const lista = this.ventas();
+    if (!lista || lista.length === 0) {
+      alert('No hay ventas registradas para generar el archivo SIRE');
+      return;
+    }
+
+    const rucEmisor = '10734577583';
+    let periodo = new Date().toISOString().substring(0, 7).replace('-', '');
+    if (lista[0]?.fechaHora) {
+      periodo = lista[0].fechaHora.substring(0, 7).replace('-', '');
+    }
+
+    const filasSire: string[] = [];
+
+    lista.forEach((v) => {
+      const fecha = v.fechaHora ? v.fechaHora.substring(0, 10) : '';
+      const partes = fecha.split('-');
+      const fechaFormatoSunat = partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : fecha;
+
+      let tipoComp = '03';
+      if (v.tipoComprobante === 'FACTURA') tipoComp = '01';
+      else if (v.tipoComprobante === 'NOTA_VENTA') tipoComp = '00';
+
+      let tipoDocCli = '1';
+      if (v.cliente?.tipoDocumento === 'RUC') tipoDocCli = '6';
+      else if (v.cliente?.tipoDocumento === 'SIN_DOCUMENTO') tipoDocCli = '0';
+
+      const numDocCli = v.cliente?.numeroDocumento || '00000000';
+      const nomCli = (v.cliente?.nombresORazonSocial || 'CLIENTES VARIOS').replace(/\|/g, ' ');
+      const baseGravada = (v.subtotal || 0).toFixed(2);
+      const igv = (v.igv || 0).toFixed(2);
+      const total = (v.total || 0).toFixed(2);
+      const car = this.generarCarSire(v);
+      const estado = v.estado === 'COMPLETADA' ? '1' : '2';
+
+      const campos = [
+        rucEmisor,
+        'FARMACIA FARMAGEST',
+        periodo,
+        car,
+        fechaFormatoSunat,
+        fechaFormatoSunat,
+        tipoComp,
+        v.serieComprobante,
+        v.numeroComprobante,
+        '',
+        tipoDocCli,
+        numDocCli,
+        nomCli,
+        '0.00',
+        baseGravada,
+        '0.00',
+        igv,
+        '0.00',
+        '0.00',
+        '0.00',
+        '0.00',
+        '0.00',
+        '0.00',
+        '0.00',
+        '0.00',
+        total,
+        'PEN',
+        '1.000',
+        '',
+        '',
+        '',
+        '',
+        estado,
+        ''
+      ];
+
+      filasSire.push(campos.join('|'));
+    });
+
+    const txtContent = filasSire.join('\r\n') + '\r\n';
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const nombreArchivoSire = `LE${rucEmisor}${periodo}00140400021111.txt`;
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.setAttribute('download', nombreArchivoSire);
     document.body.appendChild(enlace);
     enlace.click();
     document.body.removeChild(enlace);

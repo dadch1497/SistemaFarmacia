@@ -493,3 +493,175 @@
     display: none !important;
   }
 }
+
+
+/* =================================================== */
+/* ESTILOS SUNAT SIRE OFICIAL (RVIE)                   */
+/* =================================================== */
+.sire-connection-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  background: linear-gradient(135deg, #092e2b 0%, #0f4d47 100%);
+  color: #ffffff;
+  padding: 1.25rem 1.75rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(11, 61, 56, 0.2);
+}
+
+.sire-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.sire-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  font-size: 0.85rem;
+  color: #e2e8f0;
+}
+
+.sire-detail-item strong {
+  color: #a7f3d0;
+}
+
+.tag-jwt {
+  background: #0284c7;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sire-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-sire-sync {
+  background-color: #10b981;
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.btn-sire-sync:hover {
+  background-color: #059669;
+}
+
+.spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+.sire-tab-btn {
+  background: #f0fdf4 !important;
+  color: #065f46 !important;
+  border-color: #a7f3d0 !important;
+  font-weight: 700 !important;
+}
+
+.sire-tab-btn.active {
+  background: #047857 !important;
+  color: #ffffff !important;
+  border-color: #047857 !important;
+}
+
+.tabla-sire-oficial th {
+  white-space: nowrap;
+  font-size: 11.5px;
+  background-color: #f1f5f9;
+  color: #334155;
+  padding: 10px 12px;
+}
+
+.tabla-sire-oficial td {
+  font-size: 12.5px;
+  padding: 10px 12px;
+  white-space: nowrap;
+}
+
+.badge-tipo-cp {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 11.5px;
+}
+
+.badge-cp-03 {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-cp-07 {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.car-badge {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #0f766e;
+  font-weight: 600;
+}
+
+.chip-estado-sire {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.estado-sire-activo {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.estado-sire-anulado {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-modificado {
+  background: #fef9c3;
+  color: #854d0e;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.row-nc {
+  background-color: #fffaf0;
+}
+
+.row-anulado {
+  opacity: 0.85;
+}

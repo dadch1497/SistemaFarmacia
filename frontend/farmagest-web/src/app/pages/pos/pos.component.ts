@@ -86,6 +86,8 @@ export class PosComponent implements OnInit {
   };
 
   // Formulario de Cobro
+  siguienteNumeroBoleta = signal<number>(4);
+  siguienteNumeroFactura = signal<number>(1);
   tipoComprobante: TipoComprobante = 'BOLETA';
   medioPago: MedioPago = 'EFECTIVO';
   montoRecibido: number = 0;
@@ -129,6 +131,7 @@ export class PosComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDatosIniciales();
+    this.cargarProximoCorrelativo();
   }
 
   cargarDatosIniciales(): void {
@@ -169,6 +172,25 @@ export class PosComponent implements OnInit {
     // 4. Cargar cliente genérico por defecto
     this.ventasService.buscarClientePorDocumento('00000000').subscribe({
       next: (cli) => this.clienteSeleccionado.set(cli),
+      error: () => {}
+    });
+  }
+
+  cargarProximoCorrelativo(): void {
+    this.ventasService.listarVentas().subscribe({
+      next: (ventas) => {
+        let maxB = 3;
+        let maxF = 0;
+        for (const v of ventas) {
+          const num = parseInt(v.numeroComprobante, 10);
+          if (!isNaN(num)) {
+            if (v.serieComprobante === 'B001' && num > maxB) maxB = num;
+            if (v.serieComprobante === 'F001' && num > maxF) maxF = num;
+          }
+        }
+        this.siguienteNumeroBoleta.set(maxB + 1);
+        this.siguienteNumeroFactura.set(maxF + 1);
+      },
       error: () => {}
     });
   }
@@ -425,6 +447,9 @@ export class PosComponent implements OnInit {
   normalizarDocumento(): void {
     const longitud = this.tipoComprobante === 'FACTURA' ? 11 : 8;
     this.docBusqueda = this.docBusqueda.replace(/\D/g, '').slice(0, longitud);
+    if (this.documentoBusquedaValido() && !this.consultandoDocumento) {
+      this.buscarCliente();
+    }
   }
 
   documentoBusquedaValido(): boolean {
@@ -674,6 +699,7 @@ export class PosComponent implements OnInit {
         this.modalTicketAbierto = true;
         this.limpiarCarrito();
         this.actualizarStockLocal(request.items);
+        this.cargarProximoCorrelativo();
         this.mostrarExito(`Venta registrada exitosamente con Comprobante ${venta.serieComprobante}-${venta.numeroComprobante}`);
       },
       error: (err) => {

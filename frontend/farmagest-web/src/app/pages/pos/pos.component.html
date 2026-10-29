@@ -399,8 +399,8 @@
       <aside class="ticket-pane" aria-label="Carrito de venta">
         <div class="cart-heading"><h2>Carrito <span class="cart-count" aria-live="polite">{{ carrito().length }} {{ carrito().length === 1 ? 'producto' : 'productos' }}</span></h2><button type="button" class="cart-clear" (click)="limpiarCarrito()" [disabled]="!carrito().length">Vaciar</button></div>
         <div class="comprobante-toggle" role="group" aria-label="Tipo de comprobante">
-          <button type="button" class="toggle-btn" [class.active]="tipoComprobante === 'BOLETA'" [attr.aria-pressed]="tipoComprobante === 'BOLETA'" (click)="tipoComprobante = 'BOLETA'">Boleta (B001)</button>
-          <button type="button" class="toggle-btn" [class.active]="tipoComprobante === 'FACTURA'" [attr.aria-pressed]="tipoComprobante === 'FACTURA'" (click)="tipoComprobante = 'FACTURA'">Factura (F001)</button>
+          <button type="button" class="toggle-btn" [class.active]="tipoComprobante === 'BOLETA'" [attr.aria-pressed]="tipoComprobante === 'BOLETA'" (click)="tipoComprobante = 'BOLETA'">Boleta (B001-{{ siguienteNumeroBoleta() }})</button>
+          <button type="button" class="toggle-btn" [class.active]="tipoComprobante === 'FACTURA'" [attr.aria-pressed]="tipoComprobante === 'FACTURA'" (click)="tipoComprobante = 'FACTURA'">Factura (F001-{{ siguienteNumeroFactura() }})</button>
         </div>
         <div class="cart-client">
           <div *ngIf="tipoComprobante === 'BOLETA'" class="client-card">
@@ -412,7 +412,7 @@
             <label for="cart-document">{{ tipoComprobante === 'FACTURA' ? 'RUC del cliente (obligatorio)' : 'DNI del cliente' }}</label>
             <div class="document-row"><input id="cart-document" type="text" inputmode="numeric" [attr.maxlength]="tipoComprobante === 'FACTURA' ? 11 : 8" [attr.pattern]="tipoComprobante === 'FACTURA' ? '[0-9]{11}' : '[0-9]{8}'" [(ngModel)]="docBusqueda" (input)="normalizarDocumento()" (keyup.enter)="buscarCliente()" [placeholder]="tipoComprobante === 'FACTURA' ? '11 dígitos' : '8 dígitos'" [attr.aria-invalid]="!!mensajeDocumento()" aria-describedby="cart-document-help"/><button type="button" class="cart-outline" (click)="buscarCliente()" [disabled]="!documentoBusquedaValido() || consultandoDocumento">{{ consultandoDocumento ? 'Buscando…' : (tipoComprobante === 'FACTURA' ? 'Buscar' : 'Validar') }}</button></div>
             <p *ngIf="mensajeDocumento()" id="cart-document-help" class="document-error" role="status">{{ mensajeDocumento() }}</p>
-            <p *ngIf="tipoComprobante === 'FACTURA' && !mensajeDocumento()" class="client-found">{{ clienteSeleccionado()?.nombresORazonSocial }} · {{ clienteSeleccionado()?.numeroDocumento }}</p>
+            <p *ngIf="clienteSeleccionado() && clienteSeleccionado()?.numeroDocumento !== '00000000' && !mensajeDocumento()" class="client-found" style="color: #059669; font-weight: 600; margin-top: 4px;">✓ {{ clienteSeleccionado()?.nombresORazonSocial }} · {{ clienteSeleccionado()?.tipoDocumento }} {{ clienteSeleccionado()?.numeroDocumento }}</p>
           </div>
           <div *ngIf="carritoTieneMedicamentosConReceta()" class="alerta-receta-ticket"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3Z M12 9v4m0 3v1"/></svg><span><strong>Exige receta médica.</strong> Validar la prescripción física firmada.</span></div>
         </div>
