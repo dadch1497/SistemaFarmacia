@@ -1,5 +1,77 @@
 [
   {
+    "id": 5,
+    "sucursalId": 1,
+    "cajaId": 1,
+    "sesionCajaId": 1,
+    "usuarioId": 1,
+    "usuarioVendedorId": 1,
+    "vendedorNombre": "Administrador Farma Ochenta",
+    "nombreVendedor": "Administrador Farma Ochenta",
+    "cliente": {
+      "id": 1,
+      "tipoDocumento": "SIN_DOCUMENTO",
+      "numeroDocumento": "00000000",
+      "nombresORazonSocial": "CLIENTE VARIOS",
+      "direccion": "Venta Mostrador",
+      "telefono": "",
+      "email": "",
+      "activo": true,
+      "limiteCredito": 0,
+      "saldoDeudor": 0,
+      "diasCredito": 0
+    },
+    "tipoComprobante": "BOLETA",
+    "serieComprobante": "B001",
+    "numeroComprobante": "00000005",
+    "subtotal": 0.76,
+    "montoDescuento": 0,
+    "descuentoTotal": 0,
+    "igv": 0.14,
+    "total": 0.9,
+    "medioPago": "EFECTIVO",
+    "montoEfectivo": 0.9,
+    "montoRecibido": 0.9,
+    "montoVuelto": 0,
+    "vuelto": 0,
+    "estado": "COMPLETADA",
+    "estadoSunat": "ACEPTADA",
+    "codigoSunat": "0",
+    "descripcionSunat": "El comprobante B001-00000005 ha sido aceptado por SUNAT",
+    "hashCpe": "pC7ANsRvPxpIvv/vynd0tt7qg+E=",
+    "cdrZip": "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",
+    "qrCodeUrl": "https://sunat.gob.pe/cpe?ruc=10734577583&tipo=03&serie=B001&numero=00000005&monto=0.9&fecha=2026-10-29&hash=pC7ANsRvPxpIvv%2Fvynd0tt7qg%2BE%3D",
+    "fechaHora": "2026-10-29T06:21:28.657Z",
+    "fechaVenta": "2026-10-29T06:21:28.657Z",
+    "observaciones": "",
+    "detalles": [
+      {
+        "id": 1,
+        "productoId": 2,
+        "nombreProducto": "Ibuprofeno 400 mg",
+        "numeroLote": "FEFO-LOTE",
+        "cantidad": 1,
+        "precioUnitario": 0.9,
+        "costoUnitario": 0.4,
+        "descuentoLinea": 0,
+        "subtotalLinea": 0.9
+      }
+    ],
+    "items": [
+      {
+        "id": 1,
+        "productoId": 2,
+        "nombreProducto": "Ibuprofeno 400 mg",
+        "numeroLote": "FEFO-LOTE",
+        "cantidad": 1,
+        "precioUnitario": 0.9,
+        "costoUnitario": 0.4,
+        "descuentoLinea": 0,
+        "subtotalLinea": 0.9
+      }
+    ]
+  },
+  {
     "id": 1,
     "sucursalId": 1,
     "cajaId": 1,
@@ -19,15 +91,15 @@
     "serieComprobante": "B001",
     "numeroComprobante": "00000001",
     "subtotal": 0.76,
-    "montoDescuento": 0.00,
-    "descuentoTotal": 0.00,
+    "montoDescuento": 0,
+    "descuentoTotal": 0,
     "igv": 0.14,
-    "total": 0.90,
+    "total": 0.9,
     "medioPago": "EFECTIVO",
-    "montoEfectivo": 1.00,
-    "montoRecibido": 1.00,
-    "montoVuelto": 0.10,
-    "vuelto": 0.10,
+    "montoEfectivo": 1,
+    "montoRecibido": 1,
+    "montoVuelto": 0.1,
+    "vuelto": 0.1,
     "estado": "COMPLETADA",
     "fechaHora": "2026-10-28T10:15:00Z",
     "fechaVenta": "2026-10-28T10:15:00Z",
@@ -39,10 +111,10 @@
         "loteId": 2,
         "numeroLote": "L-2024-IBU1",
         "cantidad": 1,
-        "precioUnitario": 0.90,
-        "costoUnitario": 0.40,
-        "descuentoLinea": 0.00,
-        "subtotalLinea": 0.90
+        "precioUnitario": 0.9,
+        "costoUnitario": 0.4,
+        "descuentoLinea": 0,
+        "subtotalLinea": 0.9
       }
     ],
     "items": [
@@ -53,10 +125,10 @@
         "loteId": 2,
         "numeroLote": "L-2024-IBU1",
         "cantidad": 1,
-        "precioUnitario": 0.90,
-        "costoUnitario": 0.40,
-        "descuentoLinea": 0.00,
-        "subtotalLinea": 0.90
+        "precioUnitario": 0.9,
+        "costoUnitario": 0.4,
+        "descuentoLinea": 0,
+        "subtotalLinea": 0.9
       }
     ]
   },
@@ -80,13 +152,13 @@
     "serieComprobante": "B001",
     "numeroComprobante": "00000002",
     "subtotal": 0.76,
-    "montoDescuento": 0.00,
-    "descuentoTotal": 0.00,
+    "montoDescuento": 0,
+    "descuentoTotal": 0,
     "igv": 0.14,
-    "total": 0.90,
+    "total": 0.9,
     "medioPago": "EFECTIVO",
-    "montoRecibido": 1.00,
-    "vuelto": 0.10,
+    "montoRecibido": 1,
+    "vuelto": 0.1,
     "estado": "COMPLETADA",
     "fechaHora": "2026-10-28T11:30:00Z",
     "fechaVenta": "2026-10-28T11:30:00Z",
@@ -98,10 +170,10 @@
         "loteId": 2,
         "numeroLote": "L-2024-IBU1",
         "cantidad": 1,
-        "precioUnitario": 0.90,
-        "costoUnitario": 0.40,
-        "descuentoLinea": 0.00,
-        "subtotalLinea": 0.90
+        "precioUnitario": 0.9,
+        "costoUnitario": 0.4,
+        "descuentoLinea": 0,
+        "subtotalLinea": 0.9
       }
     ],
     "items": [
@@ -112,10 +184,10 @@
         "loteId": 2,
         "numeroLote": "L-2024-IBU1",
         "cantidad": 1,
-        "precioUnitario": 0.90,
-        "costoUnitario": 0.40,
-        "descuentoLinea": 0.00,
-        "subtotalLinea": 0.90
+        "precioUnitario": 0.9,
+        "costoUnitario": 0.4,
+        "descuentoLinea": 0,
+        "subtotalLinea": 0.9
       }
     ]
   },
@@ -139,13 +211,13 @@
     "serieComprobante": "B001",
     "numeroComprobante": "00000003",
     "subtotal": 0.76,
-    "montoDescuento": 0.00,
-    "descuentoTotal": 0.00,
+    "montoDescuento": 0,
+    "descuentoTotal": 0,
     "igv": 0.14,
-    "total": 0.90,
+    "total": 0.9,
     "medioPago": "EFECTIVO",
-    "montoRecibido": 1.00,
-    "vuelto": 0.10,
+    "montoRecibido": 1,
+    "vuelto": 0.1,
     "estado": "ANULADA",
     "notaCreditoReferencia": "BC01-00000001",
     "fechaHora": "2026-10-28T12:00:00Z",
@@ -158,10 +230,10 @@
         "loteId": 2,
         "numeroLote": "L-2024-IBU1",
         "cantidad": 1,
-        "precioUnitario": 0.90,
-        "costoUnitario": 0.40,
-        "descuentoLinea": 0.00,
-        "subtotalLinea": 0.90
+        "precioUnitario": 0.9,
+        "costoUnitario": 0.4,
+        "descuentoLinea": 0,
+        "subtotalLinea": 0.9
       }
     ],
     "items": [
@@ -172,10 +244,10 @@
         "loteId": 2,
         "numeroLote": "L-2024-IBU1",
         "cantidad": 1,
-        "precioUnitario": 0.90,
-        "costoUnitario": 0.40,
-        "descuentoLinea": 0.00,
-        "subtotalLinea": 0.90
+        "precioUnitario": 0.9,
+        "costoUnitario": 0.4,
+        "descuentoLinea": 0,
+        "subtotalLinea": 0.9
       }
     ]
   },
@@ -199,13 +271,13 @@
     "serieComprobante": "B001",
     "numeroComprobante": "00000004",
     "subtotal": 0.42,
-    "montoDescuento": 0.00,
-    "descuentoTotal": 0.00,
+    "montoDescuento": 0,
+    "descuentoTotal": 0,
     "igv": 0.08,
-    "total": 0.50,
+    "total": 0.5,
     "medioPago": "EFECTIVO",
-    "montoRecibido": 1.00,
-    "vuelto": 0.50,
+    "montoRecibido": 1,
+    "vuelto": 0.5,
     "estado": "COMPLETADA",
     "estadoSunat": "ACEPTADA",
     "hashCpe": "Hwo8zrwxGiEbg5dA2qR7FCEzMVI=",
@@ -221,10 +293,10 @@
         "loteId": 1,
         "numeroLote": "L-2024-PAR",
         "cantidad": 1,
-        "precioUnitario": 0.50,
+        "precioUnitario": 0.5,
         "costoUnitario": 0.22,
-        "descuentoLinea": 0.00,
-        "subtotalLinea": 0.50
+        "descuentoLinea": 0,
+        "subtotalLinea": 0.5
       }
     ],
     "items": [
@@ -235,10 +307,10 @@
         "loteId": 1,
         "numeroLote": "L-2024-PAR",
         "cantidad": 1,
-        "precioUnitario": 0.50,
+        "precioUnitario": 0.5,
         "costoUnitario": 0.22,
-        "descuentoLinea": 0.00,
-        "subtotalLinea": 0.50
+        "descuentoLinea": 0,
+        "subtotalLinea": 0.5
       }
     ]
   }
