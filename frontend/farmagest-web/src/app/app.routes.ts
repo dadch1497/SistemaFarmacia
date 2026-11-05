@@ -1,4 +1,3 @@
-import { ConteoComponent } from './pages/conteo/conteo.component';
 import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
@@ -35,7 +34,6 @@ export const routes: Routes = [
       { path: 'pos/mis-ventas', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'productos', component: ProductosComponent },
       { path: 'productos/consulta', component: ProductosComponent },
-      { path: 'inventario/conteos', component: ConteoComponent, canActivate: [reportesRoleGuard], data: { roles: ['ROLE_ADMINISTRADOR'] } },
       { path: 'inventario', component: InventarioComponent, canActivate: [reportesRoleGuard], data: { roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO', 'ROLE_VENDEDOR'] } },
       { path: 'inventario/alertas', component: InventarioComponent, canActivate: [reportesRoleGuard], data: { roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO', 'ROLE_VENDEDOR'] } },
       { path: 'compras', component: ComprasComponent },
