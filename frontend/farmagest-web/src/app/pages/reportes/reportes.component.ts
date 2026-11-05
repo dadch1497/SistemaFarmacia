@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VentasService } from '../../core/services/ventas.service';
+import { AuthService } from '../../core/services/auth.service';
 import { 
   Venta, 
   NotaCredito, 
@@ -81,11 +82,15 @@ export class ReportesComponent implements OnInit {
 
   // Filtros
   filtroComprobante: string = 'TODOS';
+  filtroVendedor: string = 'TODOS';
   filtroFechaDesde: string = '';
   filtroFechaHasta: string = '';
   busquedaTexto: string = '';
 
-  constructor(private ventasService: VentasService) {}
+  constructor(
+    private ventasService: VentasService,
+    public authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.cargarSire();
@@ -306,6 +311,14 @@ export class ReportesComponent implements OnInit {
         return false;
       }
 
+      // Filtro vendedor (especialmente para el Administrador)
+      if (this.filtroVendedor !== 'TODOS') {
+        const vId = parseInt(this.filtroVendedor, 10);
+        if ((v.usuarioId || v.usuarioVendedorId) !== vId) {
+          return false;
+        }
+      }
+
       // Filtro de fechas (formato YYYY-MM-DD)
       if (this.filtroFechaDesde && v.fechaHora) {
         const fDesde = this.filtroFechaDesde;
@@ -348,6 +361,27 @@ export class ReportesComponent implements OnInit {
 
   totalImporteFacturado(): number {
     return Number(this.ventasFiltradas().reduce((sum, v) => sum + (v.total || 0), 0).toFixed(2));
+  }
+
+  obtenerEtiquetaVendedor(v: Venta): string {
+    const uid = v.usuarioId || v.usuarioVendedorId;
+    if (uid === 2 || v.nombreVendedor?.includes('Carlos') || v.vendedorNombre?.includes('Carlos')) {
+      return 'Carlos Gómez Soto (Vendedor 1)';
+    }
+    if (uid === 3 || v.nombreVendedor?.includes('Lucía') || v.vendedorNombre?.includes('Lucía') || v.nombreVendedor?.includes('Lucia') || v.vendedorNombre?.includes('Lucia')) {
+      return 'Lucía Morales Rivas (Vendedor 2)';
+    }
+    if (uid === 1 || v.nombreVendedor?.includes('Admin') || v.vendedorNombre?.includes('Admin')) {
+      return 'Admin (Administrador Farma Ochenta)';
+    }
+    return v.nombreVendedor || v.vendedorNombre || 'Admin';
+  }
+
+  obtenerClaseVendedor(v: Venta): string {
+    const uid = v.usuarioId || v.usuarioVendedorId;
+    if (uid === 2) return 'badge-vend1';
+    if (uid === 3) return 'badge-vend2';
+    return 'badge-vend-admin';
   }
 
   // ==========================================

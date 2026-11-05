@@ -10,7 +10,7 @@ cd /d "%~dp0"
 :: Verificar ruta de git
 where git >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    set "PATH=C:\Program Files\Git\cmd;%PATH%"
+    set "PATH=C:\Users\DADCH1497\MinGit\cmd;C:\Program Files\Git\cmd;%PATH%"
 )
 
 set COMMIT_MSG=%*

@@ -230,6 +230,20 @@
   <!-- TAB 1: REGISTRO DE VENTAS & COMPROBANTES                -->
   <!-- ======================================================== -->
   <div *ngIf="tabActivo === 'VENTAS'">
+    <!-- Aviso de Reporte Exclusivo para Vendedor -->
+    <div *ngIf="authService.isVendedor()" class="banner-vendedor-exclusivo" style="background: #e6f4f1; border-left: 4px solid #0B3D38; padding: 12px 18px; border-radius: 8px; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 22px;">👤</span>
+        <div>
+          <strong style="color: #0B3D38; font-size: 14.5px;">Reporte Exclusivo de Mis Ventas Personales</strong>
+          <p style="margin: 2px 0 0 0; font-size: 13px; color: #334155;">
+            Mostrando únicamente los comprobantes emitidos en mostrador por <strong>{{ authService.currentUser()?.nombres }} {{ authService.currentUser()?.apellidos }} ({{ authService.currentUser()?.username }})</strong>
+          </p>
+        </div>
+      </div>
+      <span class="badge" style="background: #0B3D38; color: #ffffff; padding: 5px 12px; border-radius: 6px; font-weight: 700; font-size: 12px;">FILTRO PERSONAL ACTIVO</span>
+    </div>
+
     <!-- Tarjetas Resumen de Impuestos y Facturación -->
     <div class="kpi-grid-sunat">
       <div class="kpi-card">
@@ -266,6 +280,17 @@
           <option value="BOLETA">Solo Boletas (B001)</option>
           <option value="FACTURA">Solo Facturas (F001 con RUC)</option>
           <option value="NOTA_VENTA">Notas de Venta</option>
+        </select>
+      </div>
+
+      <!-- Filtro por Vendedor (Exclusivo Administrador) -->
+      <div class="filtro-group" *ngIf="authService.isAdmin()">
+        <label>Personal de Mostrador:</label>
+        <select [(ngModel)]="filtroVendedor" class="form-select">
+          <option value="TODOS">Todos los vendedores</option>
+          <option value="2">Vendedor 1 (Carlos Gómez Soto)</option>
+          <option value="3">Vendedor 2 (Lucía Morales Rivas)</option>
+          <option value="1">Administrador (Admin)</option>
         </select>
       </div>
 
@@ -307,6 +332,7 @@
               <th>Fecha / Hora</th>
               <th>Tipo</th>
               <th>Comprobante</th>
+              <th>Vendedor</th>
               <th>CAR SIRE (SUNAT)</th>
               <th>Doc. Cliente</th>
               <th>Razón Social / Cliente</th>
@@ -330,6 +356,11 @@
               </td>
               <td>
                 <strong class="comprobante-tag">{{ v.serieComprobante }}-{{ v.numeroComprobante }}</strong>
+              </td>
+              <td>
+                <span class="badge-vendedor" [ngClass]="obtenerClaseVendedor(v)" style="display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 700; white-space: nowrap;">
+                  {{ obtenerEtiquetaVendedor(v) }}
+                </span>
               </td>
               <td>
                 <span class="code-badge font-mono" style="font-size: 10.5px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0B3D38; font-weight: 600;" [title]="'CAR: ' + generarCarSire(v)">

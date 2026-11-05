@@ -97,6 +97,7 @@
       <div class="topbar-right">
         <!-- Acceso directo destacado: Devolución de ventas con notas crédito -->
         <a 
+          *ngIf="!authService.isAlmacenero()"
           routerLink="/devoluciones" 
           routerLinkActive="topbar-devolucion-activo"
           class="btn-topbar-devolucion"

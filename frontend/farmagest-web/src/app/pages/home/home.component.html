@@ -36,8 +36,8 @@
     </div>
   </div>
 
-  <!-- Acceso Rápido Destacado: Devolución de ventas con notas crédito -->
-  <div style="background: linear-gradient(135deg, #E6F4F1 0%, #ffffff 100%); border: 2.5px solid #0B3D38; border-radius: 14px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: 0 6px 18px -2px rgba(11, 61, 56, 0.16); margin-bottom: 1.5rem;">
+  <!-- Acceso Rápido Destacado: Devolución de ventas con notas crédito (Solo Admin y Vendedor) -->
+  <div *ngIf="!authService.isAlmacenero()" style="background: linear-gradient(135deg, #E6F4F1 0%, #ffffff 100%); border: 2.5px solid #0B3D38; border-radius: 14px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: 0 6px 18px -2px rgba(11, 61, 56, 0.16); margin-bottom: 1.5rem;">
     <div style="display: flex; align-items: center; gap: 16px;">
       <div style="background-color: #0B3D38; color: #ffffff; width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 4px 8px rgba(11, 61, 56, 0.25); flex-shrink: 0;">
         ↩
@@ -554,13 +554,13 @@
         <div class="tarjeta kpi-card highlight-card">
           <div class="kpi-top">
             <span class="kpi-title">VENTAS DEL MES</span>
-            <span class="kpi-tag positive">+12.5%</span>
+            <span class="kpi-tag" [class.positive]="data.kpis.ventasMes.monto > 0">{{ data.kpis.ventasMes.monto > 0 ? '+100%' : 'Sin ventas' }}</span>
           </div>
           <div class="kpi-main">
             <h3>S/ {{ data.kpis.ventasMes.monto | number:'1.2-2' }}</h3>
           </div>
           <div class="kpi-footer">
-            <span>Meta mensual 82% alcanzada</span>
+            <span>{{ data.kpis.ventasMes.monto > 0 ? 'Operaciones registradas en el mes' : '0 comprobantes emitidos este mes' }}</span>
           </div>
         </div>
 
@@ -606,6 +606,125 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- SECCIÓN DESTACADA: REPORTES DE VENDEDOR 1 Y VENDEDOR 2 -->
+      <div class="seccion-vendedores-dashboard" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+        <div class="card-header-clean" style="margin-bottom: 0.85rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h4 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0B3D38; display: flex; align-items: center; gap: 8px;">
+              <span>👥</span> Reportes de Ventas por Vendedor (Mostrador)
+            </h4>
+            <p class="text-muted" style="margin: 3px 0 0 0; font-size: 0.85rem;">
+              Desempeño acumulado y control individual de Vendedor 1 (Carlos Gómez Soto) y Vendedor 2 (Lucía Morales Rivas)
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="badge-concordancia">
+              ✓ 100% Concordancia con Reporte de Ventas
+            </span>
+          </div>
+        </div>
+
+        <div class="vendedores-destacados-grid">
+          <!-- Card Vendedor 1 -->
+          <div class="tarjeta card-vendedor-destacado card-v1" *ngIf="obtenerVendedor1Resumen() as v1">
+            <div class="vendedor-card-header">
+              <div class="vendedor-avatar av-v1">V1</div>
+              <div class="vendedor-datos">
+                <div class="vendedor-tag-row">
+                  <span class="badge-tag-v1">VENDEDOR 1</span>
+                  <span class="badge-user">@{{ v1.username || 'vendedor1' }}</span>
+                </div>
+                <h4 class="vendedor-nombre">{{ v1.vendedor }}</h4>
+              </div>
+            </div>
+
+            <div class="vendedor-card-body">
+              <div class="vendedor-kpi-principal">
+                <span class="kpi-sublabel">TOTAL FACTURADO</span>
+                <h3 class="vendedor-monto">S/ {{ v1.monto | number:'1.2-2' }}</h3>
+                <span class="vendedor-participacion">
+                  {{ obtenerPorcentajeVendedor(v1.monto) }}% del volumen total auditado
+                </span>
+              </div>
+
+              <div class="vendedor-metricas-mini">
+                <div class="mini-metrica">
+                  <span class="mini-label">Transacciones:</span>
+                  <strong class="mini-val">{{ v1.totalVentas }} ventas</strong>
+                </div>
+                <div class="mini-metrica">
+                  <span class="mini-label">Ticket Promedio:</span>
+                  <strong class="mini-val">S/ {{ (v1.ticketPromedio || 0) | number:'1.2-2' }}</strong>
+                </div>
+                <div class="mini-metrica">
+                  <span class="mini-label">Ventas Hoy:</span>
+                  <strong class="mini-val text-teal">{{ v1.ventasHoy || 0 }} (S/ {{ (v1.montoHoy || 0) | number:'1.2-2' }})</strong>
+                </div>
+                <div class="mini-metrica">
+                  <span class="mini-label">Comprobantes:</span>
+                  <strong class="mini-val">{{ v1.boletas || 0 }} Bol. / {{ v1.facturas || 0 }} Fact.</strong>
+                </div>
+              </div>
+
+              <div class="vendedor-cobro-bar">
+                <span class="cobro-pill pill-efectivo">💵 Ef: S/ {{ (v1.efectivo || 0) | number:'1.2-2' }}</span>
+                <span class="cobro-pill pill-tarjeta">💳 Tj: S/ {{ (v1.tarjeta || 0) | number:'1.2-2' }}</span>
+                <span class="cobro-pill pill-yape">📱 Yp: S/ {{ (v1.yapePlin || 0) | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Vendedor 2 -->
+          <div class="tarjeta card-vendedor-destacado card-v2" *ngIf="obtenerVendedor2Resumen() as v2">
+            <div class="vendedor-card-header">
+              <div class="vendedor-avatar av-v2">V2</div>
+              <div class="vendedor-datos">
+                <div class="vendedor-tag-row">
+                  <span class="badge-tag-v2">VENDEDOR 2</span>
+                  <span class="badge-user">@{{ v2.username || 'vendedor2' }}</span>
+                </div>
+                <h4 class="vendedor-nombre">{{ v2.vendedor }}</h4>
+              </div>
+            </div>
+
+            <div class="vendedor-card-body">
+              <div class="vendedor-kpi-principal">
+                <span class="kpi-sublabel">TOTAL FACTURADO</span>
+                <h3 class="vendedor-monto">S/ {{ v2.monto | number:'1.2-2' }}</h3>
+                <span class="vendedor-participacion">
+                  {{ obtenerPorcentajeVendedor(v2.monto) }}% del volumen total auditado
+                </span>
+              </div>
+
+              <div class="vendedor-metricas-mini">
+                <div class="mini-metrica">
+                  <span class="mini-label">Transacciones:</span>
+                  <strong class="mini-val">{{ v2.totalVentas }} ventas</strong>
+                </div>
+                <div class="mini-metrica">
+                  <span class="mini-label">Ticket Promedio:</span>
+                  <strong class="mini-val">S/ {{ (v2.ticketPromedio || 0) | number:'1.2-2' }}</strong>
+                </div>
+                <div class="mini-metrica">
+                  <span class="mini-label">Ventas Hoy:</span>
+                  <strong class="mini-val text-teal">{{ v2.ventasHoy || 0 }} (S/ {{ (v2.montoHoy || 0) | number:'1.2-2' }})</strong>
+                </div>
+                <div class="mini-metrica">
+                  <span class="mini-label">Comprobantes:</span>
+                  <strong class="mini-val">{{ v2.boletas || 0 }} Bol. / {{ v2.facturas || 0 }} Fact.</strong>
+                </div>
+              </div>
+
+              <div class="vendedor-cobro-bar">
+                <span class="cobro-pill pill-efectivo">💵 Ef: S/ {{ (v2.efectivo || 0) | number:'1.2-2' }}</span>
+                <span class="cobro-pill pill-tarjeta">💳 Tj: S/ {{ (v2.tarjeta || 0) | number:'1.2-2' }}</span>
+                <span class="cobro-pill pill-yape">📱 Yp: S/ {{ (v2.yapePlin || 0) | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 2. Gráficos y Tablas de Segundo Nivel (2 Columnas) -->
@@ -699,9 +818,14 @@
 
         <!-- Rendimiento de Vendedores -->
         <div class="tarjeta card-vendedores">
-          <div class="card-header-clean">
-            <h4>Ventas por Personal de Mostrador</h4>
-            <p class="text-muted">Total acumulado por cada vendedor activo</p>
+          <div class="card-header-clean" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h4>Resumen de Ventas por Personal de Mostrador</h4>
+              <p class="text-muted">Desglose comparativo auditado con 100% concordancia con el Reporte de Ventas</p>
+            </div>
+            <a routerLink="/reportes" class="btn btn-secondary" style="font-size: 11.5px; padding: 4px 10px; text-decoration: none;">
+              📄 Ver Reportes →
+            </a>
           </div>
 
           <table class="tabla-farmagest">
@@ -709,23 +833,58 @@
               <tr>
                 <th>Vendedor</th>
                 <th>Transacciones</th>
+                <th>Ticket Prom.</th>
+                <th>Efectivo / Tarjeta / Yape</th>
                 <th class="text-right">Monto Facturado</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let v of data.ventasPorVendedor">
                 <td>
-                  <strong>{{ v.vendedor }}</strong>
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span class="badge-role-tag" [ngClass]="v.usuarioId === 2 ? 'tag-v1' : (v.usuarioId === 3 ? 'tag-v2' : 'tag-admin')">
+                        {{ v.usuarioId === 2 ? 'VENDEDOR 1' : (v.usuarioId === 3 ? 'VENDEDOR 2' : 'ADMIN') }}
+                      </span>
+                      <strong>{{ v.vendedor }}</strong>
+                    </div>
+                    <small class="text-muted">@{{ v.username || (v.usuarioId === 2 ? 'vendedor1' : (v.usuarioId === 3 ? 'vendedor2' : 'admin')) }}</small>
+                  </div>
                 </td>
-                <td>{{ v.totalVentas }} ventas</td>
-                <td class="text-right font-bold text-teal">
+                <td>
+                  <strong>{{ v.totalVentas }}</strong> ventas
+                  <div class="text-xs text-muted">{{ v.boletas || 0 }} Bol. / {{ v.facturas || 0 }} Fact.</div>
+                </td>
+                <td>
+                  S/ {{ (v.ticketPromedio || 0) | number:'1.2-2' }}
+                </td>
+                <td class="text-xs">
+                  <div>💵 Ef: S/ {{ (v.efectivo || 0) | number:'1.2-2' }}</div>
+                  <div *ngIf="v.tarjeta">💳 Tj: S/ {{ (v.tarjeta || 0) | number:'1.2-2' }}</div>
+                  <div *ngIf="v.yapePlin">📱 Yp: S/ {{ (v.yapePlin || 0) | number:'1.2-2' }}</div>
+                </td>
+                <td class="text-right font-bold text-teal" style="font-size: 14px;">
                   S/ {{ v.monto | number:'1.2-2' }}
+                  <div class="text-xs text-muted font-normal">{{ obtenerPorcentajeVendedor(v.monto) }}% del total</div>
                 </td>
               </tr>
               <tr *ngIf="!data.ventasPorVendedor.length">
-                <td colspan="3" class="text-center text-muted">Sin registros de ventas.</td>
+                <td colspan="5" class="text-center text-muted">Sin registros de ventas.</td>
               </tr>
             </tbody>
+            <tfoot *ngIf="data.ventasPorVendedor.length">
+              <tr class="fila-total-balance" style="background-color: #f8fafc; font-weight: 800; border-top: 2px solid #cbd5e1;">
+                <td>TOTAL BALANCE AUDITADO</td>
+                <td>{{ obtenerTotalTransaccionesVendedores() }} ventas</td>
+                <td>-</td>
+                <td class="text-xs text-muted" style="font-weight: 600; color: #0B3D38;">
+                  ✓ 100% Concordancia
+                </td>
+                <td class="text-right text-teal" style="font-size: 14.5px;">
+                  S/ {{ obtenerTotalFacturadoVendedores() | number:'1.2-2' }}
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
 

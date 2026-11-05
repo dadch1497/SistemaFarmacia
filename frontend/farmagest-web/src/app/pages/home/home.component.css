@@ -878,3 +878,234 @@
   font-size: 0.7rem;
   color: #64748B;
 }
+
+/* ==========================================
+   Reportes de Vendedor 1 y Vendedor 2 en Admin
+   ========================================== */
+.badge-concordancia {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #E6F4F1;
+  color: #0B3D38;
+  border: 1px solid #B2DFDB;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+}
+
+.vendedores-destacados-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.25rem;
+}
+
+.card-vendedor-destacado {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-vendedor-destacado:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(11, 61, 56, 0.12);
+}
+
+.card-v1 {
+  border-left: 5px solid #0B3D38;
+}
+
+.card-v2 {
+  border-left: 5px solid #7C3AED;
+}
+
+.vendedor-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.vendedor-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.av-v1 {
+  background: linear-gradient(135deg, #0B3D38 0%, #10B981 100%);
+}
+
+.av-v2 {
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+}
+
+.vendedor-datos {
+  flex: 1;
+}
+
+.vendedor-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.badge-tag-v1 {
+  background-color: #E6F4F1;
+  color: #0B3D38;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.badge-tag-v2 {
+  background-color: #EDE9FE;
+  color: #6D28D9;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.badge-user {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+.vendedor-nombre {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.vendedor-kpi-principal {
+  background: #F8FAFC;
+  border: 1px solid #F1F5F9;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.kpi-sublabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.vendedor-monto {
+  margin: 2px 0;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #0B3D38;
+}
+
+.vendedor-participacion {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #10B981;
+}
+
+.vendedor-metricas-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 0.9rem;
+}
+
+.mini-metrica {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.mini-label {
+  display: block;
+  font-size: 0.7rem;
+  color: #64748B;
+}
+
+.mini-val {
+  font-size: 0.85rem;
+  color: #0F172A;
+}
+
+.vendedor-cobro-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cobro-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.pill-efectivo {
+  background-color: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.pill-tarjeta {
+  background-color: #EFF6FF;
+  color: #1E40AF;
+  border: 1px solid #BFDBFE;
+}
+
+.pill-yape {
+  background-color: #FDF4FF;
+  color: #86198F;
+  border: 1px solid #F5D0FE;
+}
+
+.badge-role-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.tag-v1 {
+  background-color: #E6F4F1;
+  color: #0B3D38;
+  border: 1px solid #B2DFDB;
+}
+
+.tag-v2 {
+  background-color: #EDE9FE;
+  color: #6D28D9;
+  border: 1px solid #DDD6FE;
+}
+
+.tag-admin {
+  background-color: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.fila-total-balance td {
+  padding: 0.85rem 1rem !important;
+}
