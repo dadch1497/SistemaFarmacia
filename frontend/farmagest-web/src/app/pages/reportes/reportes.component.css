@@ -238,6 +238,35 @@
   color: #92400E;
 }
 
+.badge-vendedor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-vend1 {
+  background-color: #E6F4F1;
+  color: #0B3D38;
+  border: 1px solid #B2DFDB;
+}
+
+.badge-vend2 {
+  background-color: #EDE9FE;
+  color: #5B21B6;
+  border: 1px solid #DDD6FE;
+}
+
+.badge-vend-admin {
+  background-color: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
 .comprobante-tag {
   color: var(--color-verde-oscuro);
   letter-spacing: 0.03em;

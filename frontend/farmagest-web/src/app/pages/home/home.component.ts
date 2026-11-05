@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ReportesService } from '../../core/services/reportes.service';
 import { VentasService } from '../../core/services/ventas.service';
-import { DashboardData, VentaDiaSemana, LogAuditoria } from '../../core/models/reportes.models';
+import { DashboardData, VentaDiaSemana, LogAuditoria, VendedorResumen } from '../../core/models/reportes.models';
 import { Venta, SesionCaja } from '../../core/models/ventas.models';
 
 export interface VentaDiaVendedor {
@@ -146,6 +146,34 @@ export class HomeComponent implements OnInit {
       case 'INGRESO_MERCADERIA': return 'chip-optimo';
       default: return 'chip-promo';
     }
+  }
+
+  obtenerVendedor1Resumen(): VendedorResumen | undefined {
+    return this.dashboardData()?.ventasPorVendedor?.find(v => v.usuarioId === 2 || v.username === 'vendedor1');
+  }
+
+  obtenerVendedor2Resumen(): VendedorResumen | undefined {
+    return this.dashboardData()?.ventasPorVendedor?.find(v => v.usuarioId === 3 || v.username === 'vendedor2');
+  }
+
+  obtenerAdminResumen(): VendedorResumen | undefined {
+    return this.dashboardData()?.ventasPorVendedor?.find(v => v.usuarioId === 1 || v.username === 'admin');
+  }
+
+  obtenerTotalFacturadoVendedores(): number {
+    const list = this.dashboardData()?.ventasPorVendedor || [];
+    return Number(list.reduce((sum, v) => sum + (v.monto || 0), 0).toFixed(2));
+  }
+
+  obtenerTotalTransaccionesVendedores(): number {
+    const list = this.dashboardData()?.ventasPorVendedor || [];
+    return list.reduce((sum, v) => sum + (v.totalVentas || 0), 0);
+  }
+
+  obtenerPorcentajeVendedor(monto: number): number {
+    const total = this.obtenerTotalFacturadoVendedores();
+    if (total <= 0) return 0;
+    return Number(((monto / total) * 100).toFixed(1));
   }
 
   // ==========================================

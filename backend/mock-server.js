@@ -1051,6 +1051,19 @@ async function consultarRucExterno(ruc) {
   });
 }
 
+function obtenerUsuarioAutenticado(req) {
+  const auth = (req.headers && (req.headers['authorization'] || req.headers['Authorization'])) || '';
+  if (typeof auth === 'string' && auth.startsWith('Bearer ')) {
+    const token = auth.substring(7);
+    for (const u of Object.values(USUARIOS)) {
+      if (token.includes(`farmagest-${u.username}-`) || token.includes(`-${u.username}-`)) {
+        return u;
+      }
+    }
+  }
+  return USUARIOS.admin;
+}
+
 function calcularDashboard(periodo) {
   const ahora = new Date();
   const hoyStr = ahora.toLocaleDateString('es-PE', { timeZone: 'America/Lima' });
@@ -1059,6 +1072,7 @@ function calcularDashboard(periodo) {
   const optAnio = { timeZone: 'America/Lima', year: 'numeric' };
   const anioStr = ahora.toLocaleDateString('es-PE', optAnio);
 
+  // Considerar solo ventas válidas completadas en el sistema (sin bases ficticias)
   const ventasValidas = VENTAS.filter(v => v.estado === 'COMPLETADA' || v.estado === 'EMITIDA');
 
   // Ventas de hoy
@@ -1066,45 +1080,41 @@ function calcularDashboard(periodo) {
     const f = new Date(v.fechaHora || v.fechaVenta);
     return f.toLocaleDateString('es-PE', { timeZone: 'America/Lima' }) === hoyStr;
   });
-  const montoVentasHoyReal = Number(ventasHoy.reduce((s, v) => s + (Number(v.total) || 0), 0).toFixed(2));
-  const txHoyReal = ventasHoy.length;
+  const totalHoy = Number(ventasHoy.reduce((s, v) => s + (Number(v.total) || 0), 0).toFixed(2));
+  const txHoy = ventasHoy.length;
 
   // Ventas del mes
   const ventasMes = ventasValidas.filter(v => {
     const f = new Date(v.fechaHora || v.fechaVenta);
     return f.toLocaleDateString('es-PE', optMes) === mesStr;
   });
-  const montoVentasMesReal = Number(ventasMes.reduce((s, v) => s + (Number(v.total) || 0), 0).toFixed(2));
+  const totalMes = Number(ventasMes.reduce((s, v) => s + (Number(v.total) || 0), 0).toFixed(2));
 
   // Ventas del año
   const ventasAnio = ventasValidas.filter(v => {
     const f = new Date(v.fechaHora || v.fechaVenta);
     return f.toLocaleDateString('es-PE', optAnio) === anioStr;
   });
-  const montoVentasAnioReal = Number(ventasAnio.reduce((s, v) => s + (Number(v.total) || 0), 0).toFixed(2));
+  const totalAnio = Number(ventasAnio.reduce((s, v) => s + (Number(v.total) || 0), 0).toFixed(2));
 
-  // Base histórica representativa para farmacia activa en producción
-  const BASE_HISTORICA_HOY = 350.00;
-  const BASE_HISTORICA_MES = 12480.00;
-  const BASE_HISTORICA_ANIO = 89200.00;
-  const BASE_TX_HOY = 12;
+  // Utilidad real calculada según costos de productos vendidos
+  let costoMes = 0;
+  for (const v of ventasMes) {
+    const items = v.detalles || v.items || [];
+    for (const it of items) {
+      costoMes += (Number(it.costoUnitario || 0) * Number(it.cantidad || 0));
+    }
+  }
+  const utilidadMes = totalMes > 0 ? Number(Math.max(0, totalMes - costoMes).toFixed(2)) : 0.00;
+  const margenPorcentual = totalMes > 0 ? Number(((utilidadMes / totalMes) * 100).toFixed(1)) : 0.00;
 
-  const totalHoy = Number((BASE_HISTORICA_HOY + montoVentasHoyReal).toFixed(2));
-  const totalMes = Number((BASE_HISTORICA_MES + montoVentasMesReal).toFixed(2));
-  const totalAnio = Number((BASE_HISTORICA_ANIO + montoVentasAnioReal).toFixed(2));
-  const totalTx = BASE_TX_HOY + txHoyReal;
+  // Ticket promedio real
+  const ticketPromedio = txHoy > 0 
+    ? Number((totalHoy / txHoy).toFixed(2)) 
+    : (ventasMes.length > 0 ? Number((totalMes / ventasMes.length).toFixed(2)) : 0.00);
 
-  const utilidadMes = Number((totalMes * 0.366).toFixed(2));
-  const ticketPromedio = totalTx > 0 ? Number((totalHoy / totalTx).toFixed(2)) : 0;
-
-  // Productos más vendidos
+  // Productos más vendidos (100% reales de las ventas emitidas)
   const prodMap = new Map();
-  prodMap.set(1, { productoId: 1, producto: 'Paracetamol 500 mg', unidades: 45, monto: 22.50 });
-  prodMap.set(2, { productoId: 2, producto: 'Ibuprofeno 400 mg', unidades: 32, monto: 28.80 });
-  prodMap.set(7, { productoId: 7, producto: 'Alcohol 70° 250 ml', unidades: 18, monto: 108.00 });
-  prodMap.set(3, { productoId: 3, producto: 'Amoxicilina 500 mg', unidades: 14, monto: 35.00 });
-  prodMap.set(6, { productoId: 6, producto: 'Vitamina C 1 g', unidades: 11, monto: 22.00 });
-
   for (const v of ventasValidas) {
     const items = v.detalles || v.items || [];
     for (const it of items) {
@@ -1126,49 +1136,78 @@ function calcularDashboard(periodo) {
     .slice(0, 5)
     .map((p, idx) => ({ rank: idx + 1, ...p }));
 
-  // Medios de pago
-  let ef = 280.00;
-  let tj = 110.00;
-  let yp = 60.00;
+  // Medios de pago 100% concordantes con las ventas reales
+  let ef = 0;
+  let tj = 0;
+  let yp = 0;
   for (const v of ventasValidas) {
     const mp = (v.medioPago || 'EFECTIVO').toUpperCase();
     const t = Number(v.total) || 0;
     if (mp === 'EFECTIVO') ef += t;
-    else if (mp === 'TARJETA' || mp === 'DEBITO') tj += t;
+    else if (mp === 'TARJETA' || mp === 'DEBITO' || mp === 'CREDITO') tj += t;
     else yp += t;
   }
   const totMedios = ef + tj + yp;
   const ventasPorMedioPago = [
-    { medioPago: 'EFECTIVO', total: Number(ef.toFixed(2)), porcentaje: Math.round((ef / totMedios) * 100) },
-    { medioPago: 'TARJETA', total: Number(tj.toFixed(2)), porcentaje: Math.round((tj / totMedios) * 100) },
-    { medioPago: 'YAPE_PLIN', total: Number(yp.toFixed(2)), porcentaje: Math.round((yp / totMedios) * 100) }
+    { medioPago: 'EFECTIVO', total: Number(ef.toFixed(2)), porcentaje: totMedios > 0 ? Number(((ef / totMedios) * 100).toFixed(1)) : 0 },
+    { medioPago: 'TARJETA', total: Number(tj.toFixed(2)), porcentaje: totMedios > 0 ? Number(((tj / totMedios) * 100).toFixed(1)) : 0 },
+    { medioPago: 'YAPE_PLIN', total: Number(yp.toFixed(2)), porcentaje: totMedios > 0 ? Number(((yp / totMedios) * 100).toFixed(1)) : 0 }
   ];
 
-  // Ventas por vendedor
-  const vendMap = new Map();
-  vendMap.set(1, { usuarioId: 1, vendedor: 'Administrador Farma Ochenta', monto: 0, totalVentas: 0 });
-  vendMap.set(2, { usuarioId: 2, vendedor: 'Carlos Gómez Soto', monto: 180.00, totalVentas: 6 });
+  // Ventas por Vendedor (Vendedor 1: Carlos Gómez, Vendedor 2: Lucía Morales, Admin: Administrador)
+  const vendedoresConfig = [
+    { id: 2, username: 'vendedor1', nombres: 'Carlos', apellidos: 'Gómez Soto' },
+    { id: 3, username: 'vendedor2', nombres: 'Lucía', apellidos: 'Morales Rivas' },
+    { id: 1, username: 'admin', nombres: 'Administrador', apellidos: 'Farma Ochenta' }
+  ];
 
-  for (const v of ventasValidas) {
-    const uid = v.usuarioVendedorId || v.usuarioId || 1;
-    const vNombre = v.nombreVendedor || v.vendedorNombre || 'Administrador Farma Ochenta';
-    if (!vendMap.has(uid)) {
-      vendMap.set(uid, { usuarioId: uid, vendedor: vNombre, monto: 0, totalVentas: 0 });
+  const ventasPorVendedor = vendedoresConfig.map(u => {
+    const vendVentas = ventasValidas.filter(v => (v.usuarioVendedorId === u.id || v.usuarioId === u.id));
+    const vendHoy = vendVentas.filter(v => {
+      const f = new Date(v.fechaHora || v.fechaVenta);
+      return f.toLocaleDateString('es-PE', { timeZone: 'America/Lima' }) === hoyStr;
+    });
+
+    const montoTotal = Number(vendVentas.reduce((s, v) => s + (Number(v.total) || 0), 0).toFixed(2));
+    const montoHoy = Number(vendHoy.reduce((s, v) => s + (Number(v.total) || 0), 0).toFixed(2));
+    const boletas = vendVentas.filter(v => v.tipoComprobante === 'BOLETA').length;
+    const facturas = vendVentas.filter(v => v.tipoComprobante === 'FACTURA').length;
+    const ticketProm = vendVentas.length > 0 ? Number((montoTotal / vendVentas.length).toFixed(2)) : 0;
+
+    let efVend = 0, tjVend = 0, ypVend = 0;
+    for (const v of vendVentas) {
+      const mp = (v.medioPago || 'EFECTIVO').toUpperCase();
+      const t = Number(v.total) || 0;
+      if (mp === 'EFECTIVO') efVend += t;
+      else if (mp === 'TARJETA' || mp === 'DEBITO') tjVend += t;
+      else ypVend += t;
     }
-    const vend = vendMap.get(uid);
-    vend.monto = Number((vend.monto + (Number(v.total) || 0)).toFixed(2));
-    vend.totalVentas += 1;
-  }
-  const ventasPorVendedor = Array.from(vendMap.values());
+
+    return {
+      usuarioId: u.id,
+      vendedor: `${u.nombres} ${u.apellidos}`.trim(),
+      username: u.username,
+      totalVentas: vendVentas.length,
+      monto: montoTotal,
+      ticketPromedio: ticketProm,
+      boletas,
+      facturas,
+      efectivo: Number(efVend.toFixed(2)),
+      tarjeta: Number(tjVend.toFixed(2)),
+      yapePlin: Number(ypVend.toFixed(2)),
+      ventasHoy: vendHoy.length,
+      montoHoy: montoHoy
+    };
+  });
 
   return {
     periodo: periodo || 'mes',
     kpis: {
-      ventasHoy: { monto: totalHoy, variacionPorcentual: 12.5 },
-      ventasMes: { monto: totalMes, variacionPorcentual: 8.3 },
-      ventasAnio: { monto: totalAnio, variacionPorcentual: 15.2 },
-      utilidadMes: { monto: utilidadMes, margenPorcentual: 36.6 },
-      ticketPromedio: { monto: ticketPromedio, totalTransaccionesDia: totalTx }
+      ventasHoy: { monto: totalHoy, variacionPorcentual: 0.0 },
+      ventasMes: { monto: totalMes, variacionPorcentual: 0.0 },
+      ventasAnio: { monto: totalAnio, variacionPorcentual: 0.0 },
+      utilidadMes: { monto: utilidadMes, margenPorcentual: margenPorcentual },
+      ticketPromedio: { monto: ticketPromedio, totalTransaccionesDia: txHoy }
     },
     productosMasVendidos,
     ventasPorMedioPago,
@@ -1179,13 +1218,13 @@ function calcularDashboard(periodo) {
 function calcularVentasPorDiaSemana() {
   const diasNombres = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   const diasMap = {
-    'Lunes': 140.00,
-    'Martes': 125.00,
-    'Miércoles': 160.00,
-    'Jueves': 150.00,
-    'Viernes': 210.00,
-    'Sábado': 260.00,
-    'Domingo': 110.00
+    'Lunes': 0,
+    'Martes': 0,
+    'Miércoles': 0,
+    'Jueves': 0,
+    'Viernes': 0,
+    'Sábado': 0,
+    'Domingo': 0
   };
 
   const ventasValidas = VENTAS.filter(v => v.estado === 'COMPLETADA' || v.estado === 'EMITIDA');
@@ -2266,8 +2305,17 @@ if (pathname === '/api/ventas/promociones' && req.method === 'GET') {
       });
     }
 
-if (pathname === '/api/ventas' && req.method === 'GET') {
-      return sendJson(res, 200, VENTAS);
+    if (pathname === '/api/ventas' && req.method === 'GET') {
+      const userAuth = obtenerUsuarioAutenticado(req);
+      let resultado = [...VENTAS];
+      const qUsuarioId = query.usuarioId || query.usuarioVendedorId;
+      if (qUsuarioId) {
+        const targetId = parseInt(qUsuarioId, 10);
+        resultado = resultado.filter(v => (v.usuarioVendedorId === targetId || v.usuarioId === targetId));
+      } else if (userAuth && userAuth.roles && userAuth.roles.includes('ROLE_VENDEDOR') && !userAuth.roles.includes('ROLE_ADMINISTRADOR')) {
+        resultado = resultado.filter(v => (v.usuarioVendedorId === userAuth.id || v.usuarioId === userAuth.id));
+      }
+      return sendJson(res, 200, resultado);
     }
 
     if (pathname.match(/^\/api\/ventas\/\d+$/) && req.method === 'GET') {
@@ -2349,6 +2397,12 @@ if (pathname === '/api/ventas' && req.method === 'GET') {
         clienteVenta = CLIENTES[0];
       }
 
+      // Identificar usuario vendedor autenticado
+      const userAuth = obtenerUsuarioAutenticado(req);
+      const uid = body.usuarioVendedorId || body.usuarioId || userAuth.id;
+      const vUser = Object.values(USUARIOS).find(u => u.id === uid) || userAuth;
+      const nombreVend = `${vUser.nombres} ${vUser.apellidos}`.trim();
+
       // Detalle items
       const inputItems = body.items || body.detalles || [];
       const detallesVenta = inputItems.map((it, idx) => {
@@ -2376,7 +2430,7 @@ if (pathname === '/api/ventas' && req.method === 'GET') {
           referenciaTipo: 'VENTA',
           referenciaId: `${serie}-${correlativo}`,
           motivo: `Venta ${body.tipoComprobante || 'BOLETA'}`,
-          usuarioId: 1,
+          usuarioId: vUser.id,
           fechaHora: new Date().toISOString()
         });
 
@@ -2456,10 +2510,10 @@ if (pathname === '/api/ventas' && req.method === 'GET') {
         sucursalId: body.sucursalId || 1,
         cajaId: body.cajaId || 1,
         sesionCajaId: SESION_CAJA_ACTUAL ? SESION_CAJA_ACTUAL.id : 1,
-        usuarioId: 1,
-        usuarioVendedorId: 1,
-        vendedorNombre: 'Administrador Farma Ochenta',
-        nombreVendedor: 'Administrador Farma Ochenta',
+        usuarioId: vUser.id,
+        usuarioVendedorId: vUser.id,
+        vendedorNombre: nombreVend,
+        nombreVendedor: nombreVend,
         cliente: clienteVenta,
         tipoComprobante: body.tipoComprobante || 'BOLETA',
         serieComprobante: serie,
@@ -2496,8 +2550,8 @@ if (pathname === '/api/ventas' && req.method === 'GET') {
         evento: 'VENTA_REGISTRADA',
         servicio: 'ms-ventas',
         payloadResumen: `${body.tipoComprobante || 'Boleta'} ${serie}-${correlativo} emitida por S/ ${Number(totalFinal).toFixed(2)} (${clienteVenta.nombresORazonSocial || 'CLIENTE'})`,
-        usuarioId: 1,
-        usuarioUsername: 'admin',
+        usuarioId: vUser.id,
+        usuarioUsername: vUser.username,
         sucursalId: 1,
         fechaHora: ahora
       });

@@ -40,8 +40,17 @@ export interface MedioPagoResumen {
 export interface VendedorResumen {
   usuarioId: number;
   vendedor: string;
+  username?: string;
   monto: number;
   totalVentas: number;
+  ticketPromedio?: number;
+  boletas?: number;
+  facturas?: number;
+  efectivo?: number;
+  tarjeta?: number;
+  yapePlin?: number;
+  ventasHoy?: number;
+  montoHoy?: number;
 }
 
 export interface DashboardData {

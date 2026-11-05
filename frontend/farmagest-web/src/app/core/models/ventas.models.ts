@@ -158,8 +158,10 @@ export interface Venta {
   sucursalId: number;
   sesionCajaId: number;
   cliente?: Cliente;
+  usuarioId?: number;
   usuarioVendedorId: number;
   nombreVendedor?: string;
+  vendedorNombre?: string;
   tipoComprobante: TipoComprobante;
   serieComprobante: string;
   numeroComprobante: string;
