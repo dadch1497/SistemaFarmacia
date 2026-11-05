@@ -12,8 +12,8 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  username = '';
-  password = '';
+  username = 'admin';
+  password = 'AdminSecure2026!';
   cargando = signal<boolean>(false);
   errorMensaje = signal<string>('');
 
