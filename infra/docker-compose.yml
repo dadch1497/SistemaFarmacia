@@ -28,7 +28,7 @@ services:
     container_name: farmagest-phpmyadmin
     restart: unless-stopped
     ports:
-      - "${PHPMYADMIN_PORT:-8090}:80"
+      - "${PHPMYADMIN_PORT:-8092}:80"
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
