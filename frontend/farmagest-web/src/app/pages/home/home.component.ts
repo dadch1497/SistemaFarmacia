@@ -148,12 +148,42 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  obtenerVendedor1Resumen(): VendedorResumen | undefined {
-    return this.dashboardData()?.ventasPorVendedor?.find(v => v.usuarioId === 2 || v.username === 'vendedor1');
+  obtenerVendedor1Resumen(): VendedorResumen {
+    const v = this.dashboardData()?.ventasPorVendedor?.find(x => x.usuarioId === 2 || x.username === 'vendedor1');
+    return v || {
+      usuarioId: 2,
+      username: 'vendedor1',
+      vendedor: 'Carlos Gómez Soto',
+      monto: 0,
+      totalVentas: 0,
+      ticketPromedio: 0,
+      ventasHoy: 0,
+      montoHoy: 0,
+      boletas: 0,
+      facturas: 0,
+      efectivo: 0,
+      tarjeta: 0,
+      yapePlin: 0
+    };
   }
 
-  obtenerVendedor2Resumen(): VendedorResumen | undefined {
-    return this.dashboardData()?.ventasPorVendedor?.find(v => v.usuarioId === 3 || v.username === 'vendedor2');
+  obtenerVendedor2Resumen(): VendedorResumen {
+    const v = this.dashboardData()?.ventasPorVendedor?.find(x => x.usuarioId === 3 || x.username === 'vendedor2');
+    return v || {
+      usuarioId: 3,
+      username: 'vendedor2',
+      vendedor: 'Lucía Morales Rivas',
+      monto: 0,
+      totalVentas: 0,
+      ticketPromedio: 0,
+      ventasHoy: 0,
+      montoHoy: 0,
+      boletas: 0,
+      facturas: 0,
+      efectivo: 0,
+      tarjeta: 0,
+      yapePlin: 0
+    };
   }
 
   obtenerAdminResumen(): VendedorResumen | undefined {
