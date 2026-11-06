@@ -82,7 +82,7 @@ public class ReportesService {
                     .multiply(BigDecimal.valueOf(100)).doubleValue();
         }
 
-        kpis.setVentasMes(new DashboardResponse.VentasKpi(totalVentasMes, 12.5));
+        kpis.setVentasMes(new DashboardResponse.VentasKpi(totalVentasMes, 0.0));
         kpis.setUtilidadMes(new DashboardResponse.UtilidadKpi(totalUtilidadMes, margenMes));
 
         // Ventas Año
@@ -90,7 +90,7 @@ public class ReportesService {
         BigDecimal totalVentasAnio = ventasAnioList.stream()
                 .map(ResumenVentaDiaria::getTotalVentas)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        kpis.setVentasAnio(new DashboardResponse.VentasKpi(totalVentasAnio, 8.2));
+        kpis.setVentasAnio(new DashboardResponse.VentasKpi(totalVentasAnio, 0.0));
 
         // Ticket Promedio Hoy
         kpis.setTicketPromedio(new DashboardResponse.TicketPromedioKpi(
