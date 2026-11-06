@@ -33,9 +33,9 @@ export class MainLayoutComponent {
     { titulo: 'Productos', ruta: '/productos', icono: 'package', roles: ['ROLE_ADMINISTRADOR'] },
     { titulo: 'Consultar stock', ruta: '/productos/consulta', icono: 'search', roles: ['ROLE_VENDEDOR'] },
     { titulo: 'Gestión de inventario y control de lotes', ruta: '/inventario', icono: 'layers', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO', 'ROLE_VENDEDOR'] },
-    { titulo: 'Ingreso mercadería', ruta: '/compras/ingreso', icono: 'arrow-down-circle', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO'] },
+    { titulo: 'Ingreso mercadería', ruta: '/compras/ingreso', icono: 'arrow-down-circle', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO', 'ROLE_VENDEDOR'] },
     { titulo: 'Compras', ruta: '/compras', icono: 'truck', roles: ['ROLE_ADMINISTRADOR'] },
-    { titulo: 'Proveedores', ruta: '/proveedores', icono: 'briefcase', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO'] },
+    { titulo: 'Proveedores', ruta: '/proveedores', icono: 'briefcase', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO', 'ROLE_VENDEDOR'] },
     { titulo: 'Promociones', ruta: '/promociones', icono: 'tag', roles: ['ROLE_ADMINISTRADOR'] },
     { titulo: 'Reportes de ventas', ruta: '/reportes', icono: 'bar-chart-2', roles: ['ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR'] },
     { titulo: 'Alertas vencimiento', ruta: '/inventario/alertas', icono: 'alert-triangle', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO', 'ROLE_VENDEDOR'] }
