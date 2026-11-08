@@ -164,3 +164,17 @@ button, input, select, textarea {
   background-color: var(--color-verde-claro);
   color: var(--color-verde-oscuro);
 }
+
+/* Tablas y tarjetas adaptadas a pantallas móviles */
+@media (max-width: 768px) {
+  .tarjeta {
+    padding: 1rem !important;
+  }
+
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

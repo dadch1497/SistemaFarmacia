@@ -8,7 +8,7 @@ import { DashboardData, VentaDiaSemana, LogAuditoria } from '../models/reportes.
 })
 export class ReportesService {
 
-  private readonly API_URL = 'http://localhost:8080/api/reportes';
+  private readonly API_URL = '/api/reportes';
 
   constructor(private http: HttpClient) {}
 

@@ -1109,3 +1109,43 @@
 .fila-total-balance td {
   padding: 0.85rem 1rem !important;
 }
+
+/* =========================================================================
+   Responsive Dashboard para Móviles y Tablets
+   ========================================================================= */
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .kpi-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+
+  .kpi-card {
+    padding: 0.85rem !important;
+  }
+
+  .kpi-main h3 {
+    font-size: 1.3rem !important;
+  }
+
+  .dashboard-grid-2cols {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+

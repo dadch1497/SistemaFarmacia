@@ -15,7 +15,7 @@ import {
   providedIn: 'root'
 })
 export class ComprasService {
-  private readonly apiUrl = 'http://localhost:8080/api/compras';
+  private readonly apiUrl = '/api/compras';
 
   constructor(private http: HttpClient) {}
 

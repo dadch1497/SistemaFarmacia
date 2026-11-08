@@ -13,7 +13,7 @@ import {
   providedIn: 'root'
 })
 export class InventarioService {
-  private readonly apiUrl = 'http://localhost:8080/api/inventario';
+  private readonly apiUrl = '/api/inventario';
 
   constructor(private http: HttpClient) {}
 

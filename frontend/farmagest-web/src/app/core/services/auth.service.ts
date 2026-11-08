@@ -8,7 +8,7 @@ import { LoginRequest, LoginResponse, UsuarioInfo, UsuarioDetalle, CrearUsuarioF
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:8080/api/auth';
+  private readonly apiUrl = '/api/auth';
   private readonly TOKEN_KEY = 'farmagest_token';
   private readonly USER_KEY = 'farmagest_user';
 

@@ -28,9 +28,9 @@ import {
   providedIn: 'root'
 })
 export class VentasService {
-  private readonly apiVentas = 'http://localhost:8080/api/ventas';
-  private readonly apiCaja = 'http://localhost:8080/api/caja';
-  private readonly apiSire = 'http://localhost:8080/api/sire';
+  private readonly apiVentas = '/api/ventas';
+  private readonly apiCaja = '/api/caja';
+  private readonly apiSire = '/api/sire';
 
   constructor(private http: HttpClient) {}
 
