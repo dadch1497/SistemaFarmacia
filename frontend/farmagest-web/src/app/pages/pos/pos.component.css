@@ -600,3 +600,82 @@
 .client-review button {min-height:44px}
 .client-review :is(input,select,button):focus-visible {outline:2px solid #0F4F46;outline-offset:2px}
 @media(max-width:560px){.client-review .form-grid{grid-template-columns:1fr}.client-review .modal-footer{flex-wrap:wrap}.client-review .modal-footer button{flex:1}}
+
+/* =========================================================================
+   Responsive POS para Móviles y Tablets
+   ========================================================================= */
+@media (max-width: 992px) {
+  .pos-container {
+    height: auto;
+    min-height: 0;
+  }
+
+  .pos-workspace {
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    gap: 1rem;
+  }
+
+  .pos-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .pos-header-left, .pos-header-right {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .catalogo-pane {
+    width: 100%;
+    order: 1;
+  }
+
+  .ticket-pane {
+    width: 100%;
+    order: 2;
+  }
+
+  .medios-pago-selector {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .checkout-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-checkout, .cart-hold {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .modal-dialog {
+    width: calc(100vw - 20px) !important;
+    max-width: 100% !important;
+    margin: 10px auto;
+  }
+
+  .efectivo-vuelto-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .grid-productos-pos {
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)) !important;
+    gap: 0.5rem !important;
+  }
+
+  .card-producto-pos {
+    padding: 0.6rem !important;
+  }
+}
+

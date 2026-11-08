@@ -18,7 +18,7 @@ interface MenuItem {
   styleUrls: ['./main-layout.component.css']
 })
 export class MainLayoutComponent {
-  sidebarAbierto = true;
+  sidebarAbierto = typeof window !== 'undefined' ? window.innerWidth > 992 : false;
   fechaHoy = new Date().toLocaleDateString('es-PE', {
     weekday: 'long',
     year: 'numeric',
@@ -49,6 +49,12 @@ export class MainLayoutComponent {
 
   toggleSidebar(): void {
     this.sidebarAbierto = !this.sidebarAbierto;
+  }
+
+  cerrarSidebarEnMovil(): void {
+    if (typeof window !== 'undefined' && window.innerWidth <= 992) {
+      this.sidebarAbierto = false;
+    }
   }
 
   logout(): void {

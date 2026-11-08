@@ -16,7 +16,7 @@ import {
   providedIn: 'root'
 })
 export class CatalogoService {
-  private readonly apiUrl = 'http://localhost:8080/api/catalogo';
+  private readonly apiUrl = '/api/catalogo';
 
   constructor(private http: HttpClient) {}
 

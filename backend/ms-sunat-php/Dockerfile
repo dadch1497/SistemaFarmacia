@@ -1,8 +1,8 @@
 FROM php:8.2-cli-alpine
 
-# Instalar extensiones necesarias para UBL 2.1 y SOAP
-RUN apk add --no-cache libxml2-dev openssl-dev bash curl \
-    && docker-php-ext-install soap
+# Instalar extensiones necesarias para UBL 2.1, ZIP y SOAP
+RUN apk add --no-cache libxml2-dev openssl-dev bash curl libzip-dev \
+    && docker-php-ext-install soap zip
 
 # Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
