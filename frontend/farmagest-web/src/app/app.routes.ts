@@ -36,9 +36,9 @@ export const routes: Routes = [
       { path: 'productos/consulta', component: ProductosComponent },
       { path: 'inventario', component: InventarioComponent, canActivate: [reportesRoleGuard], data: { roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO', 'ROLE_VENDEDOR'] } },
       { path: 'inventario/alertas', component: InventarioComponent, canActivate: [reportesRoleGuard], data: { roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO', 'ROLE_VENDEDOR'] } },
-      { path: 'compras', component: ComprasComponent },
-      { path: 'compras/ingreso', component: ComprasComponent },
-      { path: 'proveedores', component: ComprasComponent },
+      { path: 'compras', component: ComprasComponent, canActivate: [reportesRoleGuard], data: { roles: ['ROLE_ADMINISTRADOR'] } },
+      { path: 'compras/ingreso', component: ComprasComponent, canActivate: [reportesRoleGuard], data: { roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO'] } },
+      { path: 'proveedores', component: ComprasComponent, canActivate: [reportesRoleGuard], data: { roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO'] } },
       { path: 'promociones', component: PromocionesComponent },
       { path: 'reportes', component: ReportesComponent, canActivate: [reportesRoleGuard], data: { roles: ['ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR'] } },
       { path: 'usuarios', component: UsuariosComponent }
