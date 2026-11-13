@@ -68,8 +68,10 @@ class SunatService
             $igvLineStr = number_format($igvLine, 2, '.', '');
             $valUnit = round($pu / 1.18, 2);
             $valUnitStr = number_format($valUnit, 2, '.', '');
-            $desc = !empty($it['nombreProducto']) ? $it['nombreProducto'] : (!empty($it['descripcion']) ? $it['descripcion'] : ("ITEM " . $lineId));
+            $desc = !empty($it['nombreProducto']) ? $it['nombreProducto'] : (!empty($it['descripcion']) ? $it['descripcion'] : (!empty($it['nombre']) ? $it['nombre'] : ("ITEM " . $lineId)));
             $descClean = htmlspecialchars(trim($desc), ENT_QUOTES | ENT_XML1, 'UTF-8');
+            $codProd = !empty($it['codigoProducto']) ? $it['codigoProducto'] : (!empty($it['codigo']) ? $it['codigo'] : (!empty($it['codigoBarras']) ? $it['codigoBarras'] : ("PROD-" . ($it['productoId'] ?? $lineId))));
+            $codProdClean = htmlspecialchars(trim($codProd), ENT_QUOTES | ENT_XML1, 'UTF-8');
 
             $linesXml .= <<<XML
 
@@ -102,7 +104,7 @@ class SunatService
         <cac:Item>
             <cbc:Description><![CDATA[{$descClean}]]></cbc:Description>
             <cac:SellersItemIdentification>
-                <cbc:ID>PROD-{$lineId}</cbc:ID>
+                <cbc:ID>{$codProdClean}</cbc:ID>
             </cac:SellersItemIdentification>
         </cac:Item>
         <cac:Price>

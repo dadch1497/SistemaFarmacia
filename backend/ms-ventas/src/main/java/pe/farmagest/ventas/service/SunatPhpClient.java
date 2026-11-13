@@ -71,6 +71,14 @@ public class SunatPhpClient {
                 for (DetalleVenta d : venta.getDetalles()) {
                     Map<String, Object> it = new HashMap<>();
                     it.put("productoId", d.getProductoId());
+                    String desc = d.getNombreProducto() != null && !d.getNombreProducto().isBlank()
+                            ? d.getNombreProducto() : ("Medicamento #" + d.getProductoId());
+                    String cod = d.getCodigoProducto() != null && !d.getCodigoProducto().isBlank()
+                            ? d.getCodigoProducto() : ("PROD-" + d.getProductoId());
+                    it.put("nombreProducto", desc);
+                    it.put("descripcion", desc);
+                    it.put("codigoProducto", cod);
+                    it.put("codigo", cod);
                     it.put("numeroLote", d.getNumeroLote());
                     it.put("cantidad", d.getCantidad());
                     it.put("precioUnitario", d.getPrecioUnitario());

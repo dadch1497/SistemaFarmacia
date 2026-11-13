@@ -104,6 +104,9 @@ export class PosComponent implements OnInit {
   ultimaVenta = signal<Venta | null>(null);
   modalTicketAbierto: boolean = false;
 
+  // Confirmación de Venta
+  modalConfirmacionVentaAbierto: boolean = false;
+
   // Devoluciones y Notas de Crédito en POS
   modalDevolucionPosAbierto: boolean = false;
   codigoBusquedaDevolucion: string = '';
@@ -625,6 +628,64 @@ export class PosComponent implements OnInit {
   // ==========================================
   // Cobro y Emisión de Venta
   // ==========================================
+  solicitarConfirmacionVenta(): void {
+    if (this.carrito().length === 0) {
+      this.mostrarError('El carrito de compras está vacío');
+      return;
+    }
+
+    if (!this.cajaActiva()) {
+      this.mostrarError('Debe tener un turno de caja abierto para realizar ventas.');
+      this.abrirModalApertura();
+      return;
+    }
+
+    const errorDocumento = this.mensajeDocumento();
+    if (errorDocumento) {
+      this.mostrarError(errorDocumento);
+      return;
+    }
+
+    const total = this.calcularTotalPagar();
+    if (this.medioPago === 'EFECTIVO' && (this.montoRecibido || 0) < total) {
+      this.mostrarError(`El efectivo entregado (S/ ${this.montoRecibido}) no cubre el total de la venta (S/ ${total})`);
+      return;
+    }
+
+    // Validación de Crédito
+    if (this.medioPago === 'CREDITO') {
+      const cli = this.clienteSeleccionado();
+      if (!cli || cli.numeroDocumento === '00000000') {
+        this.mostrarError('Para ventas al crédito debe asignar un cliente con cuenta corriente registrada.');
+        return;
+      }
+      if (this.creditoInsuficiente()) {
+        this.mostrarError(`Límite de crédito excedido. Disponible: S/ ${this.creditoDisponibleCliente().toFixed(2)}, Monto: S/ ${total.toFixed(2)}`);
+        return;
+      }
+    }
+
+    // Validación de Factura con RUC
+    if (this.tipoComprobante === 'FACTURA') {
+      const cli = this.clienteSeleccionado();
+      if (!cli || cli.tipoDocumento !== 'RUC' || cli.numeroDocumento.length !== 11) {
+        this.mostrarError('Para emitir FACTURA debe asignar un cliente con RUC válido de 11 dígitos.');
+        return;
+      }
+    }
+
+    this.modalConfirmacionVentaAbierto = true;
+  }
+
+  cancelarConfirmacionVenta(): void {
+    this.modalConfirmacionVentaAbierto = false;
+  }
+
+  confirmarVenta(): void {
+    this.modalConfirmacionVentaAbierto = false;
+    this.procesarCobro();
+  }
+
   procesarCobro(): void {
     if (this.carrito().length === 0) {
       this.mostrarError('El carrito de compras está vacío');
@@ -684,6 +745,8 @@ export class PosComponent implements OnInit {
       observaciones: this.observacionesVenta,
       items: this.carrito().map(it => ({
         productoId: it.producto.id,
+        nombreProducto: it.producto.nombre,
+        codigoProducto: it.producto.codigoBarras || ('PROD-' + it.producto.id),
         cantidad: it.cantidad * it.multiplicadorUnidades,
         precioUnitario: Number((it.precioUnitario / it.multiplicadorUnidades).toFixed(4)),
         costoUnitario: it.producto.precioCosto || 0,

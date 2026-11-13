@@ -144,6 +144,8 @@ public class VentaService {
 
             DetalleVenta det = new DetalleVenta();
             det.setProductoId(it.getProductoId());
+            det.setNombreProducto(it.getNombreProducto());
+            det.setCodigoProducto(it.getCodigoProducto());
             det.setLoteId(it.getLoteId());
             det.setNumeroLote(it.getNumeroLote());
             det.setCantidad(cant);
@@ -349,6 +351,7 @@ public class VentaService {
                 DetalleVentaDto detDto = new DetalleVentaDto();
                 detDto.setId(d.getId());
                 detDto.setProductoId(d.getProductoId());
+                detDto.setNombreProducto(d.getNombreProducto());
                 detDto.setLoteId(d.getLoteId());
                 detDto.setNumeroLote(d.getNumeroLote());
                 detDto.setCantidad(d.getCantidad());

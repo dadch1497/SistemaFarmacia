@@ -113,6 +113,8 @@ export interface ValidarCuponResponse {
 
 export interface ItemVentaRequest {
   productoId: number;
+  nombreProducto?: string;
+  codigoProducto?: string;
   loteId?: number;
   numeroLote?: string;
   cantidad: number;

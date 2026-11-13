@@ -451,7 +451,7 @@
           </div>
         </div>
         <div *ngIf="medioPago === 'EFECTIVO'" class="efectivo-vuelto-row"><div><label for="cart-cash">Efectivo recibido (S/)</label><input id="cart-cash" type="number" [(ngModel)]="montoRecibido" step="0.50" class="input-efectivo"/></div><div class="vuelto-group"><span>Vuelto</span><strong>S/ {{ calcularVuelto() | number:'1.2-2' }}</strong></div></div>
-        <div class="checkout-actions"><button type="button" class="cart-hold" (click)="ponerEnEspera()" [disabled]="!carrito().length">Poner en espera</button><button type="button" class="btn-checkout" (click)="procesarCobro()" [disabled]="!carrito().length || !cajaActiva() || !!mensajeDocumento() || cargando()">Cobrar S/ {{ calcularTotalPagar() | number:'1.2-2' }}</button></div>
+        <div class="checkout-actions"><button type="button" class="cart-hold" (click)="ponerEnEspera()" [disabled]="!carrito().length">Poner en espera</button><button type="button" class="btn-checkout" (click)="solicitarConfirmacionVenta()" [disabled]="!carrito().length || !cajaActiva() || !!mensajeDocumento() || cargando()">Realizar venta S/ {{ calcularTotalPagar() | number:'1.2-2' }}</button></div>
       </aside>
   </div>
 
@@ -731,6 +731,39 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
           </svg>
           Imprimir Ticket
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ALERTA DE CONFIRMACIÓN DE VENTA (SÍ / NO) -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalConfirmacionVentaAbierto" class="modal-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="confirm-venta-title">
+    <div class="modal-box" style="max-width: 440px; text-align: center;">
+      <div class="modal-header" style="justify-content: center; border-bottom: 1px solid #e2e8f0; padding: 16px;">
+        <h3 id="confirm-venta-title" style="margin: 0; color: #0F4F46; font-size: 1.25rem; font-weight: 700;">Confirmación de Venta</h3>
+      </div>
+      <div class="modal-body" style="padding: 24px 20px;">
+        <div style="font-size: 2.8rem; line-height: 1; margin-bottom: 12px;">🛒</div>
+        <p style="font-size: 1.2rem; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">
+          ¿Desea confirmar la venta?
+        </p>
+        <p style="font-size: 1rem; color: #475569; margin: 0 0 16px 0;">
+          Total a cobrar: <strong style="color: #0F4F46; font-size: 1.35rem;">S/ {{ calcularTotalPagar() | number:'1.2-2' }}</strong>
+        </p>
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 0.9rem; color: #334155; text-align: left;">
+          <div style="margin-bottom: 4px;"><strong>Comprobante:</strong> {{ tipoComprobante === 'FACTURA' ? 'Factura' : 'Boleta de Venta' }}</div>
+          <div style="margin-bottom: 4px;"><strong>Medio de pago:</strong> {{ medioPago }}</div>
+          <div><strong>Cliente:</strong> {{ clienteSeleccionado()?.nombresORazonSocial || 'Cliente genérico' }}</div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 14px; justify-content: center; padding: 16px; border-top: 1px solid #e2e8f0;">
+        <button type="button" class="btn btn-outline" style="min-width: 110px; font-weight: 700; padding: 10px 20px; font-size: 1rem;" (click)="cancelarConfirmacionVenta()">
+          No
+        </button>
+        <button type="button" class="btn btn-primary" style="min-width: 140px; font-weight: 700; background: #0F4F46; color: white; padding: 10px 20px; font-size: 1rem;" (click)="confirmarVenta()">
+          Sí
         </button>
       </div>
     </div>
