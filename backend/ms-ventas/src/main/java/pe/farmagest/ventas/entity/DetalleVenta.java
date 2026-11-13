@@ -18,6 +18,12 @@ public class DetalleVenta {
     @Column(name = "producto_id", nullable = false)
     private Long productoId;
 
+    @Column(name = "nombre_producto", length = 255)
+    private String nombreProducto;
+
+    @Column(name = "codigo_producto", length = 50)
+    private String codigoProducto;
+
     @Column(name = "lote_id")
     private Long loteId;
 
@@ -49,6 +55,12 @@ public class DetalleVenta {
 
     public Long getProductoId() { return productoId; }
     public void setProductoId(Long productoId) { this.productoId = productoId; }
+
+    public String getNombreProducto() { return nombreProducto; }
+    public void setNombreProducto(String nombreProducto) { this.nombreProducto = nombreProducto; }
+
+    public String getCodigoProducto() { return codigoProducto; }
+    public void setCodigoProducto(String codigoProducto) { this.codigoProducto = codigoProducto; }
 
     public Long getLoteId() { return loteId; }
     public void setLoteId(Long loteId) { this.loteId = loteId; }

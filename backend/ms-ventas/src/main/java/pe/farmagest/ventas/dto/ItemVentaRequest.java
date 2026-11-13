@@ -9,6 +9,10 @@ public class ItemVentaRequest {
     @NotNull(message = "El ID del producto es obligatorio")
     private Long productoId;
 
+    private String nombreProducto;
+
+    private String codigoProducto;
+
     private Long loteId;
 
     private String numeroLote;
@@ -29,6 +33,12 @@ public class ItemVentaRequest {
 
     public Long getProductoId() { return productoId; }
     public void setProductoId(Long productoId) { this.productoId = productoId; }
+
+    public String getNombreProducto() { return nombreProducto; }
+    public void setNombreProducto(String nombreProducto) { this.nombreProducto = nombreProducto; }
+
+    public String getCodigoProducto() { return codigoProducto; }
+    public void setCodigoProducto(String codigoProducto) { this.codigoProducto = codigoProducto; }
 
     public Long getLoteId() { return loteId; }
     public void setLoteId(Long loteId) { this.loteId = loteId; }
