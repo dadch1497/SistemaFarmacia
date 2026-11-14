@@ -8,7 +8,7 @@
         SISTEMA EN LÍNEA · FARMA OCHENTA (SUCURSAL #1)
       </div>
       <h2>{{ authService.isAdmin() ? 'Panel de Control y Reportes' : (authService.isVendedor() ? 'Mi Dashboard de Ventas' : 'Panel de Inicio') }}</h2>
-      <p class="subtitle">{{ authService.isAdmin() ? 'Visión ejecutiva de ventas, rentabilidad, rotación de productos y auditoría' : (authService.isVendedor() ? 'Resumen acumulado de mis ventas personales, consulta de comprobantes emitidos y estado de caja' : 'Accesos operativos y módulos asignados') }}</p>
+      <p class="subtitle">{{ authService.isAdmin() ? 'Visión ejecutiva de ventas, rentabilidad y rotación de productos' : (authService.isVendedor() ? 'Resumen acumulado de mis ventas personales, consulta de comprobantes emitidos y estado de caja' : 'Accesos operativos y módulos asignados') }}</p>
     </div>
 
     <!-- Controles de Periodo (Admin) -->
@@ -888,55 +888,6 @@
           </table>
         </div>
 
-      </div>
-
-      <!-- 4. Cuarta Fila: Bitácora de Auditoría en Tiempo Real -->
-      <div class="tarjeta card-auditoria">
-        <div class="card-header-clean">
-          <div>
-            <h4>Bitácora de Auditoría y Control Operativo</h4>
-            <p class="text-muted">Registro inmutable de anulaciones, ajustes de stock y cambios de precio disparados por eventos</p>
-          </div>
-        </div>
-
-        <div class="table-responsive">
-          <table class="tabla-farmagest">
-            <thead>
-              <tr>
-                <th>Fecha y Hora</th>
-                <th>Acción</th>
-                <th>Usuario</th>
-                <th>Entidad Afectada</th>
-                <th>Registro / Ref</th>
-                <th>Detalle del Cambio</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let log of bitacoraAuditoria()">
-                <td class="text-muted text-sm">{{ log.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>
-                  <span class="chip" [ngClass]="formatActionBadge(log.accion)">
-                    {{ log.accion }}
-                  </span>
-                </td>
-                <td>
-                  <strong>{{ log.username }}</strong>
-                  <span class="text-xs text-muted d-block">{{ log.rol }}</span>
-                </td>
-                <td>{{ log.entidadAfectada }}</td>
-                <td><code>{{ log.registroId }}</code></td>
-                <td class="text-sm">
-                  <div *ngIf="log.valorNuevo" class="log-payload">
-                    {{ log.valorNuevo }}
-                  </div>
-                </td>
-              </tr>
-              <tr *ngIf="!bitacoraAuditoria().length">
-                <td colspan="6" class="text-center text-muted">No se registran eventos de auditoría recientes.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </div>
 
     </div>
