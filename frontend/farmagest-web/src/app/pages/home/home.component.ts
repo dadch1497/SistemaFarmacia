@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ReportesService } from '../../core/services/reportes.service';
 import { VentasService } from '../../core/services/ventas.service';
-import { DashboardData, VentaDiaSemana, LogAuditoria, VendedorResumen } from '../../core/models/reportes.models';
+import { DashboardData, VentaDiaSemana, VendedorResumen } from '../../core/models/reportes.models';
 import { Venta, SesionCaja } from '../../core/models/ventas.models';
 
 export interface VentaDiaVendedor {
@@ -31,7 +31,6 @@ export class HomeComponent implements OnInit {
   // Datos Administrador
   dashboardData = signal<DashboardData | null>(null);
   ventasPorDia = signal<VentaDiaSemana[]>([]);
-  bitacoraAuditoria = signal<LogAuditoria[]>([]);
 
   // Datos Vendedor
   misVentas = signal<Venta[]>([]);
@@ -70,7 +69,6 @@ export class HomeComponent implements OnInit {
     if (this.authService.isAdmin()) {
       this.cargarDatosDashboard();
       this.cargarVentasPorDia();
-      this.cargarAuditoria();
     } else if (this.authService.isVendedor()) {
       this.cargarDatosVendedor();
     } else {
@@ -82,7 +80,6 @@ export class HomeComponent implements OnInit {
     if (this.authService.isAdmin()) {
       this.cargarDatosDashboard();
       this.cargarVentasPorDia();
-      this.cargarAuditoria();
     } else if (this.authService.isVendedor()) {
       this.cargarDatosVendedor();
     }
@@ -119,33 +116,12 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  cargarAuditoria(): void {
-    this.reportesService.listarAuditoria(0, 10, 1).subscribe({
-      next: (resp) => {
-        if (resp && resp.content) {
-          this.bitacoraAuditoria.set(resp.content);
-        }
-      },
-      error: (err) => console.error('Error cargando auditoría:', err)
-    });
-  }
-
   getBarHeightPercentage(monto: number): number {
     const list = this.ventasPorDia();
     if (!list.length) return 0;
     const max = Math.max(...list.map(d => d.montoPromedio));
     if (max <= 0) return 0;
     return Math.round((monto / max) * 100);
-  }
-
-  formatActionBadge(accion: string): string {
-    switch (accion) {
-      case 'VENTA_ANULADA': return 'chip-critico';
-      case 'CAMBIO_PRECIO': return 'chip-advertencia';
-      case 'AJUSTE_STOCK': return 'chip-precaucion';
-      case 'INGRESO_MERCADERIA': return 'chip-optimo';
-      default: return 'chip-promo';
-    }
   }
 
   obtenerVendedor1Resumen(): VendedorResumen {

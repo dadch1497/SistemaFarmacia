@@ -348,21 +348,6 @@
   text-align: right;
 }
 
-/* Auditoría */
-.card-auditoria {
-  margin-top: 1.25rem;
-}
-
-.log-payload {
-  background: #F8FAF9;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 0.75rem;
-  max-width: 450px;
-  word-break: break-all;
-}
-
 /* Shortcuts para no administradores */
 .welcome-box {
   padding: 2rem;
