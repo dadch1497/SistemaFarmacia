@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#0B3D38"/>
+  <!-- Cruz médica estilizada -->
+  <rect x="25" y="12" width="14" height="40" rx="5" fill="url(#grad)"/>
+  <rect x="12" y="25" width="40" height="14" rx="5" fill="url(#grad)"/>
+  <!-- Detalle central de salud -->
+  <circle cx="32" cy="32" r="4.5" fill="#FFFFFF"/>
+</svg>
