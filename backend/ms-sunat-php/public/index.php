@@ -90,6 +90,21 @@ if ($method === 'POST' && (
     exit();
 }
 
+// 2.5 SIRE: Estado de Conexión
+if ($method === 'GET' && ($uri === '/api/sire/estado' || $uri === '/sire/estado')) {
+    $tokenResp = $sireService->obtenerToken();
+    echo json_encode([
+        'conectado' => $tokenResp['exito'] ?? false,
+        'ambiente' => $config['ambiente'],
+        'ruc' => $config['ruc'],
+        'razonSocial' => $config['empresa']['razon_social'],
+        'usuarioSol' => $config['usuario_sol'],
+        'tokenValido' => $tokenResp['exito'] ?? false,
+        'mensaje' => ($tokenResp['exito'] ?? false) ? 'Conectado exitosamente a SUNAT SIRE OAuth 2.0 (Producción)' : ($tokenResp['mensaje'] ?? 'Error de conexión con SUNAT')
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
 // 3. SIRE: Probar Autenticación OAuth 2.0
 if ($method === 'GET' && ($uri === '/api/sire/token' || $uri === '/sire/token')) {
     $resp = $sireService->obtenerToken();
