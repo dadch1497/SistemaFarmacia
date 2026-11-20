@@ -52,12 +52,17 @@ export class LoginComponent {
       },
       error: (err) => {
         this.cargando.set(false);
-        if (err.status === 401) {
+        const errorMsg = err.error?.message || '';
+        if (errorMsg === 'User account is locked' || errorMsg.toLowerCase().includes('locked') || errorMsg.toLowerCase().includes('bloqueada')) {
+          this.errorMensaje.set('La cuenta de usuario está bloqueada. Comuníquese con el administrador.');
+        } else if (errorMsg === 'User is disabled' || errorMsg.toLowerCase().includes('disabled') || errorMsg.toLowerCase().includes('deshabilitada')) {
+          this.errorMensaje.set('La cuenta de usuario está deshabilitada. Comuníquese con el administrador.');
+        } else if (err.status === 401) {
           this.errorMensaje.set('Usuario o contraseña incorrectos. Verifica tus credenciales.');
         } else if (err.status === 0) {
           this.errorMensaje.set('No se pudo conectar con el servidor (Gateway / ms-auth).');
         } else {
-          this.errorMensaje.set(err.error?.message || 'Error al iniciar sesión.');
+          this.errorMensaje.set(errorMsg || 'Error al iniciar sesión.');
         }
         this.cdr.detectChanges();
       }

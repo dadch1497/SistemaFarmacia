@@ -1271,6 +1271,14 @@ const server = http.createServer(async (req, res) => {
       const user = USUARIOS[body.username];
 
       if (user && user.password === body.password) {
+        if (user.activo === false) {
+          return sendJson(res, 403, {
+            timestamp: new Date().toISOString(),
+            status: 403,
+            error: 'Forbidden',
+            message: 'La cuenta de usuario está bloqueada. Comuníquese con el administrador.'
+          });
+        }
         return sendJson(res, 200, {
           token: `mock-jwt-token-farmagest-${user.username}-${Date.now()}`,
           tipo: 'Bearer',
