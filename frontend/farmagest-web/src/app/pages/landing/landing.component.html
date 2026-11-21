@@ -21,10 +21,10 @@
       <!-- Menú de Navegación de Escritorio -->
       <nav class="desktop-nav">
         <a href="#inicio" class="nav-item">Inicio</a>
-        <a href="#catalogo" class="nav-item">Catálogo</a>
-        <a href="#servicios" class="nav-item">Servicios</a>
+        <a href="#catalogo" class="nav-item">Catálogo Demo</a>
+        <a href="#servicios" class="nav-item">Módulos & Soluciones</a>
         <a href="#nosotros" class="nav-item">Nosotros</a>
-        <a href="#blog" class="nav-item">Blog de Salud</a>
+        <a href="#blog" class="nav-item">Blog & Novedades</a>
         <a href="#contacto" class="nav-item">Contacto</a>
       </nav>
 
@@ -35,7 +35,7 @@
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
           </svg>
-          <span>Portal Clientes / Acceso</span>
+          <span>Acceso al Sistema / Clientes</span>
         </button>
 
         <!-- Botón Menú Móvil -->
@@ -53,10 +53,10 @@
     <!-- Menú Desplegable en Móviles -->
     <div class="mobile-nav-drawer" [class.abierto]="menuMovilAbierto">
       <a href="#inicio" (click)="cerrarMenuMovil()">Inicio</a>
-      <a href="#catalogo" (click)="cerrarMenuMovil()">Catálogo</a>
-      <a href="#servicios" (click)="cerrarMenuMovil()">Servicios</a>
+      <a href="#catalogo" (click)="cerrarMenuMovil()">Catálogo Demo</a>
+      <a href="#servicios" (click)="cerrarMenuMovil()">Módulos & Soluciones</a>
       <a href="#nosotros" (click)="cerrarMenuMovil()">Nosotros</a>
-      <a href="#blog" (click)="cerrarMenuMovil()">Blog de Salud</a>
+      <a href="#blog" (click)="cerrarMenuMovil()">Blog & Novedades</a>
       <a href="#contacto" (click)="cerrarMenuMovil()">Contacto</a>
       <div class="mobile-nav-footer">
         <button class="btn btn-portal-cliente full-width" (click)="irALogin()">
@@ -64,7 +64,7 @@
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
           </svg>
-          <span>Portal Clientes / Iniciar Sesión</span>
+          <span>Acceso al Sistema / Iniciar Sesión</span>
         </button>
       </div>
     </div>
@@ -79,13 +79,13 @@
       <div class="hero-content">
         <div class="hero-badge">
           <span class="pulse-indicator"></span>
-          BOTICA COMUNITARIA CERTIFICADA · ATE, LIMA
+          PLATAFORMA SAAS EN LA NUBE · GESTIÓN FARMACÉUTICA
         </div>
         <h1 class="hero-title">
-          Tu Salud y la de tu Familia en <span>Manos Expertas</span>
+          El Software Integral para la <span>Gestión Inteligente</span> de tu Farmacia
         </h1>
         <p class="hero-description">
-          En <strong>FarmaGest</strong> brindamos atención farmacéutica responsable, medicamentos garantizados de laboratorios líderes y asesoría profesional personalizada con los mejores precios del mercado.
+          En <strong>FarmaGest</strong> desarrollamos tecnología especializada para boticas y farmacias: automatiza tu punto de venta (POS), control de lotes y vencimientos, facturación electrónica SUNAT y catálogo digital sincronizado.
         </p>
 
         <div class="hero-buttons">
@@ -94,7 +94,7 @@
               <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
             </svg>
-            Explorar Catálogo
+            Ver Catálogo Digital Demo
           </a>
           <button class="btn btn-secondary-cta" (click)="irALogin()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -102,14 +102,14 @@
               <polyline points="10 17 15 12 10 7"/>
               <line x1="15" y1="12" x2="3" y2="12"/>
             </svg>
-            Acceso a Clientes / Sistema
+            Ingresar a la Plataforma
           </button>
         </div>
 
         <div class="hero-features">
           <div class="feature-item">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Medicamentos 100% Originales</span>
+            <span>Control de Lotes y DIGEMID</span>
           </div>
           <div class="feature-item">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -117,7 +117,7 @@
           </div>
           <div class="feature-item">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Delivery Rápido en Ate y Alrededores</span>
+            <span>Catálogo Web y Portal Clientes</span>
           </div>
         </div>
       </div>
@@ -130,23 +130,23 @@
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
           </div>
-          <h3>Confianza Farmacéutica</h3>
-          <p>Dispensación ética bajo estrictas Buenas Prácticas de Almacenamiento y Farmacovigilancia DIGEMID.</p>
+          <h3>Tecnología Segura y Escalable</h3>
+          <p>Diseñada específicamente bajo estándares peruanos de control farmacéutico DIGEMID y exigencias tributarias SUNAT.</p>
           
           <div class="metrics-row">
             <div class="metric">
               <strong>+5,000</strong>
-              <span>Medicamentos</span>
+              <span>Productos Gestión</span>
             </div>
             <div class="metric-divider"></div>
             <div class="metric">
               <strong>100%</strong>
-              <span>Químicos Colegiados</span>
+              <span>Conforme SUNAT</span>
             </div>
             <div class="metric-divider"></div>
             <div class="metric">
-              <strong>7 Días</strong>
-              <span>Atención Continua</span>
+              <strong>99.9%</strong>
+              <span>Cloud Uptime</span>
             </div>
           </div>
 
@@ -155,7 +155,7 @@
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
             </svg>
             <div>
-              <span class="callout-label">Línea de Pedidos y Consultas</span>
+              <span class="callout-label">Línea de Ventas y Soporte Técnico</span>
               <span class="callout-phone">(01) 351-8080 · +51 987 654 321</span>
             </div>
           </div>
@@ -172,10 +172,10 @@
     <div class="container">
       
       <div class="section-header text-center">
-        <span class="section-tag">CATÁLOGO DISPONIBLE</span>
-        <h2 class="section-title">Nuestros Medicamentos y Precios</h2>
+        <span class="section-tag">MÓDULO DE CATÁLOGO EN LÍNEA</span>
+        <h2 class="section-title">Catálogo Digital Sincronizado en Tiempo Real</h2>
         <p class="section-subtitle">
-          Consulta precios vigentes de venta al público y principios activos. Precios transparentes y actualizados en tiempo real.
+          Visualiza cómo nuestra plataforma publica y sincroniza automáticamente el inventario, precios al público y principios activos para los clientes de tu farmacia.
         </p>
       </div>
 
@@ -234,8 +234,8 @@
               <span class="price-label">Precio al Público</span>
               <span class="price-val">S/ {{ prod.precioVenta | number:'1.2-2' }}</span>
             </div>
-            <button class="btn btn-consultar" (click)="solicitarPorWhatsapp(prod)" title="Consultar stock por WhatsApp">
-              <span>Pedir</span>
+            <button class="btn btn-consultar" (click)="solicitarPorWhatsapp(prod)" title="Consultar disponibilidad por WhatsApp">
+              <span>Consultar</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
               </svg>
@@ -255,16 +255,16 @@
   </section>
 
   <!-- ============================================== -->
-  <!-- 4. SECCIÓN SERVICIOS FARMACÉUTICOS              -->
+  <!-- 4. SECCIÓN MÓDULOS & SOLUCIONES DEL SOFTWARE    -->
   <!-- ============================================== -->
   <section id="servicios" class="section servicios-section">
     <div class="container">
       
       <div class="section-header text-center">
-        <span class="section-tag">NUESTROS SERVICIOS</span>
-        <h2 class="section-title">Cuidado Integral para tu Salud</h2>
+        <span class="section-tag">MÓDULOS & SOLUCIONES</span>
+        <h2 class="section-title">Soluciones Integrales de Nuestro Software</h2>
         <p class="section-subtitle">
-          Mucho más que una botica tradicional: un punto de atención en salud cercano y confiable.
+          Todo lo que tu botica o cadena farmacéutica necesita en una sola plataforma moderna y segura en la nube.
         </p>
       </div>
 
@@ -273,65 +273,71 @@
         <div class="servicio-card">
           <div class="servicio-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3>Punto de Venta (POS) Ergonómico</h3>
+          <p>Registro ultra rápido de ventas, lectura por código de barras, múltiples medios de pago y control de recetas médicas.</p>
+        </div>
+
+        <div class="servicio-card">
+          <div class="servicio-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <h3>Control de Stock y Kardex DIGEMID</h3>
+          <p>Trazabilidad completa por lotes, alertas preventivas automáticas de vencimiento y registro de actas de mermas.</p>
+        </div>
+
+        <div class="servicio-card">
+          <div class="servicio-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <h3>Catálogo Web y Portal para Clientes</h3>
+          <p>Vitrina digital interactiva conectada a tu inventario para que tus clientes consulten stock y precios en tiempo real.</p>
+        </div>
+
+        <div class="servicio-card">
+          <div class="servicio-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
               <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
             </svg>
           </div>
-          <h3>Dispensación con Receta</h3>
-          <p>Validación rigurosa de dosis, interacciones farmacológicas y orientación precisa para el cumplimiento de tu tratamiento.</p>
+          <h3>Facturación Electrónica Nativa SUNAT</h3>
+          <p>Emisión inmediata de Boletas, Facturas y Notas de Crédito homologadas ante la SUNAT con envío de XML y CDR.</p>
         </div>
 
         <div class="servicio-card">
           <div class="servicio-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
           </div>
-          <h3>Toma de Presión y Glucosa</h3>
-          <p>Monitoreo rápido de tus constantes vitales con equipos digitales calibrados y asesoramiento preventivo inmediato.</p>
+          <h3>Acceso con Clave SOL y Clientes B2B</h3>
+          <p>Acceso seguro para clientes y empresas con consulta de compras históricas, facturas y gestión diferenciada según su RUC.</p>
         </div>
 
         <div class="servicio-card">
           <div class="servicio-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
-              <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-              <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
             </svg>
           </div>
-          <h3>Delivery Local Express</h3>
-          <p>Llevamos tus medicamentos directo a tu puerta en Ate y distritos aledaños en empaques térmicos protegidos.</p>
-        </div>
-
-        <div class="servicio-card">
-          <div class="servicio-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-            </svg>
-          </div>
-          <h3>Comprobantes SUNAT en Tiempo Real</h3>
-          <p>Boletas y facturas electrónicas con validez tributaria instantánea mediante nuestra integración digital con SUNAT.</p>
-        </div>
-
-        <div class="servicio-card">
-          <div class="servicio-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-          </div>
-          <h3>Convenios y Atención Corporativa</h3>
-          <p>Suministro periódico de botiquines y material médico de primeros auxilios para empresas, colegios e instituciones.</p>
-        </div>
-
-        <div class="servicio-card">
-          <div class="servicio-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
-            </svg>
-          </div>
-          <h3>Farmacovigilancia y Asesoría</h3>
-          <p>Canal permanente para resolver dudas sobre efectos secundarios, horarios de administración y conservación.</p>
+          <h3>Reportes Analíticos y Auditoría</h3>
+          <p>Métricas comerciales en tiempo real: productos más rentables, arqueos de caja por turno y seguridad de roles JWT.</p>
         </div>
 
       </div>
@@ -346,32 +352,32 @@
     <div class="container nosotros-grid">
       
       <div class="nosotros-info">
-        <span class="section-tag">NUESTRA TRAYECTORIA</span>
-        <h2 class="section-title">Comprometidos con la Salud de Nuestra Comunidad</h2>
+        <span class="section-tag">NUESTRO EQUIPO & VISIÓN</span>
+        <h2 class="section-title">Impulsando la Transformación Digital Farmacéutica</h2>
         <p class="paragraph">
-          <strong>FarmaGest</strong> nació con la visión de hacer la salud accesible, humana y transparente. Con la implementación de nuestro ecosistema tecnológico, hemos digitalizado la trazabilidad de lotes, control de vencimientos y precios auditables para ofrecerte máxima seguridad.
+          <strong>FarmaGest</strong> nació como un equipo especializado en ingeniería de software con la misión de modernizar, automatizar y profesionalizar la gestión operativa de boticas y farmacias en el Perú. Digitalizamos procesos críticos para evitar pérdidas de inventario por vencimiento, acelerar ventas en mostrador y garantizar el cumplimiento tributario ante SUNAT y sanitario ante DIGEMID.
         </p>
         
         <div class="valores-list">
           <div class="valor-item">
             <div class="valor-bullet">01</div>
             <div>
-              <h4>Ética Farmacéutica</h4>
-              <p>No promovemos la automedicación. Guiamos a nuestros pacientes con honestidad médica.</p>
+              <h4>Innovación Continua</h4>
+              <p>Arquitectura moderna y segura en la nube diseñada para evolucionar con las necesidades de tu negocio.</p>
             </div>
           </div>
           <div class="valor-item">
             <div class="valor-bullet">02</div>
             <div>
-              <h4>Garantía de Origen</h4>
-              <p>Compramos exclusivamente a laboratorios farmacéuticos certificados y droguerías autorizadas.</p>
+              <h4>Rigurosidad Regulatoria</h4>
+              <p>Cumplimiento estricto de especificaciones DIGEMID para control de recetas y conexión nativa con SUNAT.</p>
             </div>
           </div>
           <div class="valor-item">
             <div class="valor-bullet">03</div>
             <div>
-              <h4>Atención Humana y Cálida</h4>
-              <p>Cada consulta es atendida por profesionales que escuchan tus necesidades con empatía.</p>
+              <h4>Soporte Especializado</h4>
+              <p>Capacitación y acompañamiento técnico directo y constante para administradores, almaceneros y cajeros.</p>
             </div>
           </div>
         </div>
@@ -380,16 +386,16 @@
       <div class="nosotros-visual">
         <div class="stats-box">
           <div class="stat-card">
-            <span class="stat-num">+10</span>
-            <span class="stat-txt">Años Cuidando Familias</span>
+            <span class="stat-num">+5</span>
+            <span class="stat-txt">Años de Innovación Software</span>
           </div>
           <div class="stat-card">
-            <span class="stat-num">50k+</span>
-            <span class="stat-txt">Recetas Atendidas</span>
+            <span class="stat-num">+100k</span>
+            <span class="stat-txt">Comprobantes Emitidos</span>
           </div>
           <div class="stat-card">
             <span class="stat-num">100%</span>
-            <span class="stat-txt">Cumplimiento DIGEMID</span>
+            <span class="stat-txt">Conforme SUNAT & DIGEMID</span>
           </div>
           <div class="stat-card">
             <span class="stat-num">4.9 ★</span>
@@ -402,16 +408,16 @@
   </section>
 
   <!-- ============================================== -->
-  <!-- 6. SECCIÓN BLOG Y CONSEJOS DE SALUD             -->
+  <!-- 6. SECCIÓN BLOG & RECURSOS                      -->
   <!-- ============================================== -->
   <section id="blog" class="section blog-section">
     <div class="container">
       
       <div class="section-header text-center">
-        <span class="section-tag">CONSEJOS DE SALUD</span>
-        <h2 class="section-title">Blog y Novedades Farmacéuticas</h2>
+        <span class="section-tag">RECURSOS Y TECNOLOGÍA</span>
+        <h2 class="section-title">Blog de Gestión y Tecnología Farmacéutica</h2>
         <p class="section-subtitle">
-          Artículos preparados por nuestro equipo de profesionales para cuidar tu salud y la de los tuyos.
+          Guías, normativas DIGEMID, facturación electrónica y buenas prácticas para optimizar tu farmacia con tecnología.
         </p>
       </div>
 
@@ -434,16 +440,16 @@
   </section>
 
   <!-- ============================================== -->
-  <!-- 7. SECCIÓN CONTACTO Y UBICACIÓN                 -->
+  <!-- 7. SECCIÓN CONTACTO Y ASESORÍA COMERCIAL        -->
   <!-- ============================================== -->
   <section id="contacto" class="section contacto-section">
     <div class="container">
       
       <div class="section-header text-center">
-        <span class="section-tag">ENCUÉNTRANOS</span>
-        <h2 class="section-title">Contáctanos y Haz tu Pedido</h2>
+        <span class="section-tag">CONTACTO COMERCIAL</span>
+        <h2 class="section-title">Solicita una Demostración o Cotización</h2>
         <p class="section-subtitle">
-          Estamos listos para atender tus dudas, cotizaciones y pedidos a domicilio.
+          Conoce cómo FarmaGest puede optimizar la rentabilidad de tu negocio farmacéutico. Contáctanos hoy mismo.
         </p>
       </div>
 
@@ -452,7 +458,7 @@
         <!-- Datos de Contacto -->
         <div class="contacto-info-card">
           <h3>FarmaGest</h3>
-          <p class="sub">Atención Farmacéutica · Ate, Lima</p>
+          <p class="sub">Software de Gestión Farmacéutica · Ate, Lima</p>
 
           <div class="info-list">
             <div class="info-item">
@@ -460,7 +466,7 @@
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
               </svg>
               <div>
-                <strong>Dirección:</strong>
+                <strong>Oficinas:</strong>
                 <span>Av. Los Ángeles Mz. C Lote 12, Ate - Lima</span>
               </div>
             </div>
@@ -470,9 +476,9 @@
                 <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
               </svg>
               <div>
-                <strong>Horario de Atención:</strong>
-                <span>Lunes a Sábado: 7:30 AM – 10:30 PM</span>
-                <span>Domingos y Feriados: 8:00 AM – 9:00 PM</span>
+                <strong>Atención Comercial y Soporte:</strong>
+                <span>Lunes a Viernes: 8:00 AM – 7:00 PM</span>
+                <span>Sábados: 9:00 AM – 2:00 PM</span>
               </div>
             </div>
 
@@ -481,7 +487,7 @@
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
               </svg>
               <div>
-                <strong>Teléfono & WhatsApp:</strong>
+                <strong>Central Telefónica & WhatsApp:</strong>
                 <span>Fijo: (01) 351-8080</span>
                 <span>WhatsApp: +51 987 654 321</span>
               </div>
@@ -493,24 +499,24 @@
                 <polyline points="22,6 12,13 2,6"/>
               </svg>
               <div>
-                <strong>Correo Electrónico:</strong>
+                <strong>Correo Comercial:</strong>
                 <span>contacto&#64;farmagest.tech</span>
               </div>
             </div>
           </div>
 
-          <a href="https://wa.me/51987654321?text=Hola%20FarmaGest,%20deseo%20hacer%20un%20pedido" target="_blank" class="btn btn-whatsapp-direct">
+          <a href="https://wa.me/51987654321?text=Hola%20FarmaGest,%20deseo%20información%20sobre%20el%20software" target="_blank" class="btn btn-whatsapp-direct">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z"/>
             </svg>
-            Escribir por WhatsApp Directo
+            Escribir por WhatsApp Comercial
           </a>
         </div>
 
         <!-- Formulario de Mensaje -->
         <div class="contacto-form-card">
-          <h3>Envíanos un Mensaje o Consulta</h3>
-          <p class="form-desc">Responderemos a la brevedad con la cotización o disponibilidad del medicamento.</p>
+          <h3>Envíanos tu Consulta o Requerimiento</h3>
+          <p class="form-desc">Responderemos a la brevedad con la cotización de planes o acceso a una demo guiada de FarmaGest.</p>
 
           <form (ngSubmit)="enviarMensaje()">
             <div class="form-row">
@@ -524,21 +530,21 @@
             </div>
 
             <div class="form-row">
-              <label>Correo Electrónico (Opcional)</label>
-              <input type="email" [(ngModel)]="contactoForm.email" name="email" class="form-control" placeholder="ejemplo@correo.com">
+              <label>Correo Electrónico *</label>
+              <input type="email" [(ngModel)]="contactoForm.email" name="email" class="form-control" placeholder="ejemplo@farmacia.com">
             </div>
 
             <div class="form-row">
-              <label>¿Qué medicamento o consulta tienes?</label>
-              <textarea [(ngModel)]="contactoForm.mensaje" name="mensaje" rows="3" class="form-control" placeholder="Indica nombre del medicamento, concentración o si cuentas con receta médica..."></textarea>
+              <label>¿Qué requerimiento o consulta sobre el software tienes?</label>
+              <textarea [(ngModel)]="contactoForm.mensaje" name="mensaje" rows="3" class="form-control" placeholder="Indica nombre de tu farmacia, número de sucursales o requerimientos específicos..."></textarea>
             </div>
 
             <div *ngIf="contactoEnviado" class="alert-enviado">
-              ✓ ¡Mensaje enviado con éxito! Nuestro personal farmacéutico se comunicará contigo de inmediato.
+              ✓ ¡Mensaje enviado con éxito! Nuestro equipo comercial se comunicará contigo de inmediato.
             </div>
 
             <button type="submit" class="btn btn-enviar-contacto">
-              Enviar Consulta
+              Solicitar Información / Demo
             </button>
           </form>
         </div>
@@ -564,37 +570,37 @@
           <span class="brand-main">FarmaGest</span>
         </div>
         <p class="footer-desc">
-          FarmaGest · Sistema integral farmacéutico con control de stock, dispensación profesional y facturación SUNAT.
+          FarmaGest · Plataforma SaaS especializada en gestión farmacéutica: control de stock por lotes, ventas POS y facturación electrónica SUNAT.
         </p>
       </div>
 
       <div class="footer-links-col">
         <h4>Navegación</h4>
         <a href="#inicio">Inicio</a>
-        <a href="#catalogo">Catálogo de Productos</a>
-        <a href="#servicios">Nuestros Servicios</a>
+        <a href="#catalogo">Catálogo Demo</a>
+        <a href="#servicios">Módulos & Soluciones</a>
         <a href="#nosotros">Sobre Nosotros</a>
-        <a href="#blog">Blog de Salud</a>
+        <a href="#blog">Blog & Novedades</a>
       </div>
 
       <div class="footer-links-col">
         <h4>Legal & Normativa</h4>
-        <a href="javascript:void(0)" (click)="abrirTerminos()">Términos y Condiciones</a>
+        <a href="javascript:void(0)" (click)="abrirTerminos()">Términos del Servicio</a>
         <a href="javascript:void(0)" (click)="abrirTerminos()">Política de Privacidad</a>
-        <a href="javascript:void(0)" (click)="abrirTerminos()">Venta con Receta Médica</a>
+        <a href="javascript:void(0)" (click)="abrirTerminos()">Normativa DIGEMID & SUNAT</a>
         <span class="text-muted">RUC: 20608945612</span>
       </div>
 
       <div class="footer-portal-col">
-        <h4>Portal Interno</h4>
-        <p>¿Eres colaborador o cliente corporativo registrado?</p>
+        <h4>Portal de Clientes & Empresas</h4>
+        <p>¿Cuentas con credenciales o clave corporativa?</p>
         <button class="btn btn-portal-cliente-footer" (click)="irALogin()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
             <polyline points="10 17 15 12 10 7"/>
             <line x1="15" y1="12" x2="3" y2="12"/>
           </svg>
-          <span>Ingreso al Sistema FarmaGest</span>
+          <span>Ingreso a la Plataforma FarmaGest</span>
         </button>
       </div>
 
@@ -603,7 +609,7 @@
     <div class="footer-bottom">
       <div class="container bottom-row">
         <span>© 2026 FarmaGest. Todos los derechos reservados.</span>
-        <span>Ate, Lima · DIGEMID · MINSA</span>
+        <span>Ate, Lima · Plataforma Cloud para Farmacias y Boticas</span>
       </div>
     </div>
   </footer>
@@ -627,7 +633,7 @@
         <p class="highlight-p">{{ articuloSeleccionado.resumen }}</p>
         <p>{{ articuloSeleccionado.contenido }}</p>
         <div class="alert-consejo">
-          💡 <strong>Recordatorio FarmaGest:</strong> Consulta siempre con tu médico o con nuestro químico farmacéutico antes de iniciar cualquier tratamiento.
+          💡 <strong>Solución FarmaGest:</strong> Diseñada para cumplir con las Buenas Prácticas de Almacenamiento (BPA) y normativas de facturación electrónica vigentes en el Perú.
         </div>
       </div>
       <div class="modal-footer">

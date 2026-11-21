@@ -164,33 +164,33 @@ export class LandingComponent implements OnInit {
   articulos: ArticuloBlog[] = [
     {
       id: 1,
-      titulo: 'Uso Responsable de Antibióticos: Evitemos la Resistencia Bacteriana',
-      resumen: 'Conoce por qué no debes suspender tu tratamiento antes de tiempo ni tomar antibióticos sin receta médica previa.',
-      contenido: 'La resistencia bacteriana es una de las mayores amenazas de salud global. Tomar antibióticos para infecciones virales como el resfriado o suspender las tomas cuando los síntomas mejoran entrena a las bacterias para sobrevivir, inutilizando los tratamientos futuros. En FarmaGest promovemos la dispensación ética con receta médica.',
-      categoria: 'Educación Sanitaria',
+      titulo: 'Buenas Prácticas de Almacenamiento (BPA) y Trazabilidad DIGEMID en Boticas',
+      resumen: 'Claves para superar inspecciones sanitarias y mantener control riguroso de lotes y vencimientos con software.',
+      contenido: 'El control estricto de lotes y vencimientos no solo previene sanciones ante inspecciones de la DIRIS o DIGEMID, sino que evita pérdidas económicas críticas por mermas no detectadas. FarmaGest automatiza el registro de ingresos por lote, alertas tempranas de caducidad y generación de actas de mermas conforme a ley.',
+      categoria: 'Regulación DIGEMID',
       fecha: '20 Noviembre, 2026',
       tiempoLectura: '4 min',
-      autor: 'Dra. María Elena Rivas (Q.F.)'
+      autor: 'Área Técnica FarmaGest'
     },
     {
       id: 2,
-      titulo: 'Cómo Conservar tus Medicamentos en Casa de Manera Correcta',
-      resumen: 'Consejos para proteger la efectividad de tus fármacos evitando el calor, la humedad del baño y la luz solar directa.',
-      contenido: 'El botiquín del baño es uno de los peores lugares para guardar fármacos debido al vapor de la ducha y la humedad constante. Se recomienda un lugar fresco, seco y fuera del alcance de los niños, conservando siempre el empaque original y las fechas de vencimiento visibles.',
-      categoria: 'Guía Práctica',
+      titulo: 'Facturación Electrónica SUNAT: Ventajas de la Emisión Inmediata en Mostrador',
+      resumen: 'Cómo reducir tiempos de espera en el punto de venta emitiendo comprobantes válidos en segundos.',
+      contenido: 'Contar con una integración directa y nativa con SUNAT elimina la lentitud en mostrador. FarmaGest emite boletas, facturas y notas de crédito instantáneas, almacenando de forma segura los archivos XML y CDR requeridos por la normativa tributaria peruana.',
+      categoria: 'Gestión Tributaria',
       fecha: '18 Noviembre, 2026',
       tiempoLectura: '3 min',
-      autor: 'Lic. Carlos Torres (Farmacéutico)'
+      autor: 'Equipo Tributario FarmaGest'
     },
     {
       id: 3,
-      titulo: 'Guía de Recetas Médicas en el Perú: Todo lo que Debes Saber',
-      resumen: 'Aprende a identificar los requisitos obligatorios de una receta médica válida según la normativa del MINSA y DIGEMID.',
-      contenido: 'Una prescripción médica conforme a ley debe incluir: nombre completo del paciente, denominación común internacional (DCI), concentración, forma farmacéutica, dosis, firma, sello y número de colegiatura del médico tratante. Esto protege tu seguridad.',
-      categoria: 'Normativa & Seguridad',
+      titulo: 'Catálogo Digital y Portal para Clientes: El Futuro de la Farmacia Peruana',
+      resumen: 'Por qué las boticas modernas necesitan una vitrina digital que sincronice stock y precios al instante.',
+      contenido: 'Los usuarios actuales prefieren verificar disponibilidad, principios activos y precios antes de salir de casa o solicitar despacho. FarmaGest incluye un portal web interactivo que exhibe tu catálogo sin complicaciones operativas para el personal.',
+      categoria: 'Tecnología & Ventas',
       fecha: '15 Noviembre, 2026',
       tiempoLectura: '5 min',
-      autor: 'Equipo Técnico FarmaGest'
+      autor: 'Equipo de Producto FarmaGest'
     }
   ];
 
