@@ -6,14 +6,24 @@
 
 /* Sidebar Oscuro (240px, #0B3D38) */
 .app-sidebar {
-  width: 240px;
+  width: 250px;
   background-color: var(--color-verde-oscuro);
   color: #FFFFFF;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  transition: transform 0.3s ease, width 0.3s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
   z-index: 100;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@media (min-width: 993px) {
+  .app-sidebar:not(.abierto) {
+    width: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .sidebar-header {
@@ -23,6 +33,26 @@
   gap: 0.75rem;
   padding: 0 1.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-close-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  margin-left: auto;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #A8D8D1;
 }
 
 .logo-box {
@@ -129,16 +159,24 @@
 }
 
 .menu-toggle-btn {
-  display: none;
-  min-height: 44px;
-  width: 44px;
-  background: none;
-  border: none;
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  background-color: #F0FDF4;
+  border: 1px solid #DCFCE7;
   color: var(--color-verde-oscuro);
   cursor: pointer;
   border-radius: 8px;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.menu-toggle-btn:hover {
+  background-color: #DCFCE7;
+  color: #082D29;
+  transform: translateY(-1px);
 }
 
 .topbar-branch {
@@ -232,13 +270,13 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.55);
-    z-index: 95;
-    backdrop-filter: blur(2px);
+    z-index: 999;
+    backdrop-filter: blur(3px);
     transition: opacity 0.3s ease;
   }
 
-  .menu-toggle-btn {
-    display: flex;
+  .sidebar-close-btn {
+    display: inline-flex;
   }
 
   .app-sidebar {
@@ -246,15 +284,17 @@
     top: 0;
     bottom: 0;
     left: 0;
-    width: 270px;
+    width: 275px;
     max-width: 85vw;
     transform: translateX(-100%);
-    z-index: 100;
+    z-index: 1000;
+    box-shadow: none;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .app-sidebar.abierto {
     transform: translateX(0);
-    box-shadow: 6px 0 24px rgba(0, 0, 0, 0.4);
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.45);
   }
 
   .app-topbar {
