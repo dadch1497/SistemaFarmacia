@@ -1,0 +1,58 @@
+.catalogo-page-header {
+  background: linear-gradient(180deg, #F1F8F6 0%, #F8FAFC 100%);
+  padding: 3.5rem 0 2rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.saas-demo-notice {
+  background-color: #E6F4F1;
+  border-left: 4px solid #0F766E;
+  padding: 1.25rem 1.5rem;
+  border-radius: 8px;
+  margin: 2rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.notice-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notice-content h4 {
+  color: #0B3D38;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+}
+
+.notice-content p {
+  color: #334155;
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.catalogo-cta-box {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 2.5rem;
+  text-align: center;
+  margin-top: 4rem;
+  box-shadow: 0 4px 20px rgba(11, 61, 56, 0.05);
+}
+
+.catalogo-cta-box h3 {
+  color: #0B3D38;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+}
+
+.catalogo-cta-box p {
+  color: #64748B;
+  max-width: 600px;
+  margin: 0 auto 1.5rem;
+}

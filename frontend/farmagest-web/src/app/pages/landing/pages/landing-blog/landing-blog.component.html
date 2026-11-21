@@ -1,0 +1,46 @@
+<div class="blog-page">
+
+  <!-- Encabezado de Página -->
+  <div class="blog-page-header">
+    <div class="container text-center">
+      <span class="section-tag">RECURSOS, REGULACIÓN & TECNOLOGÍA</span>
+      <h1 class="section-title">Blog & Novedades Farmacéuticas</h1>
+      <p class="section-subtitle">
+        Guías especializadas en normativas DIGEMID, facturación electrónica SUNAT y buenas prácticas de gestión para modernizar tu farmacia.
+      </p>
+    </div>
+  </div>
+
+  <section class="section blog-section" style="padding-top: 3rem;">
+    <div class="container">
+      
+      <div class="blog-grid">
+        <article *ngFor="let art of articulos" class="blog-card" (click)="abrirArticulo(art)">
+          <div class="blog-meta-top">
+            <span class="blog-cat">{{ art.categoria }}</span>
+            <span class="blog-read">{{ art.tiempoLectura }}</span>
+          </div>
+          <h3 class="blog-title">{{ art.titulo }}</h3>
+          <p class="blog-excerpt">{{ art.resumen }}</p>
+          <div class="blog-footer">
+            <span class="blog-author">{{ art.autor }}</span>
+            <span class="blog-read-more">Leer artículo completo →</span>
+          </div>
+        </article>
+      </div>
+
+      <!-- Cuadro de Asesoría Técnica -->
+      <div class="blog-newsletter-card">
+        <h3>¿Tienes dudas sobre regulaciones DIGEMID o facturación SUNAT?</h3>
+        <p>
+          Nuestro equipo de especialistas en tecnología y normativa farmacéutica está disponible para asesorarte sin costo en la implementación de tu sistema.
+        </p>
+        <a routerLink="/contacto" class="btn btn-primary-cta">
+          Conversar con un Asesor Técnico
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+</div>

@@ -1,0 +1,52 @@
+/* Estilos específicos de Landing Home */
+.section-cta-banner {
+  background: linear-gradient(135deg, #0B3D38 0%, #0F766E 100%);
+  color: #FFFFFF;
+  padding: 4.5rem 0;
+  text-align: center;
+}
+
+.section-cta-banner .section-title {
+  color: #FFFFFF;
+  margin-bottom: 1rem;
+}
+
+.section-cta-banner .section-subtitle {
+  color: #A8D8D1;
+  margin-bottom: 2rem;
+}
+
+.teaser-actions {
+  text-align: center;
+  margin-top: 2.5rem;
+}
+
+.btn-link-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #0B3D38;
+  color: #FFFFFF;
+  padding: 0.85rem 1.75rem;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(11, 61, 56, 0.2);
+}
+
+.btn-link-action:hover {
+  background-color: #0F766E;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(11, 61, 56, 0.3);
+}
+
+.btn-link-action.light {
+  background-color: #FFFFFF;
+  color: #0B3D38;
+}
+
+.btn-link-action.light:hover {
+  background-color: #F8FAFC;
+  color: #0F766E;
+}

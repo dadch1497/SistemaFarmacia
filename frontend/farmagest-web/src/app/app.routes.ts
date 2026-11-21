@@ -1,6 +1,12 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { LandingComponent } from './pages/landing/landing.component';
+import { LandingHomeComponent } from './pages/landing/pages/landing-home/landing-home.component';
+import { LandingCatalogoComponent } from './pages/landing/pages/landing-catalogo/landing-catalogo.component';
+import { LandingModulosComponent } from './pages/landing/pages/landing-modulos/landing-modulos.component';
+import { LandingNosotrosComponent } from './pages/landing/pages/landing-nosotros/landing-nosotros.component';
+import { LandingBlogComponent } from './pages/landing/pages/landing-blog/landing-blog.component';
+import { LandingContactoComponent } from './pages/landing/pages/landing-contacto/landing-contacto.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { HomeComponent } from './pages/home/home.component';
 import { ProductosComponent } from './pages/productos/productos.component';
@@ -17,13 +23,22 @@ import { authGuard } from './core/guards/auth.guard';
 export const routes: Routes = [
   {
     path: '',
-    pathMatch: 'full',
-    component: LandingComponent
-  },
-  {
-    path: 'inicio',
-    redirectTo: '',
-    pathMatch: 'full'
+    component: LandingComponent,
+    children: [
+      { path: '', pathMatch: 'full', component: LandingHomeComponent },
+      { path: 'inicio', redirectTo: '', pathMatch: 'full' },
+      { path: 'catalogo', component: LandingCatalogoComponent },
+      { path: 'catalogo-demo', redirectTo: 'catalogo', pathMatch: 'full' },
+      { path: 'modulos', component: LandingModulosComponent },
+      { path: 'modulos-soluciones', redirectTo: 'modulos', pathMatch: 'full' },
+      { path: 'servicios', redirectTo: 'modulos', pathMatch: 'full' },
+      { path: 'nosotros', component: LandingNosotrosComponent },
+      { path: 'sobre-nosotros', redirectTo: 'nosotros', pathMatch: 'full' },
+      { path: 'blog', component: LandingBlogComponent },
+      { path: 'blog-novedades', redirectTo: 'blog', pathMatch: 'full' },
+      { path: 'noticias', redirectTo: 'blog', pathMatch: 'full' },
+      { path: 'contacto', component: LandingContactoComponent }
+    ]
   },
   {
     path: 'login',

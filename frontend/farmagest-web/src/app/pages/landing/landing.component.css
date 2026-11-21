@@ -130,10 +130,28 @@ html {
   font-weight: 600;
   color: #475569;
   transition: color 0.2s ease;
+  position: relative;
+  padding: 0.5rem 0;
 }
 
 .nav-item:hover {
   color: #0F766E;
+}
+
+.nav-item.active {
+  color: #0B3D38;
+  font-weight: 800;
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #0F766E;
+  border-radius: 9999px;
 }
 
 .header-actions {
@@ -1237,6 +1255,11 @@ html {
     font-weight: 600;
     padding: 0.75rem 0;
     border-bottom: 1px solid #F1F5F9;
+  }
+
+  .mobile-nav-drawer a.active {
+    color: #0F766E;
+    font-weight: 800;
   }
 
   .mobile-nav-footer {

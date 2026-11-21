@@ -1,0 +1,142 @@
+<div class="contacto-page">
+
+  <!-- Encabezado de Página -->
+  <div class="contacto-page-header">
+    <div class="container text-center">
+      <span class="section-tag">ASESORÍA COMERCIAL & DEMOSTRACIONES</span>
+      <h1 class="section-title">Contáctanos o Solicita una Demo Guiada</h1>
+      <p class="section-subtitle">
+        Conoce cómo FarmaGest puede optimizar la rentabilidad, ventas y control de tu negocio farmacéutico. Contáctanos hoy mismo.
+      </p>
+    </div>
+  </div>
+
+  <section class="section contacto-section" style="padding-top: 3rem;">
+    <div class="container">
+      
+      <div class="contacto-grid">
+        
+        <!-- Datos de Contacto Directo -->
+        <div class="contacto-info-card">
+          <h3>FarmaGest</h3>
+          <p class="sub">Software Integral de Gestión Farmacéutica · Ate, Lima</p>
+
+          <div class="info-list">
+            <div class="info-item">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              <div>
+                <strong>Oficinas Principales:</strong>
+                <span>Av. Los Ángeles Mz. C Lote 12, Ate - Lima, Perú</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <div>
+                <strong>Atención Comercial y Soporte Técnico:</strong>
+                <span>Lunes a Viernes: 8:00 AM – 7:00 PM</span>
+                <span>Sábados: 9:00 AM – 2:00 PM</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              <div>
+                <strong>Central Telefónica & WhatsApp:</strong>
+                <span>Fijo: (01) 351-8080</span>
+                <span>WhatsApp: +51 987 654 321</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <div>
+                <strong>Correo Comercial:</strong>
+                <span>contacto&#64;farmagest.tech</span>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://wa.me/51987654321?text=Hola%20FarmaGest,%20deseo%20información%20sobre%20el%20software" target="_blank" class="btn btn-whatsapp-direct">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z"/>
+            </svg>
+            Escribir al WhatsApp Comercial
+          </a>
+        </div>
+
+        <!-- Formulario de Consulta -->
+        <div class="contacto-form-card">
+          <h3>Envíanos tu Consulta o Requerimiento</h3>
+          <p class="form-desc">Responderemos a la brevedad con la cotización de planes adaptados a tu botica o acceso a una demo guiada de FarmaGest.</p>
+
+          <form (ngSubmit)="enviarMensaje()">
+            <div class="form-row">
+              <label>Tu Nombre Completo *</label>
+              <input type="text" [(ngModel)]="contactoForm.nombre" name="nombre" class="form-control" placeholder="Ej. Juan Pérez" required>
+            </div>
+
+            <div class="form-row">
+              <label>Teléfono o Celular *</label>
+              <input type="tel" [(ngModel)]="contactoForm.telefono" name="telefono" class="form-control" placeholder="Ej. 987654321" required>
+            </div>
+
+            <div class="form-row">
+              <label>Nombre de tu Botica / Farmacia</label>
+              <input type="text" [(ngModel)]="contactoForm.farmacia" name="farmacia" class="form-control" placeholder="Ej. Botica San Miguel">
+            </div>
+
+            <div class="form-row">
+              <label>Correo Electrónico</label>
+              <input type="email" [(ngModel)]="contactoForm.email" name="email" class="form-control" placeholder="ejemplo@farmacia.com">
+            </div>
+
+            <div class="form-row">
+              <label>¿Qué requerimiento o consulta sobre el software tienes?</label>
+              <textarea [(ngModel)]="contactoForm.mensaje" name="mensaje" rows="3" class="form-control" placeholder="Indica número de sucursales, si emites facturas SUNAT o requerimientos de inventario..."></textarea>
+            </div>
+
+            <div *ngIf="contactoEnviado" class="alert-enviado">
+              ✓ ¡Mensaje enviado con éxito! Nuestro equipo comercial se comunicará contigo a la brevedad.
+            </div>
+
+            <button type="submit" class="btn btn-enviar-contacto">
+              Solicitar Demostración / Información
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Ubicación y Mapa -->
+      <div class="map-wrapper-box">
+        <div class="map-header">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          <h4>Ubicación Geográfica — Oficinas FarmaGest en Ate, Lima</h4>
+        </div>
+        <div class="map-embed-container">
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.996162125556!2d-76.9242!3d-12.0289!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c5c165ef664f%3A0xb35513d7890b3438!2sAte%2C%20Lima!5e0!3m2!1ses-419!2spe!4v1716300000000!5m2!1es-419!2spe" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Mapa Oficinas FarmaGest">
+          </iframe>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
