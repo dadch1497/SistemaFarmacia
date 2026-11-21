@@ -5,7 +5,7 @@
     <div class="header-titles">
       <div class="header-badge">
         <span class="pulse-dot"></span>
-        SISTEMA EN LÍNEA · FARMA OCHENTA (SUCURSAL #1)
+        SISTEMA EN LÍNEA · FARMAGEST (SUCURSAL #1)
       </div>
       <h2>{{ authService.isAdmin() ? 'Panel de Control y Reportes' : (authService.isVendedor() ? 'Mi Dashboard de Ventas' : 'Panel de Inicio') }}</h2>
       <p class="subtitle">{{ authService.isAdmin() ? 'Visión ejecutiva de ventas, rentabilidad y rotación de productos' : (authService.isVendedor() ? 'Resumen acumulado de mis ventas personales, consulta de comprobantes emitidos y estado de caja' : 'Accesos operativos y módulos asignados') }}</p>
@@ -402,7 +402,7 @@
       <div class="modal-body">
         <div class="ticket-recibo" id="recibo-imprimible">
           <div class="ticket-recibo-header">
-            <h4>BOTICA FARMA OCHENTA</h4>
+            <h4>FARMAGEST</h4>
             <p>FARMAGEST S.A.C.</p>
             <p>RUC: 20000000001</p>
             <p>Av. Nicolás Ayllón 1497, Ate - Lima</p>
@@ -483,7 +483,7 @@
           </div>
 
           <div class="ticket-footer-text">
-            <p>¡Gracias por su compra en Botica Farma Ochenta!</p>
+            <p>¡Gracias por su compra en FarmaGest!</p>
             <small>Representación impresa de la {{ venta.tipoComprobante }} Electrónica</small>
             <div class="ticket-hash">
               <code>HASH: 7a8f9c2d1e0b5a4f</code>

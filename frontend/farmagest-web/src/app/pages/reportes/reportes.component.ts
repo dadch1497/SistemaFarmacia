@@ -368,7 +368,7 @@ export class ReportesComponent implements OnInit {
       return 'Lucía Morales Rivas (Vendedor 2)';
     }
     if (uid === 1 || v.nombreVendedor?.includes('Admin') || v.vendedorNombre?.includes('Admin')) {
-      return 'Admin (Administrador Farma Ochenta)';
+      return 'Admin (Administrador FarmaGest)';
     }
     return v.nombreVendedor || v.vendedorNombre || 'Admin';
   }

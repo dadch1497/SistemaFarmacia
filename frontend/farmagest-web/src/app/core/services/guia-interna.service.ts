@@ -97,7 +97,7 @@ export class GuiaInternaService {
       doc.setFillColor(15, 79, 70); doc.roundedRect(12, 13, 10, 10, 2, 2, 'F');
       doc.setDrawColor(255); doc.setLineWidth(0.8); doc.line(15, 18, 19, 18); doc.line(17, 16, 17, 20);
       doc.setFont('helvetica', 'bold'); doc.setTextColor(15, 79, 70); doc.setFontSize(17); doc.text('FarmaGest', 25, 19);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(70, 90, 80); doc.text('Botica Farma Ochenta', 25, 25);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(70, 90, 80); doc.text('FarmaGest Farmacia', 25, 25);
       doc.setDrawColor(15, 79, 70); doc.setLineWidth(0.4); doc.roundedRect(117, 12, 81, 29, 2, 2);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.text('GUÍA INTERNA DE RECEPCIÓN', 157.5, 19, { align: 'center' });
       doc.setFontSize(9); doc.text(texto(datos.codigo), 157.5, 25, { align: 'center' });
@@ -112,7 +112,7 @@ export class GuiaInternaService {
       body: [
         [`${datos.modo === 'ESPERADA' ? 'COMPRA' : 'GUÍA DEL PROVEEDOR'}: ${texto(datos.referencia)}`, `FECHA DEL REGISTRO: ${fecha(datos.fecha)}`],
         [`PROVEEDOR: ${texto(datos.proveedor)}`, `RUC PROVEEDOR: ${texto(datos.ruc)}`],
-        [`DIRECCIÓN: ${texto(datos.direccion)}`, `DESTINO: Botica Farma Ochenta / Sucursal ${datos.sucursal}`],
+        [`DIRECCIÓN: ${texto(datos.direccion)}`, `DESTINO: FarmaGest / Sucursal ${datos.sucursal}`],
         [`ESTADO: ${texto(datos.estado)}`, datos.modo === 'ESPERADA' ? 'FECHA DE ENTREGA REAL: __________________' : `FACTURA: ${texto(datos.factura)}`]
       ], columnStyles: { 0: { cellWidth: 113 }, 1: { cellWidth: 73 } },
       alternateRowStyles: { fillColor: [246, 249, 247] }
