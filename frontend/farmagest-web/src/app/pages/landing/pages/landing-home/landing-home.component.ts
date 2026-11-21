@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { LandingDataService, ArticuloBlog } from '../../landing-data.service';
 
 @Component({
   selector: 'app-landing-home',
@@ -11,20 +10,9 @@ import { LandingDataService, ArticuloBlog } from '../../landing-data.service';
   styleUrls: ['./landing-home.component.css']
 })
 export class LandingHomeComponent {
-  constructor(
-    public landingData: LandingDataService,
-    private router: Router
-  ) {}
-
-  get articulosRecientes(): ArticuloBlog[] {
-    return this.landingData.articulos.slice(0, 3);
-  }
+  constructor(private router: Router) {}
 
   irALogin(): void {
     this.router.navigate(['/login']);
-  }
-
-  abrirArticulo(art: ArticuloBlog): void {
-    this.landingData.abrirArticulo(art);
   }
 }

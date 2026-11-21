@@ -208,44 +208,7 @@
 </section>
 
 <!-- ============================================== -->
-<!-- 5. TEASER DEL BLOG                            -->
-<!-- ============================================== -->
-<section class="section blog-section">
-  <div class="container">
-    <div class="section-header text-center">
-      <span class="section-tag">RECURSOS Y NOVEDADES</span>
-      <h2 class="section-title">Últimas Publicaciones del Blog</h2>
-      <p class="section-subtitle">
-        Guías especializadas en normativas DIGEMID, facturación electrónica y optimización operativa.
-      </p>
-    </div>
-
-    <div class="blog-grid">
-      <article *ngFor="let art of articulosRecientes" class="blog-card" (click)="abrirArticulo(art)">
-        <div class="blog-meta-top">
-          <span class="blog-cat">{{ art.categoria }}</span>
-          <span class="blog-read">{{ art.tiempoLectura }}</span>
-        </div>
-        <h3 class="blog-title">{{ art.titulo }}</h3>
-        <p class="blog-excerpt">{{ art.resumen }}</p>
-        <div class="blog-footer">
-          <span class="blog-author">{{ art.autor }}</span>
-          <span class="blog-read-more">Leer artículo →</span>
-        </div>
-      </article>
-    </div>
-
-    <div class="teaser-actions">
-      <a routerLink="/blog" class="btn-link-action">
-        <span>Ver todos los artículos y guías del blog</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================== -->
-<!-- 6. BANNER LLAMADO A LA ACCIÓN (CTA)           -->
+<!-- 4. BANNER LLAMADO A LA ACCIÓN (CTA)           -->
 <!-- ============================================== -->
 <section class="section-cta-banner">
   <div class="container">
