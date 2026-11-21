@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
+import { LandingComponent } from './pages/landing/landing.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { HomeComponent } from './pages/home/home.component';
 import { ProductosComponent } from './pages/productos/productos.component';
@@ -15,6 +16,16 @@ import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    component: LandingComponent
+  },
+  {
+    path: 'inicio',
+    redirectTo: '',
+    pathMatch: 'full'
+  },
+  {
     path: 'login',
     component: LoginComponent
   },
@@ -23,7 +34,6 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: HomeComponent },
       { path: 'pos', component: PosComponent },
       { path: 'devoluciones', component: DevolucionesComponent, canActivate: [reportesRoleGuard], data: { roles: ['ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR'] } },
