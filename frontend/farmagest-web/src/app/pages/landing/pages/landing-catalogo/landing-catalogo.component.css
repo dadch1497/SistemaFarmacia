@@ -1,11 +1,12 @@
 .catalogo-page-header {
-  background: linear-gradient(180deg, #F1F8F6 0%, #F8FAFC 100%);
-  padding: 3.5rem 0 2rem;
-  border-bottom: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  padding: 4.5rem 0 3rem;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .saas-demo-notice {
-  background-color: #E6F4F1;
+  background-color: #ECFDF5;
+  border: 1px solid #A7F3D0;
   border-left: 4px solid #0F766E;
   padding: 1.25rem 1.5rem;
   border-radius: 8px;
@@ -18,41 +19,45 @@
 .notice-icon {
   flex-shrink: 0;
   margin-top: 2px;
+  color: #0F766E;
 }
 
 .notice-content h4 {
-  color: #0B3D38;
+  color: #065F46;
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0 0 0.35rem;
+  letter-spacing: -0.01em;
 }
 
 .notice-content p {
-  color: #334155;
+  color: #374151;
   font-size: 0.95rem;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .catalogo-cta-box {
   background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #E5E7EB;
   border-radius: 12px;
-  padding: 2.5rem;
+  padding: 3rem 2rem;
   text-align: center;
   margin-top: 4rem;
-  box-shadow: 0 4px 20px rgba(11, 61, 56, 0.05);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
 }
 
 .catalogo-cta-box h3 {
-  color: #0B3D38;
-  font-size: 1.5rem;
+  color: #111827;
+  font-size: 1.55rem;
   font-weight: 800;
   margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
 }
 
 .catalogo-cta-box p {
-  color: #64748B;
-  max-width: 600px;
-  margin: 0 auto 1.5rem;
+  color: #6B7280;
+  max-width: 620px;
+  margin: 0 auto 1.75rem;
+  font-size: 1rem;
 }

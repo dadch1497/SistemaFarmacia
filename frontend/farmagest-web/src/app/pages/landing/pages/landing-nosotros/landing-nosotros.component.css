@@ -1,7 +1,7 @@
 .nosotros-page-header {
-  background: linear-gradient(180deg, #F1F8F6 0%, #F8FAFC 100%);
-  padding: 3.5rem 0 2rem;
-  border-bottom: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  padding: 4.5rem 0 3rem;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .equipo-valores-grid {
@@ -13,22 +13,31 @@
 
 .equipo-valor-card {
   background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #E5E7EB;
   border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 16px rgba(11, 61, 56, 0.04);
+  padding: 2.25rem 2rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.equipo-valor-card:hover {
+  border-color: #0F766E;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(15, 118, 110, 0.08);
 }
 
 .equipo-valor-card h4 {
-  color: #0B3D38;
+  color: #111827;
   font-size: 1.25rem;
   font-weight: 800;
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.65rem;
+  letter-spacing: -0.02em;
 }
 
 .equipo-valor-card p {
-  color: #475569;
+  color: #6B7280;
   font-size: 0.95rem;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.65;
 }
