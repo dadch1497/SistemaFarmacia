@@ -22,23 +22,34 @@
   margin-bottom: 2rem;
 }
 
-.brand-icon {
-  width: 58px;
-  height: 58px;
-  background-color: var(--color-verde-oscuro);
-  border-radius: 14px;
+.brand-logo-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.75rem;
-  box-shadow: 0 4px 12px rgba(11, 61, 56, 0.25);
+  margin-bottom: 0.85rem;
+  filter: drop-shadow(0 6px 16px rgba(11, 61, 56, 0.28));
+  transition: transform 0.25s ease;
+}
+
+.brand-logo-badge:hover {
+  transform: scale(1.05);
 }
 
 .brand-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-verde-oscuro);
-  letter-spacing: -0.02em;
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.03em;
+}
+
+.brand-title .brand-accent {
+  color: #0F766E;
+  font-weight: 800;
+}
+
+.brand-title .brand-dot {
+  color: #10B981;
+  font-weight: 900;
 }
 
 .brand-subtitle {

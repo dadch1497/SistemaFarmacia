@@ -6,15 +6,36 @@
   <header class="landing-header">
     <div class="container header-container">
       
-      <!-- Logotipo de la Empresa FarmaGest -->
-      <a routerLink="/" class="brand-link">
-        <div class="brand-logo-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 4v16m-8-8h16"/>
+      <!-- Logotipo Innovador FarmaGest -->
+      <a routerLink="/" class="brand-link" title="FarmaGest - Software Farmacéutico">
+        <div class="brand-logo-badge">
+          <svg width="42" height="42" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="fgLogoBg" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#042F2C"/>
+                <stop offset="60%" stop-color="#0B3D38"/>
+                <stop offset="100%" stop-color="#0D9488"/>
+              </linearGradient>
+              <linearGradient id="fgLeafGrad" x1="19" y1="8" x2="30" y2="19" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#34D399"/>
+                <stop offset="100%" stop-color="#10B981"/>
+              </linearGradient>
+            </defs>
+            <!-- Contenedor Squircle Premium -->
+            <rect width="38" height="38" rx="10" fill="url(#fgLogoBg)"/>
+            <rect x="0.75" y="0.75" width="36.5" height="36.5" rx="9.25" stroke="white" stroke-opacity="0.22" stroke-width="1.5"/>
+            <!-- Eje Vertical Clínico (Cápsula Blanca) -->
+            <rect x="16.5" y="8" width="5" height="22" rx="2.5" fill="#FFFFFF"/>
+            <!-- Eje Horizontal Digital (Cápsula Menta) -->
+            <rect x="8" y="16.5" width="22" height="5" rx="2.5" fill="#34D399"/>
+            <!-- Hoja Botánica Orgánica (Vitalidad & Bienestar) -->
+            <path d="M21.5 9.5C27 9.5 28.5 11 28.5 16.5C24.5 16.5 21.5 14 21.5 9.5Z" fill="url(#fgLeafGrad)"/>
+            <!-- Núcleo Central Smart FarmaGest -->
+            <circle cx="19" cy="19" r="1.75" fill="#042F2C"/>
           </svg>
         </div>
         <div class="brand-names">
-          <span class="brand-main">FarmaGest</span>
+          <span class="brand-main">Farma<span class="brand-accent">Gest</span><span class="brand-dot">.</span></span>
         </div>
       </a>
 
@@ -84,13 +105,29 @@
     <div class="container footer-content">
       
       <div class="footer-brand">
-        <div class="brand-link">
-          <div class="brand-logo-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5">
-              <path d="M12 4v16m-8-8h16"/>
+        <div class="footer-brand-header">
+          <div class="brand-logo-badge">
+            <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="fgLogoBgFoot" x1="0" y1="0" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#042F2C"/>
+                  <stop offset="60%" stop-color="#0B3D38"/>
+                  <stop offset="100%" stop-color="#0D9488"/>
+                </linearGradient>
+                <linearGradient id="fgLeafGradFoot" x1="19" y1="8" x2="30" y2="19" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#34D399"/>
+                  <stop offset="100%" stop-color="#10B981"/>
+                </linearGradient>
+              </defs>
+              <rect width="38" height="38" rx="10" fill="url(#fgLogoBgFoot)"/>
+              <rect x="0.75" y="0.75" width="36.5" height="36.5" rx="9.25" stroke="white" stroke-opacity="0.25" stroke-width="1.5"/>
+              <rect x="16.5" y="8" width="5" height="22" rx="2.5" fill="#FFFFFF"/>
+              <rect x="8" y="16.5" width="22" height="5" rx="2.5" fill="#34D399"/>
+              <path d="M21.5 9.5C27 9.5 28.5 11 28.5 16.5C24.5 16.5 21.5 14 21.5 9.5Z" fill="url(#fgLeafGradFoot)"/>
+              <circle cx="19" cy="19" r="1.75" fill="#042F2C"/>
             </svg>
           </div>
-          <span class="brand-main">FarmaGest</span>
+          <span class="footer-brand-name">Farma<span class="footer-brand-accent">Gest</span><span class="footer-brand-dot">.</span></span>
         </div>
         <p class="footer-desc">
           FarmaGest · Plataforma SaaS especializada en gestión farmacéutica: control de stock por lotes, ventas POS y facturación electrónica SUNAT.
