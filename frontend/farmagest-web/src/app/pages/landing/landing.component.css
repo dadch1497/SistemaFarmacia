@@ -363,6 +363,95 @@ html {
   color: #374151;
 }
 
+/* Showcase Visual de FarmaGest con Fotografía Real */
+.hero-visual-frame {
+  position: relative;
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -15px rgba(11, 43, 38, 0.25);
+  border: 1px solid rgba(11, 43, 38, 0.12);
+  background: #0B2B26;
+}
+
+.hero-img-main {
+  width: 100%;
+  height: 440px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-visual-frame:hover .hero-img-main {
+  transform: scale(1.03);
+}
+
+.hero-chip-badge {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.25rem;
+  background: rgba(11, 43, 38, 0.88);
+  color: #FFFFFF;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.hero-floating-card {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  right: 1.25rem;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.floating-stat {
+  flex: 1;
+  text-align: center;
+}
+
+.floating-stat strong {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0B2B26;
+  line-height: 1.15;
+}
+
+.floating-stat span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.floating-stat.highlight strong {
+  color: #0F766E;
+}
+
+.floating-divider {
+  width: 1px;
+  height: 28px;
+  background-color: #E5E7EB;
+}
+
 /* Tarjeta Destacada Lateral (Estilo Ficha Edifica) */
 .highlight-card {
   background: #FFFFFF;
@@ -564,8 +653,9 @@ html {
 .servicio-card {
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  padding: 2.25rem 1.75rem;
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 0;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
   display: flex;
@@ -578,19 +668,49 @@ html {
   box-shadow: 0 16px 32px rgba(15, 118, 110, 0.08);
 }
 
-.servicio-icon {
-  width: 50px;
-  height: 50px;
-  background-color: #ECFDF5;
-  border: 1px solid #A7F3D0;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.25rem;
+.servicio-img-wrapper {
+  position: relative;
+  width: 100%;
+  height: 165px;
+  overflow: hidden;
+  background-color: #0B2B26;
 }
 
-.servicio-card h3 {
+.servicio-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.servicio-card:hover .servicio-img {
+  transform: scale(1.06);
+}
+
+.servicio-badge-over {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  background: rgba(11, 43, 38, 0.85);
+  color: #FFFFFF;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.servicio-body {
+  padding: 1.5rem 1.5rem 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.servicio-body h3 {
   font-size: 1.2rem;
   font-weight: 800;
   color: #111827;
@@ -598,7 +718,7 @@ html {
   letter-spacing: -0.02em;
 }
 
-.servicio-card p {
+.servicio-body p {
   color: #6B7280;
   font-size: 0.95rem;
   line-height: 1.6;
@@ -884,6 +1004,55 @@ html {
   line-height: 1.55;
 }
 
+.nosotros-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.nosotros-img-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(11, 43, 38, 0.12);
+  border: 1px solid #E5E7EB;
+  background-color: #0B2B26;
+}
+
+.nosotros-main-img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.nosotros-img-card:hover .nosotros-main-img {
+  transform: scale(1.03);
+}
+
+.nosotros-img-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.25rem;
+  background: linear-gradient(180deg, transparent 0%, rgba(11, 43, 38, 0.92) 100%);
+  color: #FFFFFF;
+}
+
+.nosotros-img-caption strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+}
+
+.nosotros-img-caption span {
+  font-size: 0.78rem;
+  color: #A7F3D0;
+}
+
 .stats-box {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -937,8 +1106,9 @@ html {
 .blog-card {
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  padding: 2rem;
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 0;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
@@ -949,6 +1119,58 @@ html {
   border-color: #0F766E;
   transform: translateY(-3px);
   box-shadow: 0 16px 32px rgba(15, 118, 110, 0.08);
+}
+
+.blog-card-media {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background-color: #0B2B26;
+}
+
+.blog-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.blog-card:hover .blog-card-img {
+  transform: scale(1.05);
+}
+
+.blog-card-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: rgba(11, 43, 38, 0.88);
+  color: #FFFFFF;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.blog-card-body {
+  padding: 1.5rem 1.75rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.blog-time-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0F766E;
+  margin-bottom: 0.65rem;
 }
 
 .blog-meta-top {

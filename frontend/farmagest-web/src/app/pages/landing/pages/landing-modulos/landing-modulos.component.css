@@ -14,25 +14,50 @@
 .modulo-card-large {
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  padding: 2.25rem;
+  border-radius: 14px;
+  padding: 0 0 2.25rem 0;
+  overflow: hidden;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
 }
 
-.modulo-card-large:hover {
-  transform: translateY(-4px);
-  border-color: #0F766E;
-  box-shadow: 0 16px 36px rgba(15, 118, 110, 0.1);
+.modulo-card-img-wrap {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  position: relative;
+  background-color: #0B2B26;
+}
+
+.modulo-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.modulo-card-large:hover .modulo-card-img {
+  transform: scale(1.05);
 }
 
 .modulo-header-card {
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  margin-bottom: 1.25rem;
+  padding: 1.5rem 1.75rem 0.5rem 1.75rem;
+}
+
+.modulo-card-large > p {
+  padding: 0 1.75rem;
+  margin: 0.5rem 0 1.25rem 0;
+}
+
+.modulo-features-list {
+  padding: 0 1.75rem;
+  margin: 0;
+  list-style: none;
 }
 
 .modulo-icon-wrapper {

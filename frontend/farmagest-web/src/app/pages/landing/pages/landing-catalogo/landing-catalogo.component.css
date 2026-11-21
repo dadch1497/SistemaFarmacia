@@ -12,8 +12,17 @@
   border-radius: 8px;
   margin: 2rem 0;
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.notice-img-thumb {
+  width: 75px;
+  height: 75px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
 .notice-icon {

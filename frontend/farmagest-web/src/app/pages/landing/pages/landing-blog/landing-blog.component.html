@@ -16,15 +16,25 @@
       
       <div class="blog-grid">
         <article *ngFor="let art of articulos" class="blog-card" (click)="abrirArticulo(art)">
-          <div class="blog-meta-top">
-            <span class="blog-cat">{{ art.categoria }}</span>
-            <span class="blog-read">{{ art.tiempoLectura }}</span>
+          <div class="blog-card-media" *ngIf="art.imagen">
+            <img [src]="art.imagen" [alt]="art.titulo" class="blog-card-img" loading="lazy" />
+            <span class="blog-card-badge">{{ art.categoria }}</span>
           </div>
-          <h3 class="blog-title">{{ art.titulo }}</h3>
-          <p class="blog-excerpt">{{ art.resumen }}</p>
-          <div class="blog-footer">
-            <span class="blog-author">{{ art.autor }}</span>
-            <span class="blog-read-more">Leer artículo completo →</span>
+          <div class="blog-card-body">
+            <div class="blog-meta-top" *ngIf="!art.imagen">
+              <span class="blog-cat">{{ art.categoria }}</span>
+              <span class="blog-read">{{ art.tiempoLectura }}</span>
+            </div>
+            <div class="blog-time-pill" *ngIf="art.imagen">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <span>{{ art.tiempoLectura }} de lectura</span>
+            </div>
+            <h3 class="blog-title">{{ art.titulo }}</h3>
+            <p class="blog-excerpt">{{ art.resumen }}</p>
+            <div class="blog-footer">
+              <span class="blog-author">{{ art.autor }}</span>
+              <span class="blog-read-more">Leer artículo completo →</span>
+            </div>
           </div>
         </article>
       </div>

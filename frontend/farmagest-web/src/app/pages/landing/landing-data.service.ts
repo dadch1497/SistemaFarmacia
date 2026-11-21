@@ -23,6 +23,7 @@ export interface ArticuloBlog {
   fecha: string;
   tiempoLectura: string;
   autor: string;
+  imagen: string;
 }
 
 @Injectable({
@@ -157,7 +158,8 @@ export class LandingDataService {
       categoria: 'Regulación DIGEMID',
       fecha: '20 Noviembre, 2026',
       tiempoLectura: '4 min',
-      autor: 'Área Técnica FarmaGest'
+      autor: 'Área Técnica FarmaGest',
+      imagen: '/images/blog-bpa.jpg'
     },
     {
       id: 2,
@@ -167,7 +169,8 @@ export class LandingDataService {
       categoria: 'Gestión Tributaria',
       fecha: '18 Noviembre, 2026',
       tiempoLectura: '3 min',
-      autor: 'Equipo Tributario FarmaGest'
+      autor: 'Equipo Tributario FarmaGest',
+      imagen: '/images/blog-sunat.jpg'
     },
     {
       id: 3,
@@ -177,7 +180,8 @@ export class LandingDataService {
       categoria: 'Tecnología & Ventas',
       fecha: '15 Noviembre, 2026',
       tiempoLectura: '5 min',
-      autor: 'Equipo de Producto FarmaGest'
+      autor: 'Equipo de Producto FarmaGest',
+      imagen: '/images/blog-catalog.jpg'
     }
   ];
 
