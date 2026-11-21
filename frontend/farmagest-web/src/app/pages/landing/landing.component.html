@@ -1,0 +1,665 @@
+<div class="landing-page">
+
+  <!-- ============================================== -->
+  <!-- 1. BARRA DE NAVEGACIÓN SUPERIOR (NAVBAR)       -->
+  <!-- ============================================== -->
+  <header class="landing-header">
+    <div class="container header-container">
+      
+      <!-- Logotipo de la Empresa -->
+      <a href="#inicio" class="brand-link">
+        <div class="brand-logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 4v16m-8-8h16"/>
+          </svg>
+        </div>
+        <div class="brand-names">
+          <span class="brand-main">FarmaGest</span>
+          <span class="brand-tagline">Botica Farma Ochenta</span>
+        </div>
+      </a>
+
+      <!-- Menú de Navegación de Escritorio -->
+      <nav class="desktop-nav">
+        <a href="#inicio" class="nav-item">Inicio</a>
+        <a href="#catalogo" class="nav-item">Catálogo</a>
+        <a href="#servicios" class="nav-item">Servicios</a>
+        <a href="#nosotros" class="nav-item">Nosotros</a>
+        <a href="#blog" class="nav-item">Blog de Salud</a>
+        <a href="#contacto" class="nav-item">Contacto</a>
+      </nav>
+
+      <!-- Botón Destacado: Portal Clientes / Iniciar Sesión -->
+      <div class="header-actions">
+        <button class="btn btn-portal-cliente" (click)="irALogin()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Portal Clientes / Acceso</span>
+        </button>
+
+        <!-- Botón Menú Móvil -->
+        <button class="btn-toggle-movil" (click)="toggleMenuMovil()" aria-label="Abrir Menú">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Menú Desplegable en Móviles -->
+    <div class="mobile-nav-drawer" [class.abierto]="menuMovilAbierto">
+      <a href="#inicio" (click)="cerrarMenuMovil()">Inicio</a>
+      <a href="#catalogo" (click)="cerrarMenuMovil()">Catálogo</a>
+      <a href="#servicios" (click)="cerrarMenuMovil()">Servicios</a>
+      <a href="#nosotros" (click)="cerrarMenuMovil()">Nosotros</a>
+      <a href="#blog" (click)="cerrarMenuMovil()">Blog de Salud</a>
+      <a href="#contacto" (click)="cerrarMenuMovil()">Contacto</a>
+      <div class="mobile-nav-footer">
+        <button class="btn btn-portal-cliente full-width" (click)="irALogin()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Portal Clientes / Iniciar Sesión</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================== -->
+  <!-- 2. SECCIÓN HOME / HERO BANNER                   -->
+  <!-- ============================================== -->
+  <section id="inicio" class="hero-section">
+    <div class="container hero-grid">
+      
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="pulse-indicator"></span>
+          BOTICA COMUNITARIA CERTIFICADA · ATE, LIMA
+        </div>
+        <h1 class="hero-title">
+          Tu Salud y la de tu Familia en <span>Manos Expertas</span>
+        </h1>
+        <p class="hero-description">
+          En <strong>FarmaGest (Botica Farma Ochenta)</strong> brindamos atención farmacéutica responsable, medicamentos garantizados de laboratorios líderes y asesoría profesional personalizada con los mejores precios del mercado.
+        </p>
+
+        <div class="hero-buttons">
+          <a href="#catalogo" class="btn btn-primary-cta">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            Explorar Catálogo
+          </a>
+          <button class="btn btn-secondary-cta" (click)="irALogin()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/>
+              <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+            Acceso a Clientes / Sistema
+          </button>
+        </div>
+
+        <div class="hero-features">
+          <div class="feature-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Medicamentos 100% Originales</span>
+          </div>
+          <div class="feature-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Facturación Electrónica SUNAT</span>
+          </div>
+          <div class="feature-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Delivery Rápido en Ate y Alrededores</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta Visual Informativa -->
+      <div class="hero-card-side">
+        <div class="highlight-card">
+          <div class="card-top-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3>Confianza Farmacéutica</h3>
+          <p>Dispensación ética bajo estrictas Buenas Prácticas de Almacenamiento y Farmacovigilancia DIGEMID.</p>
+          
+          <div class="metrics-row">
+            <div class="metric">
+              <strong>+5,000</strong>
+              <span>Medicamentos</span>
+            </div>
+            <div class="metric-divider"></div>
+            <div class="metric">
+              <strong>100%</strong>
+              <span>Químicos Colegiados</span>
+            </div>
+            <div class="metric-divider"></div>
+            <div class="metric">
+              <strong>7 Días</strong>
+              <span>Atención Continua</span>
+            </div>
+          </div>
+
+          <div class="card-callout">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            <div>
+              <span class="callout-label">Línea de Pedidos y Consultas</span>
+              <span class="callout-phone">(01) 351-8080 · +51 987 654 321</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- 3. CATÁLOGO DE PRODUCTOS PÚBLICO                -->
+  <!-- ============================================== -->
+  <section id="catalogo" class="section catalogo-section">
+    <div class="container">
+      
+      <div class="section-header text-center">
+        <span class="section-tag">CATÁLOGO DISPONIBLE</span>
+        <h2 class="section-title">Nuestros Medicamentos y Precios</h2>
+        <p class="section-subtitle">
+          Consulta precios vigentes de venta al público y principios activos. Precios transparentes y actualizados en tiempo real.
+        </p>
+      </div>
+
+      <!-- Barra de Filtros y Búsqueda -->
+      <div class="catalogo-controls">
+        <div class="search-input-wrapper">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input 
+            type="text" 
+            [(ngModel)]="filtroTexto" 
+            placeholder="Buscar por nombre, principio activo o laboratorio..."
+            class="landing-search-input"
+          />
+        </div>
+
+        <div class="categories-chips">
+          <button 
+            *ngFor="let cat of categorias" 
+            class="chip-btn" 
+            [class.active]="categoriaSeleccionada === cat.id"
+            (click)="seleccionarCategoria(cat.id)"
+          >
+            {{ cat.nombre }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid de Productos -->
+      <div class="productos-grid">
+        <div *ngFor="let prod of productosFiltrados" class="producto-card">
+          <div class="card-badge-row">
+            <span class="badge-cat">{{ prod.categoria }}</span>
+            <span [class]="prod.requiereReceta ? 'badge-receta' : 'badge-libre'">
+              {{ prod.requiereReceta ? '⚠️ Requiere Receta' : '✓ Venta Libre' }}
+            </span>
+          </div>
+
+          <div class="prod-icon-box">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="1.8">
+              <path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
+              <path d="m8.5 8.5 7 7"/>
+            </svg>
+          </div>
+
+          <h3 class="prod-name">{{ prod.nombre }}</h3>
+          <p class="prod-detail">{{ prod.presentacion }}</p>
+          <div class="prod-meta">
+            <span class="prod-active">Principio: {{ prod.principioActivo }}</span>
+            <span class="prod-lab">Lab: {{ prod.laboratorio }}</span>
+          </div>
+
+          <div class="card-footer-price">
+            <div class="price-box">
+              <span class="price-label">Precio al Público</span>
+              <span class="price-val">S/ {{ prod.precioVenta | number:'1.2-2' }}</span>
+            </div>
+            <button class="btn btn-consultar" (click)="solicitarPorWhatsapp(prod)" title="Consultar stock por WhatsApp">
+              <span>Pedir</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="productosFiltrados.length === 0" class="no-results-card">
+          <p>No se encontraron productos coincidentes con "{{ filtroTexto }}".</p>
+          <button class="btn btn-secondary" (click)="filtroTexto = ''; categoriaSeleccionada = 'TODOS'">
+            Restablecer Filtros
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- 4. SECCIÓN SERVICIOS FARMACÉUTICOS              -->
+  <!-- ============================================== -->
+  <section id="servicios" class="section servicios-section">
+    <div class="container">
+      
+      <div class="section-header text-center">
+        <span class="section-tag">NUESTROS SERVICIOS</span>
+        <h2 class="section-title">Cuidado Integral para tu Salud</h2>
+        <p class="section-subtitle">
+          Mucho más que una botica tradicional: un punto de atención en salud cercano y confiable.
+        </p>
+      </div>
+
+      <div class="servicios-grid">
+        
+        <div class="servicio-card">
+          <div class="servicio-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
+          <h3>Dispensación con Receta</h3>
+          <p>Validación rigurosa de dosis, interacciones farmacológicas y orientación precisa para el cumplimiento de tu tratamiento.</p>
+        </div>
+
+        <div class="servicio-card">
+          <div class="servicio-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <h3>Toma de Presión y Glucosa</h3>
+          <p>Monitoreo rápido de tus constantes vitales con equipos digitales calibrados y asesoramiento preventivo inmediato.</p>
+        </div>
+
+        <div class="servicio-card">
+          <div class="servicio-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
+              <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+              <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+            </svg>
+          </div>
+          <h3>Delivery Local Express</h3>
+          <p>Llevamos tus medicamentos directo a tu puerta en Ate y distritos aledaños en empaques térmicos protegidos.</p>
+        </div>
+
+        <div class="servicio-card">
+          <div class="servicio-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+            </svg>
+          </div>
+          <h3>Comprobantes SUNAT en Tiempo Real</h3>
+          <p>Boletas y facturas electrónicas con validez tributaria instantánea mediante nuestra integración digital con SUNAT.</p>
+        </div>
+
+        <div class="servicio-card">
+          <div class="servicio-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h3>Convenios y Atención Corporativa</h3>
+          <p>Suministro periódico de botiquines y material médico de primeros auxilios para empresas, colegios e instituciones.</p>
+        </div>
+
+        <div class="servicio-card">
+          <div class="servicio-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B3D38" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
+            </svg>
+          </div>
+          <h3>Farmacovigilancia y Asesoría</h3>
+          <p>Canal permanente para resolver dudas sobre efectos secundarios, horarios de administración y conservación.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- 5. SECCIÓN SOBRE NOSOTROS                       -->
+  <!-- ============================================== -->
+  <section id="nosotros" class="section nosotros-section">
+    <div class="container nosotros-grid">
+      
+      <div class="nosotros-info">
+        <span class="section-tag">NUESTRA TRAYECTORIA</span>
+        <h2 class="section-title">Comprometidos con la Salud de Nuestra Comunidad</h2>
+        <p class="paragraph">
+          <strong>Botica Farma Ochenta</strong> nació con la visión de hacer la salud accesible, humana y transparente. Con la implementación del ecosistema tecnológico <strong>FarmaGest</strong>, hemos digitalizado la trazabilidad de lotes, control de vencimientos y precios auditables para ofrecerte máxima seguridad.
+        </p>
+        
+        <div class="valores-list">
+          <div class="valor-item">
+            <div class="valor-bullet">01</div>
+            <div>
+              <h4>Ética Farmacéutica</h4>
+              <p>No promovemos la automedicación. Guiamos a nuestros pacientes con honestidad médica.</p>
+            </div>
+          </div>
+          <div class="valor-item">
+            <div class="valor-bullet">02</div>
+            <div>
+              <h4>Garantía de Origen</h4>
+              <p>Compramos exclusivamente a laboratorios farmacéuticos certificados y droguerías autorizadas.</p>
+            </div>
+          </div>
+          <div class="valor-item">
+            <div class="valor-bullet">03</div>
+            <div>
+              <h4>Atención Humana y Cálida</h4>
+              <p>Cada consulta es atendida por profesionales que escuchan tus necesidades con empatía.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nosotros-visual">
+        <div class="stats-box">
+          <div class="stat-card">
+            <span class="stat-num">+10</span>
+            <span class="stat-txt">Años Cuidando Familias</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">50k+</span>
+            <span class="stat-txt">Recetas Atendidas</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">100%</span>
+            <span class="stat-txt">Cumplimiento DIGEMID</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num">4.9 ★</span>
+            <span class="stat-txt">Satisfacción de Clientes</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- 6. SECCIÓN BLOG Y CONSEJOS DE SALUD             -->
+  <!-- ============================================== -->
+  <section id="blog" class="section blog-section">
+    <div class="container">
+      
+      <div class="section-header text-center">
+        <span class="section-tag">CONSEJOS DE SALUD</span>
+        <h2 class="section-title">Blog y Novedades Farmacéuticas</h2>
+        <p class="section-subtitle">
+          Artículos preparados por nuestro equipo de profesionales para cuidar tu salud y la de los tuyos.
+        </p>
+      </div>
+
+      <div class="blog-grid">
+        <article *ngFor="let art of articulos" class="blog-card" (click)="abrirArticulo(art)">
+          <div class="blog-meta-top">
+            <span class="blog-cat">{{ art.categoria }}</span>
+            <span class="blog-read">{{ art.tiempoLectura }}</span>
+          </div>
+          <h3 class="blog-title">{{ art.titulo }}</h3>
+          <p class="blog-excerpt">{{ art.resumen }}</p>
+          <div class="blog-footer">
+            <span class="blog-author">{{ art.autor }}</span>
+            <span class="blog-read-more">Leer artículo →</span>
+          </div>
+        </article>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- 7. SECCIÓN CONTACTO Y UBICACIÓN                 -->
+  <!-- ============================================== -->
+  <section id="contacto" class="section contacto-section">
+    <div class="container">
+      
+      <div class="section-header text-center">
+        <span class="section-tag">ENCUÉNTRANOS</span>
+        <h2 class="section-title">Contáctanos y Haz tu Pedido</h2>
+        <p class="section-subtitle">
+          Estamos listos para atender tus dudas, cotizaciones y pedidos a domicilio.
+        </p>
+      </div>
+
+      <div class="contacto-grid">
+        
+        <!-- Datos de Contacto -->
+        <div class="contacto-info-card">
+          <h3>Botica Farma Ochenta</h3>
+          <p class="sub">Sucursal Principal · Ate, Lima</p>
+
+          <div class="info-list">
+            <div class="info-item">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              <div>
+                <strong>Dirección:</strong>
+                <span>Av. Los Ángeles Mz. C Lote 12, Ate - Lima</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <div>
+                <strong>Horario de Atención:</strong>
+                <span>Lunes a Sábado: 7:30 AM – 10:30 PM</span>
+                <span>Domingos y Feriados: 8:00 AM – 9:00 PM</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              <div>
+                <strong>Teléfono & WhatsApp:</strong>
+                <span>Fijo: (01) 351-8080</span>
+                <span>WhatsApp: +51 987 654 321</span>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <div>
+                <strong>Correo Electrónico:</strong>
+                <span>contacto&#64;farmagest.tech</span>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://wa.me/51987654321?text=Hola%20FarmaGest,%20deseo%20hacer%20un%20pedido" target="_blank" class="btn btn-whatsapp-direct">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z"/>
+            </svg>
+            Escribir por WhatsApp Directo
+          </a>
+        </div>
+
+        <!-- Formulario de Mensaje -->
+        <div class="contacto-form-card">
+          <h3>Envíanos un Mensaje o Consulta</h3>
+          <p class="form-desc">Responderemos a la brevedad con la cotización o disponibilidad del medicamento.</p>
+
+          <form (ngSubmit)="enviarMensaje()">
+            <div class="form-row">
+              <label>Tu Nombre Completo *</label>
+              <input type="text" [(ngModel)]="contactoForm.nombre" name="nombre" class="form-control" placeholder="Ej. Juan Pérez" required>
+            </div>
+
+            <div class="form-row">
+              <label>Teléfono o Celular *</label>
+              <input type="tel" [(ngModel)]="contactoForm.telefono" name="telefono" class="form-control" placeholder="Ej. 987654321" required>
+            </div>
+
+            <div class="form-row">
+              <label>Correo Electrónico (Opcional)</label>
+              <input type="email" [(ngModel)]="contactoForm.email" name="email" class="form-control" placeholder="ejemplo@correo.com">
+            </div>
+
+            <div class="form-row">
+              <label>¿Qué medicamento o consulta tienes?</label>
+              <textarea [(ngModel)]="contactoForm.mensaje" name="mensaje" rows="3" class="form-control" placeholder="Indica nombre del medicamento, concentración o si cuentas con receta médica..."></textarea>
+            </div>
+
+            <div *ngIf="contactoEnviado" class="alert-enviado">
+              ✓ ¡Mensaje enviado con éxito! Nuestro personal farmacéutico se comunicará contigo de inmediato.
+            </div>
+
+            <button type="submit" class="btn btn-enviar-contacto">
+              Enviar Consulta
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- 8. PIE DE PÁGINA (FOOTER)                       -->
+  <!-- ============================================== -->
+  <footer class="landing-footer">
+    <div class="container footer-content">
+      
+      <div class="footer-brand">
+        <div class="brand-link">
+          <div class="brand-logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5">
+              <path d="M12 4v16m-8-8h16"/>
+            </svg>
+          </div>
+          <span class="brand-main">FarmaGest</span>
+        </div>
+        <p class="footer-desc">
+          Botica Farma Ochenta · Sistema integral farmacéutico con control de stock, dispensación profesional y facturación SUNAT.
+        </p>
+      </div>
+
+      <div class="footer-links-col">
+        <h4>Navegación</h4>
+        <a href="#inicio">Inicio</a>
+        <a href="#catalogo">Catálogo de Productos</a>
+        <a href="#servicios">Nuestros Servicios</a>
+        <a href="#nosotros">Sobre Nosotros</a>
+        <a href="#blog">Blog de Salud</a>
+      </div>
+
+      <div class="footer-links-col">
+        <h4>Legal & Normativa</h4>
+        <a href="javascript:void(0)" (click)="abrirTerminos()">Términos y Condiciones</a>
+        <a href="javascript:void(0)" (click)="abrirTerminos()">Política de Privacidad</a>
+        <a href="javascript:void(0)" (click)="abrirTerminos()">Venta con Receta Médica</a>
+        <span class="text-muted">RUC: 20608945612</span>
+      </div>
+
+      <div class="footer-portal-col">
+        <h4>Portal Interno</h4>
+        <p>¿Eres colaborador o cliente corporativo registrado?</p>
+        <button class="btn btn-portal-cliente-footer" (click)="irALogin()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          <span>Ingreso al Sistema FarmaGest</span>
+        </button>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container bottom-row">
+        <span>© 2026 FarmaGest · Botica Farma Ochenta. Todos los derechos reservados.</span>
+        <span>Ate, Lima · DIGEMID · MINSA</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================== -->
+  <!-- MODAL: LECTURA DE ARTÍCULO DE BLOG             -->
+  <!-- ============================================== -->
+  <div *ngIf="modalArticuloAbierto && articuloSeleccionado" class="modal-backdrop" (click)="cerrarModalArticulo()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-tag">{{ articuloSeleccionado.categoria }}</span>
+        <button class="btn-close" (click)="cerrarModalArticulo()">&times;</button>
+      </div>
+      <h2 class="modal-title">{{ articuloSeleccionado.titulo }}</h2>
+      <div class="modal-meta">
+        <span>Por {{ articuloSeleccionado.autor }}</span>
+        <span>•</span>
+        <span>{{ articuloSeleccionado.fecha }}</span>
+      </div>
+      <div class="modal-body-article">
+        <p class="highlight-p">{{ articuloSeleccionado.resumen }}</p>
+        <p>{{ articuloSeleccionado.contenido }}</p>
+        <div class="alert-consejo">
+          💡 <strong>Recordatorio FarmaGest:</strong> Consulta siempre con tu médico o con nuestro químico farmacéutico antes de iniciar cualquier tratamiento.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalArticulo()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: TÉRMINOS Y PRIVACIDAD                   -->
+  <!-- ============================================== -->
+  <div *ngIf="modalTerminosAbierto" class="modal-backdrop" (click)="cerrarTerminos()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Términos, Condiciones y Política de Privacidad</h2>
+        <button class="btn-close" (click)="cerrarTerminos()">&times;</button>
+      </div>
+      <div class="modal-body-article">
+        <h4>1. Prescripción y Receta Médica</h4>
+        <p>De conformidad con la normativa de la DIGEMID y el Ministerio de Salud del Perú (MINSA), los medicamentos clasificados como "Bajo Receta Médica" requieren obligatoriamente la presentación de una prescripción válida emitida por un profesional de la salud colegiado.</p>
+
+        <h4>2. Privacidad y Protección de Datos Personales</h4>
+        <p>Los datos ingresados en el formulario de contacto o durante el proceso de compra son tratados con estricta confidencialidad según la Ley N° 29733 (Ley de Protección de Datos Personales) y no serán compartidos con terceros.</p>
+
+        <h4>3. Facturación Electrónica</h4>
+        <p>Todos los comprobantes emitidos por Botica Farma Ochenta son comunicados y validados en tiempo real ante la SUNAT.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarTerminos()">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+</div>
