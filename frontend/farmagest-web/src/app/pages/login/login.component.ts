@@ -12,8 +12,8 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  username = 'admin';
-  password = 'AdminSecure2026!';
+  username = '';
+  password = '';
   cargando = signal<boolean>(false);
   errorMensaje = signal<string>('');
 
@@ -67,12 +67,5 @@ export class LoginComponent {
         this.cdr.detectChanges();
       }
     });
-  }
-
-  cargarCredencialDemo(user: string, pass: string): void {
-    this.username = user;
-    this.password = pass;
-    this.errorMensaje.set('');
-    this.cdr.detectChanges();
   }
 }
