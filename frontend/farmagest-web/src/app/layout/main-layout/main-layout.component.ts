@@ -29,10 +29,10 @@ export class MainLayoutComponent {
   menuPrincipal: MenuItem[] = [
     { titulo: 'Dashboard', ruta: '/dashboard', icono: 'grid', roles: ['ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR'] },
     { titulo: 'Ventas (POS)', ruta: '/pos', icono: 'shopping-cart', roles: ['ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR'] },
-    { titulo: 'Devolución de ventas con notas crédito', ruta: '/devoluciones', icono: 'rotate-ccw', roles: ['ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR'] },
+    { titulo: 'Devoluciones', ruta: '/devoluciones', icono: 'rotate-ccw', roles: ['ROLE_ADMINISTRADOR', 'ROLE_VENDEDOR'] },
     { titulo: 'Productos', ruta: '/productos', icono: 'package', roles: ['ROLE_ADMINISTRADOR'] },
     { titulo: 'Consultar stock', ruta: '/productos/consulta', icono: 'search', roles: ['ROLE_VENDEDOR'] },
-    { titulo: 'Gestión de inventario y control de lotes', ruta: '/inventario', icono: 'layers', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO', 'ROLE_VENDEDOR'] },
+    { titulo: 'Inventario y lotes', ruta: '/inventario', icono: 'layers', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO', 'ROLE_VENDEDOR'] },
     { titulo: 'Ingreso mercadería', ruta: '/compras/ingreso', icono: 'arrow-down-circle', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO'] },
     { titulo: 'Compras', ruta: '/compras', icono: 'truck', roles: ['ROLE_ADMINISTRADOR'] },
     { titulo: 'Proveedores', ruta: '/proveedores', icono: 'briefcase', roles: ['ROLE_ADMINISTRADOR', 'ROLE_ALMACENERO'] },
