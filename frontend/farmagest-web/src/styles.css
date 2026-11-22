@@ -190,8 +190,8 @@ button, input, select, textarea {
    ========================================================================== */
 @media print {
   @page {
-    size: 58mm auto;
-    margin: 2mm 5mm 2mm 5mm;
+    size: 58mm 297mm;
+    margin: 0;
   }
 
   /* Ocultar barra lateral, topbar, navegaciones, botones y encabezados del sistema */
@@ -222,8 +222,8 @@ button, input, select, textarea {
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 48mm !important;
-    max-width: 48mm !important;
+    width: 58mm !important;
+    max-width: 58mm !important;
     height: auto !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
@@ -283,10 +283,11 @@ button, input, select, textarea {
   .seccion-imprimible,
   .ticket-recibo {
     position: static !important;
-    width: 48mm !important;
-    max-width: 48mm !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
+    width: 58mm !important;
+    max-width: 58mm !important;
+    margin: 0 !important;
+    padding: 2mm 5mm 2mm 5mm !important;
+    box-sizing: border-box !important;
     background: #ffffff !important;
     color: #000000 !important;
     border: none !important;

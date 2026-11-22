@@ -47,22 +47,24 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
       <style>
         /* =========================================================
            MEDIDAS PARA IMPRESORA TÉRMICA DE 58 MM (203 DPI)
-           Papel: 58 mm
-           Área imprimible: 48 mm (márgenes laterales: 5 mm)
-           Márgenes sup/inf: 2 mm
-           Inicio contenido: x = 5 mm | Final: x = 53 mm | Centro: x = 29 mm
-           8 puntos ≈ 1 mm (8 pt ≈ 1 mm)
+           Papel: 58 mm ancho x 297 mm alto (estándar rollo térmico continuo)
+           Margen físico de página: 0 (el espaciado se gestiona internamente)
+           Márgenes laterales internos: 5 mm (Inicio x = 5 mm, Final x = 53 mm)
+           Área imprimible útil: 48 mm (58 mm - 2x5 mm)
+           Centro del papel y contenido: x = 29 mm
+           Márgenes superior e inferior: 2 mm
+           8 puntos ≈ 1 mm (8 pt ≈ 1 mm a 203 dpi)
            ========================================================= */
         @page {
-          size: 58mm auto;
-          margin: 2mm 5mm 2mm 5mm;
+          size: 58mm 297mm;
+          margin: 0;
         }
 
         @media print {
           html, body {
-            width: 48mm !important;
-            max-width: 48mm !important;
-            margin: 0 auto !important;
+            width: 58mm !important;
+            max-width: 58mm !important;
+            margin: 0 !important;
             padding: 0 !important;
             background: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
@@ -79,9 +81,9 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
         }
 
         body {
-          width: 48mm !important;
-          max-width: 48mm !important;
-          margin: 0 auto !important;
+          width: 58mm !important;
+          max-width: 58mm !important;
+          margin: 0 !important;
           padding: 0 !important;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
           font-size: 8pt !important; /* 8 pt ≈ 1 mm */
@@ -90,15 +92,16 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
           background: #ffffff !important;
         }
 
-        /* Contenedor principal del ticket */
+        /* Contenedor principal del ticket (58 mm total, 5 mm padding lateral -> 48 mm útil) */
         .ticket-recibo,
         #seccion-nota-credito-imprimible,
         #seccion-nota-credito-pos-imprimible,
         #printSection {
-          width: 48mm !important;
-          max-width: 48mm !important;
-          margin: 0 auto !important;
-          padding: 0 !important;
+          width: 58mm !important;
+          max-width: 58mm !important;
+          margin: 0 !important;
+          padding: 2mm 5mm 2mm 5mm !important;
+          box-sizing: border-box !important;
           border: none !important;
           box-shadow: none !important;
           background: #ffffff !important;
