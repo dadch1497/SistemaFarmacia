@@ -541,10 +541,8 @@
           </div>
 
           <div style="font-size: 11px; line-height: 1.45; margin-bottom: 12px; border-bottom: 1px dashed #94a3b8; padding-bottom: 8px;">
-            <div style="display: flex; justify-content: space-between;">
-              <span><strong>Fecha Emisión:</strong> {{ notaCreditoSeleccionada()?.fechaHora | date:'dd/MM/yyyy HH:mm' }}</span>
-              <span><strong>Medio Reembolso:</strong> {{ notaCreditoSeleccionada()?.medioReembolso }}</span>
-            </div>
+            <div><strong>Fecha Emisión:</strong> {{ notaCreditoSeleccionada()?.fechaHora | date:'dd/MM/yyyy HH:mm' }}</div>
+            <div><strong>Medio Reembolso:</strong> {{ notaCreditoSeleccionada()?.medioReembolso }}</div>
             <div>
               <strong>Documento Modificado:</strong> 
               {{ notaCreditoSeleccionada()?.tipoComprobanteModificado }} ELECTRÓNICA 
@@ -557,7 +555,7 @@
             <div>
               <strong>Sustento:</strong> {{ notaCreditoSeleccionada()?.motivoSustento }}
             </div>
-            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dotted #cbd5e1;">
+            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dotted #cbd5e1; word-break: break-word;">
               <strong>Cliente:</strong> {{ notaCreditoSeleccionada()?.cliente?.nombresORazonSocial || 'CLIENTE GENÉRICO' }}<br />
               <strong>{{ notaCreditoSeleccionada()?.cliente?.tipoDocumento || 'DNI' }}:</strong> {{ notaCreditoSeleccionada()?.cliente?.numeroDocumento || '00000000' }}
             </div>
@@ -569,7 +567,7 @@
                 <th style="text-align: center; padding: 4px;">Cant.</th>
                 <th style="text-align: left; padding: 4px;">Descripción</th>
                 <th style="text-align: left; padding: 4px;">Lote</th>
-                <th style="text-align: right; padding: 4px;">P. Unit</th>
+                <th style="text-align: right; padding: 4px;">P.Unit</th>
                 <th style="text-align: right; padding: 4px;">Total</th>
               </tr>
             </thead>

@@ -47,13 +47,11 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
       <style>
         /* =========================================================
            MEDIDAS PARA IMPRESORA TÉRMICA DE 58 MM (203 DPI)
-           Papel: 58 mm ancho x 297 mm alto (estándar rollo térmico continuo)
-           Margen físico de página: 0 (el espaciado se gestiona internamente)
-           Márgenes laterales internos: 5 mm (Inicio x = 5 mm, Final x = 53 mm)
-           Área imprimible útil: 48 mm (58 mm - 2x5 mm)
-           Centro del papel y contenido: x = 29 mm
-           Márgenes superior e inferior: 2 mm
-           8 puntos ≈ 1 mm (8 pt ≈ 1 mm a 203 dpi)
+           Papel: 58 mm ancho (rollo continuo estándar POS-58)
+           Área imprimible del cabezal físico: 48 mm (384 dots a 203 dpi)
+           Ancho máximo de contenido útil: 47 mm (garantiza 0.5 mm de margen
+           seguro a cada lado para evitar cualquier corte o desborde derecho)
+           Márgenes físicos: 0 (el driver de Windows POS-58 mapea x=0 al cabezal)
            ========================================================= */
         @page {
           size: 58mm 297mm;
@@ -62,13 +60,14 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
 
         @media print {
           html, body {
-            width: 58mm !important;
-            max-width: 58mm !important;
+            width: 48mm !important;
+            max-width: 48mm !important;
             margin: 0 !important;
             padding: 0 !important;
             background: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            overflow: visible !important;
           }
         }
 
@@ -81,26 +80,26 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
         }
 
         body {
-          width: 58mm !important;
-          max-width: 58mm !important;
+          width: 48mm !important;
+          max-width: 48mm !important;
           margin: 0 !important;
           padding: 0 !important;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-          font-size: 8pt !important; /* 8 pt ≈ 1 mm */
-          line-height: 1.25 !important;
+          font-size: 7pt !important;
+          line-height: 1.2 !important;
           color: #000000 !important;
           background: #ffffff !important;
         }
 
-        /* Contenedor principal del ticket (58 mm total, 5 mm padding lateral -> 48 mm útil) */
+        /* Contenedor principal del ticket (48 mm exactos del cabezal térmico) */
         .ticket-recibo,
         #seccion-nota-credito-imprimible,
         #seccion-nota-credito-pos-imprimible,
         #printSection {
-          width: 58mm !important;
-          max-width: 58mm !important;
+          width: 48mm !important;
+          max-width: 48mm !important;
           margin: 0 !important;
-          padding: 2mm 5mm 2mm 5mm !important;
+          padding: 1.5mm 0.5mm 1.5mm 0.5mm !important;
           box-sizing: border-box !important;
           border: none !important;
           box-shadow: none !important;
@@ -108,6 +107,7 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
           color: #000000 !important;
           page-break-inside: avoid !important;
           break-inside: avoid !important;
+          overflow: hidden !important;
         }
 
         /* Encabezado y membrete de farmacia */
@@ -116,19 +116,21 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
         }
 
         .ticket-recibo h3 {
-          font-size: 8.5pt !important;
+          font-size: 7.8pt !important;
           font-weight: 800 !important;
           text-transform: uppercase !important;
-          margin: 0 0 1mm 0 !important;
+          margin: 0 0 0.8mm 0 !important;
           text-align: center !important;
-          letter-spacing: 0.2px !important;
+          letter-spacing: -0.1px !important;
+          word-break: break-word !important;
         }
 
         .ticket-recibo p {
-          font-size: 7.5pt !important;
-          line-height: 1.2 !important;
-          margin: 0 0 0.5mm 0 !important;
+          font-size: 6.8pt !important;
+          line-height: 1.15 !important;
+          margin: 0 0 0.4mm 0 !important;
           text-align: center !important;
+          word-break: break-word !important;
         }
 
         /* Caja de identificación del comprobante */
@@ -138,10 +140,12 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
         .ticket-box-comprobante {
           border: 1px solid #000000 !important;
           border-radius: 2px !important;
-          padding: 1.5mm 1mm !important;
-          margin: 1.5mm 0 !important;
+          padding: 1mm 0.5mm !important;
+          margin: 1.2mm 0 !important;
           background: #ffffff !important;
           text-align: center !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
         }
 
         div[style*="border: 1.5px solid"] h4,
@@ -150,32 +154,35 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
         div[style*="border: 1.5px solid"] h5,
         div[style*="border: 2px solid"] h5,
         div[style*="border: 1px solid"] h5 {
-          font-size: 8pt !important;
+          font-size: 6.8pt !important;
           font-weight: 800 !important;
           text-transform: uppercase !important;
           margin: 0 !important;
+          letter-spacing: -0.1px !important;
+          white-space: nowrap !important;
         }
 
         div[style*="border: 1.5px solid"] h3,
         div[style*="border: 2px solid"] h3,
         div[style*="border: 1px solid"] h3 {
-          font-size: 9.5pt !important;
+          font-size: 8.8pt !important;
           font-weight: 900 !important;
-          margin: 0.5mm 0 0 0 !important;
+          margin: 0.4mm 0 0 0 !important;
           color: #000000 !important;
+          text-align: center !important;
         }
 
         /* Insignia SUNAT */
         .badge-sunat-ok {
           display: inline-block !important;
-          font-size: 7pt !important;
+          font-size: 6.5pt !important;
           font-weight: 700 !important;
-          padding: 0.5mm 2mm !important;
+          padding: 0.3mm 1.5mm !important;
           border: 1px solid #000000 !important;
           background: #ffffff !important;
           color: #000000 !important;
           border-radius: 2px !important;
-          margin: 0.8mm auto !important;
+          margin: 0.5mm auto !important;
         }
 
         /* Líneas divisorias térmicas */
@@ -183,29 +190,40 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
         div[style*="border-bottom: 2px solid"],
         div[style*="border-bottom: 1px dashed"] {
           border-bottom: 1px dashed #000000 !important;
-          margin: 1.5mm 0 !important;
-          padding-bottom: 1mm !important;
+          margin: 1mm 0 !important;
+          padding-bottom: 0.8mm !important;
         }
 
         /* Bloque de datos del documento y cliente */
         div[style*="line-height: 1.45"],
         .ticket-info-grid {
-          font-size: 7.5pt !important;
-          line-height: 1.25 !important;
-          margin-bottom: 1.5mm !important;
+          font-size: 6.8pt !important;
+          line-height: 1.2 !important;
+          margin-bottom: 1mm !important;
           border-bottom: 1px dashed #000000 !important;
-          padding-bottom: 1.5mm !important;
+          padding-bottom: 1mm !important;
+          word-break: break-word !important;
+          overflow-wrap: break-word !important;
         }
 
-        /* Tabla de productos (Ancho total estricto: 48 mm) */
+        /* Desplegar Fecha y Medio de Reembolso en renglones separados para que no compitan por el ancho */
+        div[style*="line-height: 1.45"] div[style*="display: flex"] {
+          display: block !important;
+        }
+        div[style*="line-height: 1.45"] div[style*="display: flex"] span {
+          display: block !important;
+          margin-bottom: 0.4mm !important;
+        }
+
+        /* Tabla de productos (Ancho total estricto: 47 mm para holgura de seguridad) */
         table,
         .ticket-recibo table,
         table.ticket-table {
-          width: 48mm !important;
-          max-width: 48mm !important;
+          width: 47mm !important;
+          max-width: 47mm !important;
           table-layout: fixed !important;
           border-collapse: collapse !important;
-          margin: 1.5mm 0 !important;
+          margin: 1mm 0 !important;
         }
 
         table thead tr,
@@ -215,78 +233,79 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
         }
 
         table th {
-          font-size: 7.5pt !important;
+          font-size: 6.5pt !important;
           font-weight: 800 !important;
-          padding: 0.8mm 0.3mm !important;
+          padding: 0.6mm 0.2mm !important;
           text-transform: uppercase !important;
         }
 
         /* Filas de productos: 4 mm de alto; 8 mm si ocupa dos líneas */
         table tbody tr {
           min-height: 4mm !important;
-          border-bottom: 1px dotted #cccccc !important;
+          border-bottom: 1px dotted #999999 !important;
           page-break-inside: avoid !important;
           break-inside: avoid !important;
         }
 
         table td {
-          font-size: 7.5pt !important;
-          padding: 0.6mm 0.3mm !important;
+          font-size: 6.5pt !important;
+          padding: 0.5mm 0.2mm !important;
           vertical-align: top !important;
-          line-height: 3.8mm !important;
+          line-height: 1.15 !important;
           word-break: break-word !important;
           overflow-wrap: break-word !important;
         }
 
-        /* Distribución automática de columnas para ancho estricto de 48 mm */
-        /* Tabla con 5 columnas (Cant, Descripción, Lote, P.Unit, Total) */
+        /* Distribución de columnas para ancho estricto de 47 mm (evita corte derecho) */
+        /* Tabla con 5 columnas (Cant: 5.5mm, Descripción: 16mm, Lote: 8mm, P.Unit: 8mm, Total: 9.5mm = 47mm) */
         table th:nth-child(1):nth-last-child(5), table td:nth-child(1):nth-last-child(5) {
           width: 5.5mm !important;
           text-align: center !important;
         }
         table th:nth-child(2):nth-last-child(4), table td:nth-child(2):nth-last-child(4) {
-          width: 17mm !important;
+          width: 16mm !important;
           text-align: left !important;
+          padding-left: 0.8mm !important;
         }
         table th:nth-child(3):nth-last-child(3), table td:nth-child(3):nth-last-child(3) {
-          width: 9.5mm !important;
+          width: 8mm !important;
           text-align: left !important;
           font-family: monospace !important;
         }
         table th:nth-child(4):nth-last-child(2), table td:nth-child(4):nth-last-child(2) {
-          width: 7mm !important;
+          width: 8mm !important;
           text-align: right !important;
         }
         table th:nth-child(5):nth-last-child(1), table td:nth-child(5):nth-last-child(1) {
-          width: 9mm !important;
+          width: 9.5mm !important;
           text-align: right !important;
         }
 
-        /* Tabla con 4 columnas (Cant, Descripción, P.Unit, Total) */
+        /* Tabla con 4 columnas (Cant: 5mm, Descripción: 23mm, P.Unit: 8mm, Total: 11mm = 47mm) */
         table th:nth-child(1):nth-last-child(4), table td:nth-child(1):nth-last-child(4) {
-          width: 6.5mm !important;
+          width: 5mm !important;
           text-align: center !important;
         }
         table th:nth-child(2):nth-last-child(3), table td:nth-child(2):nth-last-child(3) {
-          width: 22.5mm !important;
+          width: 23mm !important;
           text-align: left !important;
         }
         table th:nth-child(3):nth-last-child(2), table td:nth-child(3):nth-last-child(2) {
-          width: 9mm !important;
+          width: 8mm !important;
           text-align: right !important;
         }
         table th:nth-child(4):nth-last-child(1), table td:nth-child(4):nth-last-child(1) {
-          width: 10mm !important;
+          width: 11mm !important;
           text-align: right !important;
         }
 
-        /* Tabla con 3 columnas (Cant, Descripción, Total) */
+        /* Tabla con 3 columnas (Cant: 5mm, Descripción: 28mm, Total: 14mm = 47mm) */
         table th:nth-child(1):nth-last-child(3), table td:nth-child(1):nth-last-child(3) {
-          width: 7mm !important;
+          width: 5mm !important;
           text-align: center !important;
         }
         table th:nth-child(2):nth-last-child(2), table td:nth-child(2):nth-last-child(2) {
-          width: 27mm !important;
+          width: 28mm !important;
           text-align: left !important;
         }
         table th:nth-child(3):nth-last-child(1), table td:nth-child(3):nth-last-child(1) {
@@ -294,43 +313,45 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
           text-align: right !important;
         }
 
-        /* Bloque de totales alineado */
+        /* Bloque de totales alineado (Ancho 47 mm) */
         div[style*="width: 220px"],
+        div[style*="width: 200px"],
         div[style*="margin-left: auto"],
         .ticket-totales {
-          width: 48mm !important;
-          max-width: 48mm !important;
-          margin: 1.5mm 0 !important;
-          font-size: 7.5pt !important;
-          line-height: 1.3 !important;
+          width: 47mm !important;
+          max-width: 47mm !important;
+          margin: 1mm 0 !important;
+          font-size: 7pt !important;
+          line-height: 1.25 !important;
         }
 
         div[style*="TOTAL DEVUELTO"],
         div[style*="TOTAL:"],
+        div[style*="IMPORTE TOTAL:"],
         .ticket-totales .fila-total,
         .ticket-gran-total {
-          font-size: 8.5pt !important;
+          font-size: 8pt !important;
           font-weight: 900 !important;
           border-top: 1px solid #000000 !important;
-          padding-top: 0.8mm !important;
-          margin-top: 0.8mm !important;
+          padding-top: 0.6mm !important;
+          margin-top: 0.6mm !important;
         }
 
-        /* Código QR SUNAT Centrado (x = 29 mm con respecto al papel de 58 mm) */
+        /* Código QR SUNAT Centrado */
         div[style*="border-top: 1px dashed"],
         .ticket-sunat-qr {
           border-top: 1px dashed #000000 !important;
-          margin-top: 1.5mm !important;
-          padding-top: 1.5mm !important;
+          margin-top: 1.2mm !important;
+          padding-top: 1.2mm !important;
           text-align: center !important;
         }
 
         img,
         .ticket-recibo img {
-          width: 28mm !important;
-          height: 28mm !important;
-          max-width: 28mm !important;
-          max-height: 28mm !important;
+          width: 26mm !important;
+          height: 26mm !important;
+          max-width: 26mm !important;
+          max-height: 26mm !important;
           margin: 0 auto !important;
           display: block !important;
           border: none !important;
@@ -340,19 +361,19 @@ export function imprimirElementoVoucher(elementoId: string, tituloDocumento: str
         div[style*="Hash CPE"],
         div[style*="font-family: monospace"] {
           font-family: monospace !important;
-          font-size: 6.5pt !important;
+          font-size: 6pt !important;
           word-break: break-all !important;
-          margin-top: 1mm !important;
+          margin-top: 0.8mm !important;
           text-align: center !important;
         }
 
         div[style*="Representación Impresa"],
         div[style*="Autorizado mediante resolución"],
         .ticket-footer-text {
-          font-size: 6.5pt !important;
+          font-size: 6.2pt !important;
           text-align: center !important;
-          margin-top: 0.5mm !important;
-          line-height: 1.2 !important;
+          margin-top: 0.4mm !important;
+          line-height: 1.15 !important;
         }
       </style>
     </head>

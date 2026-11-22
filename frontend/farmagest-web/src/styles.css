@@ -222,8 +222,8 @@ button, input, select, textarea {
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 58mm !important;
-    max-width: 58mm !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
     height: auto !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
@@ -283,51 +283,55 @@ button, input, select, textarea {
   .seccion-imprimible,
   .ticket-recibo {
     position: static !important;
-    width: 58mm !important;
-    max-width: 58mm !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
     margin: 0 !important;
-    padding: 2mm 5mm 2mm 5mm !important;
+    padding: 1.5mm 0.5mm 1.5mm 0.5mm !important;
     box-sizing: border-box !important;
     background: #ffffff !important;
     color: #000000 !important;
     border: none !important;
     box-shadow: none !important;
-    font-size: 8pt !important; /* 8 pt ≈ 1 mm */
-    line-height: 1.25 !important;
+    font-size: 7pt !important;
+    line-height: 1.2 !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+    overflow: hidden !important;
   }
 
   .ticket-recibo h3 {
-    font-size: 8.5pt !important;
+    font-size: 7.8pt !important;
     font-weight: 800 !important;
     text-align: center !important;
-    margin: 0 0 1mm 0 !important;
+    margin: 0 0 0.8mm 0 !important;
+    letter-spacing: -0.1px !important;
+    word-break: break-word !important;
   }
 
   .ticket-recibo p {
-    font-size: 7.5pt !important;
-    line-height: 1.2 !important;
-    margin: 0 0 0.5mm 0 !important;
+    font-size: 6.8pt !important;
+    line-height: 1.15 !important;
+    margin: 0 0 0.4mm 0 !important;
     text-align: center !important;
+    word-break: break-word !important;
   }
 
   .ticket-recibo table,
   table.ticket-table {
-    width: 48mm !important;
-    max-width: 48mm !important;
+    width: 47mm !important;
+    max-width: 47mm !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
-    margin: 1.5mm 0 !important;
+    margin: 1mm 0 !important;
   }
 
   .ticket-recibo table th,
   table.ticket-table th {
-    font-size: 7.5pt !important;
+    font-size: 6.5pt !important;
     font-weight: 800 !important;
     border-top: 1px dashed #000000 !important;
     border-bottom: 1px dashed #000000 !important;
-    padding: 0.8mm 0.3mm !important;
+    padding: 0.6mm 0.2mm !important;
   }
 
   .ticket-recibo table tr,
@@ -339,33 +343,33 @@ button, input, select, textarea {
 
   .ticket-recibo table td,
   table.ticket-table td {
-    font-size: 7.5pt !important;
-    padding: 0.6mm 0.3mm !important;
+    font-size: 6.5pt !important;
+    padding: 0.5mm 0.2mm !important;
     vertical-align: top !important;
-    line-height: 3.8mm !important;
+    line-height: 1.15 !important;
     word-break: break-word !important;
   }
 
-  /* Distribución de columnas 48 mm */
+  /* Distribución de columnas 47 mm */
   .ticket-recibo table th:nth-child(1):nth-last-child(5), .ticket-recibo table td:nth-child(1):nth-last-child(5) { width: 5.5mm !important; text-align: center !important; }
-  .ticket-recibo table th:nth-child(2):nth-last-child(4), .ticket-recibo table td:nth-child(2):nth-last-child(4) { width: 17mm !important; text-align: left !important; }
-  .ticket-recibo table th:nth-child(3):nth-last-child(3), .ticket-recibo table td:nth-child(3):nth-last-child(3) { width: 9.5mm !important; text-align: left !important; font-family: monospace !important; }
-  .ticket-recibo table th:nth-child(4):nth-last-child(2), .ticket-recibo table td:nth-child(4):nth-last-child(2) { width: 7mm !important; text-align: right !important; }
-  .ticket-recibo table th:nth-child(5):nth-last-child(1), .ticket-recibo table td:nth-child(5):nth-last-child(1) { width: 9mm !important; text-align: right !important; }
+  .ticket-recibo table th:nth-child(2):nth-last-child(4), .ticket-recibo table td:nth-child(2):nth-last-child(4) { width: 16mm !important; text-align: left !important; padding-left: 0.8mm !important; }
+  .ticket-recibo table th:nth-child(3):nth-last-child(3), .ticket-recibo table td:nth-child(3):nth-last-child(3) { width: 8mm !important; text-align: left !important; font-family: monospace !important; }
+  .ticket-recibo table th:nth-child(4):nth-last-child(2), .ticket-recibo table td:nth-child(4):nth-last-child(2) { width: 8mm !important; text-align: right !important; }
+  .ticket-recibo table th:nth-child(5):nth-last-child(1), .ticket-recibo table td:nth-child(5):nth-last-child(1) { width: 9.5mm !important; text-align: right !important; }
 
-  .ticket-recibo table th:nth-child(1):nth-last-child(4), .ticket-recibo table td:nth-child(1):nth-last-child(4) { width: 6.5mm !important; text-align: center !important; }
-  .ticket-recibo table th:nth-child(2):nth-last-child(3), .ticket-recibo table td:nth-child(2):nth-last-child(3) { width: 22.5mm !important; text-align: left !important; }
-  .ticket-recibo table th:nth-child(3):nth-last-child(2), .ticket-recibo table td:nth-child(3):nth-last-child(2) { width: 9mm !important; text-align: right !important; }
-  .ticket-recibo table th:nth-child(4):nth-last-child(1), .ticket-recibo table td:nth-child(4):nth-last-child(1) { width: 10mm !important; text-align: right !important; }
+  .ticket-recibo table th:nth-child(1):nth-last-child(4), .ticket-recibo table td:nth-child(1):nth-last-child(4) { width: 5mm !important; text-align: center !important; }
+  .ticket-recibo table th:nth-child(2):nth-last-child(3), .ticket-recibo table td:nth-child(2):nth-last-child(3) { width: 23mm !important; text-align: left !important; }
+  .ticket-recibo table th:nth-child(3):nth-last-child(2), .ticket-recibo table td:nth-child(3):nth-last-child(2) { width: 8mm !important; text-align: right !important; }
+  .ticket-recibo table th:nth-child(4):nth-last-child(1), .ticket-recibo table td:nth-child(4):nth-last-child(1) { width: 11mm !important; text-align: right !important; }
 
-  .ticket-recibo table th:nth-child(1):nth-last-child(3), .ticket-recibo table td:nth-child(1):nth-last-child(3) { width: 7mm !important; text-align: center !important; }
-  .ticket-recibo table th:nth-child(2):nth-last-child(2), .ticket-recibo table td:nth-child(2):nth-last-child(2) { width: 27mm !important; text-align: left !important; }
+  .ticket-recibo table th:nth-child(1):nth-last-child(3), .ticket-recibo table td:nth-child(1):nth-last-child(3) { width: 5mm !important; text-align: center !important; }
+  .ticket-recibo table th:nth-child(2):nth-last-child(2), .ticket-recibo table td:nth-child(2):nth-last-child(2) { width: 28mm !important; text-align: left !important; }
   .ticket-recibo table th:nth-child(3):nth-last-child(1), .ticket-recibo table td:nth-child(3):nth-last-child(1) { width: 14mm !important; text-align: right !important; }
 
   .ticket-recibo img {
-    width: 28mm !important;
-    height: 28mm !important;
-    max-width: 28mm !important;
+    width: 26mm !important;
+    height: 26mm !important;
+    max-width: 26mm !important;
     margin: 0 auto !important;
     display: block !important;
   }
