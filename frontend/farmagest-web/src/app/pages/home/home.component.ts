@@ -7,6 +7,7 @@ import { ReportesService } from '../../core/services/reportes.service';
 import { VentasService } from '../../core/services/ventas.service';
 import { DashboardData, VentaDiaSemana, VendedorResumen } from '../../core/models/reportes.models';
 import { Venta, SesionCaja } from '../../core/models/ventas.models';
+import { imprimirElementoVoucher } from '../../core/utils/print-voucher.util';
 
 export interface VentaDiaVendedor {
   dia: string;
@@ -337,6 +338,8 @@ export class HomeComponent implements OnInit {
   }
 
   imprimirComprobante(): void {
-    window.print();
+    const v = this.comprobanteSeleccionado();
+    const titulo = v ? `Comprobante_${v.tipoComprobante}_${v.serieComprobante}-${v.numeroComprobante}` : 'Comprobante_Venta';
+    imprimirElementoVoucher('recibo-imprimible', titulo);
   }
 }

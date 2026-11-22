@@ -965,7 +965,9 @@ export class PosComponent implements OnInit {
   }
 
   imprimirTicket(): void {
-    window.print();
+    const venta = this.ultimaVenta();
+    const titulo = venta ? `Ticket_${venta.tipoComprobante}_${venta.serieComprobante}-${venta.numeroComprobante}` : 'Ticket_Venta';
+    imprimirElementoVoucher('printSection', titulo);
   }
 
   // Helpers

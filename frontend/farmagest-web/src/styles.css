@@ -180,13 +180,18 @@ button, input, select, textarea {
 }
 
 /* ==========================================================================
-   CONFIGURACIÓN GLOBAL DE IMPRESIÓN (Vouchers, Tickets y Notas de Crédito)
-   Garantiza que vouchers y tickets se impriman en una sola hoja sin menú lateral.
+   CONFIGURACIÓN GLOBAL DE IMPRESIÓN (Vouchers, Tickets y Comprobantes Térmicos)
+   Alineado a especificaciones para impresora térmica de 58 mm (203 dpi):
+   - Papel: 58 mm ancho | Área imprimible: 48 mm ancho
+   - Margen izquierdo: 5 mm | Margen derecho: 5 mm (Inicio x=5mm, Final x=53mm)
+   - Centro: x = 29 mm
+   - Márgenes superior e inferior: 2 mm
+   - Filas de productos: 4 mm de alto; 8 mm para 2 líneas (8 pt ≈ 1 mm)
    ========================================================================== */
 @media print {
   @page {
-    size: auto;
-    margin: 5mm 8mm;
+    size: 58mm auto;
+    margin: 2mm 5mm 2mm 5mm;
   }
 
   /* Ocultar barra lateral, topbar, navegaciones, botones y encabezados del sistema */
@@ -217,9 +222,12 @@ button, input, select, textarea {
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100% !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
     height: auto !important;
     overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .app-layout,
@@ -228,7 +236,8 @@ button, input, select, textarea {
     display: block !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100% !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
     height: auto !important;
     border: none !important;
     box-shadow: none !important;
@@ -240,7 +249,8 @@ button, input, select, textarea {
     display: block !important;
     padding: 0 !important;
     margin: 0 !important;
-    width: 100% !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
     height: auto !important;
     overflow: visible !important;
   }
@@ -249,12 +259,13 @@ button, input, select, textarea {
     position: static !important;
     box-shadow: none !important;
     border: none !important;
-    max-width: 100% !important;
-    width: 100% !important;
+    max-width: 48mm !important;
+    width: 48mm !important;
     max-height: none !important;
     overflow: visible !important;
     padding: 0 !important;
     margin: 0 auto !important;
+    background: transparent !important;
   }
 
   .modal-body {
@@ -262,25 +273,99 @@ button, input, select, textarea {
     margin: 0 !important;
     max-height: none !important;
     overflow: visible !important;
+    background: transparent !important;
   }
 
   #seccion-nota-credito-imprimible,
-  .seccion-imprimible {
+  #seccion-nota-credito-pos-imprimible,
+  #printSection,
+  #recibo-imprimible,
+  .seccion-imprimible,
+  .ticket-recibo {
     position: static !important;
-    width: 100% !important;
-    max-width: 500px !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
     margin: 0 auto !important;
     padding: 0 !important;
-    background: transparent !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 8pt !important; /* 8 pt ≈ 1 mm */
+    line-height: 1.25 !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
-  .ticket-recibo {
+  .ticket-recibo h3 {
+    font-size: 8.5pt !important;
+    font-weight: 800 !important;
+    text-align: center !important;
+    margin: 0 0 1mm 0 !important;
+  }
+
+  .ticket-recibo p {
+    font-size: 7.5pt !important;
+    line-height: 1.2 !important;
+    margin: 0 0 0.5mm 0 !important;
+    text-align: center !important;
+  }
+
+  .ticket-recibo table,
+  table.ticket-table {
+    width: 48mm !important;
+    max-width: 48mm !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    margin: 1.5mm 0 !important;
+  }
+
+  .ticket-recibo table th,
+  table.ticket-table th {
+    font-size: 7.5pt !important;
+    font-weight: 800 !important;
+    border-top: 1px dashed #000000 !important;
+    border-bottom: 1px dashed #000000 !important;
+    padding: 0.8mm 0.3mm !important;
+  }
+
+  .ticket-recibo table tr,
+  table.ticket-table tr {
+    min-height: 4mm !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+  }
+
+  .ticket-recibo table td,
+  table.ticket-table td {
+    font-size: 7.5pt !important;
+    padding: 0.6mm 0.3mm !important;
+    vertical-align: top !important;
+    line-height: 3.8mm !important;
+    word-break: break-word !important;
+  }
+
+  /* Distribución de columnas 48 mm */
+  .ticket-recibo table th:nth-child(1):nth-last-child(5), .ticket-recibo table td:nth-child(1):nth-last-child(5) { width: 5.5mm !important; text-align: center !important; }
+  .ticket-recibo table th:nth-child(2):nth-last-child(4), .ticket-recibo table td:nth-child(2):nth-last-child(4) { width: 17mm !important; text-align: left !important; }
+  .ticket-recibo table th:nth-child(3):nth-last-child(3), .ticket-recibo table td:nth-child(3):nth-last-child(3) { width: 9.5mm !important; text-align: left !important; font-family: monospace !important; }
+  .ticket-recibo table th:nth-child(4):nth-last-child(2), .ticket-recibo table td:nth-child(4):nth-last-child(2) { width: 7mm !important; text-align: right !important; }
+  .ticket-recibo table th:nth-child(5):nth-last-child(1), .ticket-recibo table td:nth-child(5):nth-last-child(1) { width: 9mm !important; text-align: right !important; }
+
+  .ticket-recibo table th:nth-child(1):nth-last-child(4), .ticket-recibo table td:nth-child(1):nth-last-child(4) { width: 6.5mm !important; text-align: center !important; }
+  .ticket-recibo table th:nth-child(2):nth-last-child(3), .ticket-recibo table td:nth-child(2):nth-last-child(3) { width: 22.5mm !important; text-align: left !important; }
+  .ticket-recibo table th:nth-child(3):nth-last-child(2), .ticket-recibo table td:nth-child(3):nth-last-child(2) { width: 9mm !important; text-align: right !important; }
+  .ticket-recibo table th:nth-child(4):nth-last-child(1), .ticket-recibo table td:nth-child(4):nth-last-child(1) { width: 10mm !important; text-align: right !important; }
+
+  .ticket-recibo table th:nth-child(1):nth-last-child(3), .ticket-recibo table td:nth-child(1):nth-last-child(3) { width: 7mm !important; text-align: center !important; }
+  .ticket-recibo table th:nth-child(2):nth-last-child(2), .ticket-recibo table td:nth-child(2):nth-last-child(2) { width: 27mm !important; text-align: left !important; }
+  .ticket-recibo table th:nth-child(3):nth-last-child(1), .ticket-recibo table td:nth-child(3):nth-last-child(1) { width: 14mm !important; text-align: right !important; }
+
+  .ticket-recibo img {
+    width: 28mm !important;
+    height: 28mm !important;
+    max-width: 28mm !important;
     margin: 0 auto !important;
-    box-shadow: none !important;
-    border: 1.5px solid #000000 !important;
+    display: block !important;
   }
 }
