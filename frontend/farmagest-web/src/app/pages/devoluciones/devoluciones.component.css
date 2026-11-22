@@ -332,34 +332,53 @@
 
 /* Impresión */
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  #seccion-nota-credito-imprimible, #seccion-nota-credito-imprimible * {
-    visibility: visible;
-  }
-  #seccion-nota-credito-imprimible {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100vw;
-    margin: 0;
-    padding: 20px;
-    background: #ffffff !important;
-    box-sizing: border-box;
-    z-index: 999999;
+  .modal-header,
+  .modal-footer,
+  .btn,
+  .devoluciones-header,
+  .search-card-destacada,
+  .tabs-nav-devoluciones,
+  .kpi-grid-devoluciones,
+  .filtro-bar,
+  .tabla-card {
+    display: none !important;
   }
   .modal-backdrop {
-    background: none !important;
+    background: transparent !important;
     position: static !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
   .modal {
     box-shadow: none !important;
     border: none !important;
     max-width: 100% !important;
     width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
   }
-  .modal-header, .modal-footer, .btn, .devoluciones-header, .search-card-destacada, .tabs-nav-devoluciones, .kpi-grid-devoluciones, .filtro-bar {
-    display: none !important;
+  .modal-body {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  #seccion-nota-credito-imprimible {
+    position: static !important;
+    width: 100% !important;
+    max-width: 500px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .ticket-recibo {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
   }
 }

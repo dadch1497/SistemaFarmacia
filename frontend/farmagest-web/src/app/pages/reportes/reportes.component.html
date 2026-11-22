@@ -644,11 +644,12 @@
           </div>
 
           <!-- Bloque SUNAT Oficial: QR y Hash -->
-          <div style="text-align: center; border-top: 1px dashed #94a3b8; padding-top: 12px;">
+          <div style="text-align: center; border-top: 1px dashed #94a3b8; padding-top: 10px;">
             <img 
-              [src]="notaCreditoSeleccionada()?.qrCodeUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=SUNAT-NC'" 
+              [src]="obtenerQrUrl()" 
+              (error)="onErrorQr($event)"
               alt="QR SUNAT" 
-              style="width: 120px; height: 120px; margin: 0 auto; display: block; border: 1px solid #e2e8f0; padding: 4px;" />
+              style="width: 100px; height: 100px; margin: 0 auto; display: block; border: 1px solid #e2e8f0; padding: 2px;" />
             <div style="font-size: 9px; font-family: monospace; color: #475569; margin-top: 4px;">
               <strong>Hash CPE:</strong> {{ notaCreditoSeleccionada()?.hashCpe || '4uS+k8h2G6nL+z1P/YmQ3w==' }}
             </div>

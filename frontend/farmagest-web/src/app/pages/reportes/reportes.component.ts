@@ -15,6 +15,7 @@ import {
   ComprobanteSire,
   SirePropuestaResponse
 } from '../../core/models/ventas.models';
+import { imprimirElementoVoucher, generarQrUrlSunat, QR_FALLBACK_SVG } from '../../core/utils/print-voucher.util';
 
 @Component({
   selector: 'app-reportes',
@@ -276,7 +277,24 @@ export class ReportesComponent implements OnInit {
   }
 
   imprimirNotaCredito(): void {
-    window.print();
+    const nc = this.notaCreditoSeleccionada();
+    const titulo = nc ? `Nota_Credito_${nc.serieNotaCredito}-${nc.numeroNotaCredito}` : 'Nota_de_Credito';
+    imprimirElementoVoucher('seccion-nota-credito-imprimible', titulo);
+  }
+
+  obtenerQrUrl(): string {
+    const nc = this.notaCreditoSeleccionada();
+    if (!nc) return '';
+    const defaultData = `20601234567|07|${nc.serieNotaCredito}|${nc.numeroNotaCredito}|${(nc.igvDevuelto || 0).toFixed(2)}|${(nc.totalDevuelto || 0).toFixed(2)}|${nc.fechaHora ? String(nc.fechaHora).substring(0, 10) : ''}|${nc.cliente?.tipoDocumento || 'DNI'}|${nc.cliente?.numeroDocumento || '00000000'}|${nc.hashCpe || ''}|`;
+    return generarQrUrlSunat(nc.qrCodeUrl, defaultData);
+  }
+
+  onErrorQr(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img && !img.dataset['fallback']) {
+      img.dataset['fallback'] = 'true';
+      img.src = QR_FALLBACK_SVG;
+    }
   }
 
   mostrarExitoTemporal(msg: string): void {

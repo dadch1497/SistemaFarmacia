@@ -178,3 +178,109 @@ button, input, select, textarea {
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* ==========================================================================
+   CONFIGURACIÓN GLOBAL DE IMPRESIÓN (Vouchers, Tickets y Notas de Crédito)
+   Garantiza que vouchers y tickets se impriman en una sola hoja sin menú lateral.
+   ========================================================================== */
+@media print {
+  @page {
+    size: auto;
+    margin: 5mm 8mm;
+  }
+
+  /* Ocultar barra lateral, topbar, navegaciones, botones y encabezados del sistema */
+  .app-sidebar,
+  .app-topbar,
+  .sidebar-header,
+  .sidebar-nav,
+  .sidebar-backdrop,
+  .modal-header,
+  .modal-footer,
+  .btn,
+  .btn-close,
+  button,
+  .devoluciones-header,
+  .search-card-destacada,
+  .tabs-nav-devoluciones,
+  .kpi-grid-devoluciones,
+  .filtro-bar,
+  .tabla-card,
+  nav,
+  header,
+  footer {
+    display: none !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .app-layout,
+  .app-main,
+  .main-content {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .modal-backdrop {
+    position: static !important;
+    background: transparent !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .modal {
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+  }
+
+  .modal-body {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  #seccion-nota-credito-imprimible,
+  .seccion-imprimible {
+    position: static !important;
+    width: 100% !important;
+    max-width: 500px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .ticket-recibo {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    border: 1.5px solid #000000 !important;
+  }
+}

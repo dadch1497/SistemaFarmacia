@@ -21,6 +21,7 @@ import {
   TipoNotaCredito,
   EmitirNotaCreditoRequest
 } from '../../core/models/ventas.models';
+import { imprimirElementoVoucher, generarQrUrlSunat, QR_FALLBACK_SVG } from '../../core/utils/print-voucher.util';
 import { Producto } from '../../core/models/catalogo.models';
 
 export type FraccionVenta = 'UNIDAD' | 'TABLETA' | 'CAJA';
@@ -1136,7 +1137,24 @@ export class PosComponent implements OnInit {
   }
 
   imprimirNotaCreditoPos(): void {
-    window.print();
+    const nc = this.notaCreditoEmitidaPos();
+    const titulo = nc ? `Nota_Credito_${nc.serieNotaCredito}-${nc.numeroNotaCredito}` : 'Nota_de_Credito';
+    imprimirElementoVoucher('seccion-nota-credito-pos-imprimible', titulo);
+  }
+
+  obtenerQrNotaCreditoPos(): string {
+    const nc = this.notaCreditoEmitidaPos();
+    if (!nc) return '';
+    const defaultData = `20601234567|07|${nc.serieNotaCredito}|${nc.numeroNotaCredito}|${(nc.igvDevuelto || 0).toFixed(2)}|${(nc.totalDevuelto || 0).toFixed(2)}|${nc.fechaHora ? String(nc.fechaHora).substring(0, 10) : ''}|${nc.cliente?.tipoDocumento || 'DNI'}|${nc.cliente?.numeroDocumento || '00000000'}|${nc.hashCpe || ''}|`;
+    return generarQrUrlSunat(nc.qrCodeUrl, defaultData);
+  }
+
+  onErrorQrPos(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img && !img.dataset['fallback']) {
+      img.dataset['fallback'] = 'true';
+      img.src = QR_FALLBACK_SVG;
+    }
   }
 
 }
