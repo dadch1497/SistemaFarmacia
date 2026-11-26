@@ -35,6 +35,7 @@ interface DetalleIngresoItemForm {
   cantidadRecibida: number;
   costoUnitarioReal: number;
   subtotal: number;
+  cantidadSolicitada?: number;
 }
 
 @Component({
@@ -116,6 +117,8 @@ export class ComprasComponent implements OnInit {
   // Modal Registrar Ingreso de Mercadería
   // ------------------------------------------
   modalIngresoAbierto: boolean = false;
+  modalAlertaLoteIncompletoAbierto: boolean = false;
+  confirmadoLoteIncompleto: boolean = false;
   leyendoCodigo = false;
   documentoPendiente = false;
   avisoEscaneo = signal('');
@@ -456,6 +459,8 @@ export class ComprasComponent implements OnInit {
 
     this.documentoPendiente = false;
     this.avisoEscaneo.set('');
+    this.confirmadoLoteIncompleto = false;
+    this.modalAlertaLoteIncompletoAbierto = false;
 
     this.ingresoForm = {
       ordenCompraId: orden.id,
@@ -471,12 +476,34 @@ export class ComprasComponent implements OnInit {
           fechaVencimiento: '',
           cantidadRecibida: d.cantidadSolicitada,
           costoUnitarioReal: d.costoPactado,
-          subtotal: Number((d.cantidadSolicitada * d.costoPactado).toFixed(2))
+          subtotal: Number((d.cantidadSolicitada * d.costoPactado).toFixed(2)),
+          cantidadSolicitada: d.cantidadSolicitada
         };
       })
     };
 
     this.modalIngresoAbierto = true;
+  }
+
+  alCambiarOrdenEnIngreso(): void {
+    if (!this.ingresoForm.ordenCompraId) return;
+    const orden = this.ordenes().find(o => o.id === Number(this.ingresoForm.ordenCompraId));
+    if (!orden) return;
+    this.ingresoForm.observaciones = `Recepción física correspondiente a la Orden ${orden.numeroOrden}`;
+    this.confirmadoLoteIncompleto = false;
+    this.ingresoForm.items = orden.detalles.map(d => {
+      const prod = this.productos().find(p => p.id === d.productoId);
+      return {
+        productoId: d.productoId,
+        nombreProducto: prod ? prod.nombre : (d.nombreProducto || `Producto #${d.productoId}`),
+        numeroLote: '',
+        fechaVencimiento: '',
+        cantidadRecibida: d.cantidadSolicitada,
+        costoUnitarioReal: d.costoPactado,
+        subtotal: Number((d.cantidadSolicitada * d.costoPactado).toFixed(2)),
+        cantidadSolicitada: d.cantidadSolicitada
+      };
+    });
   }
 
   // ==========================================
@@ -495,6 +522,8 @@ export class ComprasComponent implements OnInit {
   abrirModalNuevoIngreso(): void {
     this.documentoPendiente = false;
     this.avisoEscaneo.set('');
+    this.confirmadoLoteIncompleto = false;
+    this.modalAlertaLoteIncompletoAbierto = false;
 
     this.ingresoForm = {
       ordenCompraId: null,
@@ -619,23 +648,65 @@ export class ComprasComponent implements OnInit {
   }
 
   ordenesParaRecepcion(): OrdenCompra[] {
-    return this.ordenes().filter(o => o.estado === 'APROBADA' || o.estado === 'EN_TRANSITO');
+    return this.ordenes().filter(o => o.estado === 'APROBADA' || o.estado === 'EN_TRANSITO' || o.estado === 'RECIBIDA_PARCIAL');
+  }
+
+  obtenerItemsIncompletos(): { productoId: number; nombreProducto: string; cantidadSolicitada: number; cantidadRecibida: number; faltante: number }[] {
+    if (!this.ingresoForm.ordenCompraId) return [];
+    const orden = this.ordenes().find(o => o.id === Number(this.ingresoForm.ordenCompraId));
+    if (!orden || !orden.detalles) return [];
+
+    const incompletos: { productoId: number; nombreProducto: string; cantidadSolicitada: number; cantidadRecibida: number; faltante: number }[] = [];
+
+    for (const det of orden.detalles) {
+      const recibida = this.ingresoForm.items
+        .filter(it => it.productoId === det.productoId)
+        .reduce((sum, it) => sum + (Number(it.cantidadRecibida) || 0), 0);
+
+      if (recibida < det.cantidadSolicitada) {
+        const prod = this.productos().find(p => p.id === det.productoId);
+        incompletos.push({
+          productoId: det.productoId,
+          nombreProducto: prod ? prod.nombre : (det.nombreProducto || `Producto #${det.productoId}`),
+          cantidadSolicitada: det.cantidadSolicitada,
+          cantidadRecibida: recibida,
+          faltante: det.cantidadSolicitada - recibida
+        });
+      }
+    }
+    return incompletos;
+  }
+
+  hayLoteIncompleto(): boolean {
+    return this.obtenerItemsIncompletos().length > 0;
+  }
+
+  confirmarIngresoLoteIncompleto(): void {
+    this.confirmadoLoteIncompleto = true;
+    this.modalAlertaLoteIncompletoAbierto = false;
+    this.guardarIngreso();
   }
 
   aplicarDocumentoRecepcion(preparada: RecepcionPreparada): void {
     const { documento } = preparada;
     this.ingresoForm.ordenCompraId = preparada.ordenId;
+    const orden = this.ordenes().find(o => o.id === preparada.ordenId);
     if (documento.guia.trim()) this.ingresoForm.numeroGuia = documento.guia.trim();
     if (documento.factura.trim()) this.ingresoForm.numeroFacturaProveedor = documento.factura.trim();
-    this.ingresoForm.items = documento.filas.map(fila => ({
-      productoId: fila.productoId!,
-      nombreProducto: preparada.productos.find(p => p.id === fila.productoId)?.nombre || fila.descripcion,
-      numeroLote: fila.lote.trim().toUpperCase(),
-      fechaVencimiento: fila.vencimiento,
-      cantidadRecibida: fila.cantidad!,
-      costoUnitarioReal: fila.costo!,
-      subtotal: Number((fila.cantidad! * fila.costo!).toFixed(2))
-    }));
+    this.confirmadoLoteIncompleto = false;
+    this.ingresoForm.items = documento.filas.map(fila => {
+      const detalleOrd = orden?.detalles.find(d => d.productoId === fila.productoId);
+      return {
+        productoId: fila.productoId!,
+        nombreProducto: preparada.productos.find(p => p.id === fila.productoId)?.nombre || fila.descripcion,
+        numeroLote: fila.lote.trim().toUpperCase(),
+        fechaVencimiento: fila.vencimiento,
+        cantidadRecibida: fila.cantidad!,
+        costoUnitarioReal: fila.costo!,
+        subtotal: Number((fila.cantidad! * fila.costo!).toFixed(2)),
+        cantidadSolicitada: detalleOrd?.cantidadSolicitada
+      };
+    });
     this.documentoPendiente = false;
     this.avisoEscaneo.set('Documento revisado aplicado. Verifica los ítems de recepción y confirma el ingreso al terminar.');
   }
@@ -660,12 +731,28 @@ export class ComprasComponent implements OnInit {
       return;
     }
 
+    // Alerta de lote incompleto respecto a la Orden de Compra
+    const incompletos = this.obtenerItemsIncompletos();
+    if (incompletos.length > 0 && !this.confirmadoLoteIncompleto) {
+      this.modalAlertaLoteIncompletoAbierto = true;
+      return;
+    }
+
+    // Si llegó incompleto, documentarlo en observaciones si no estaba presente
+    let observacionesFinales = this.ingresoForm.observaciones || '';
+    if (incompletos.length > 0) {
+      const detalleAlerta = `[ALERTA: Lote incompleto - Faltan: ${incompletos.map(i => `${i.nombreProducto} (-${i.faltante} un.)`).join(', ')}]`;
+      if (!observacionesFinales.includes('Lote incompleto')) {
+        observacionesFinales = observacionesFinales ? `${observacionesFinales} | ${detalleAlerta}` : detalleAlerta;
+      }
+    }
+
     const request: RegistrarIngresoRequest = {
       ordenCompraId: this.ingresoForm.ordenCompraId,
       numeroGuia: this.ingresoForm.numeroGuia.trim(),
       numeroFacturaProveedor: this.ingresoForm.numeroFacturaProveedor ? this.ingresoForm.numeroFacturaProveedor.trim() : undefined,
       sucursalId: 1,
-      observaciones: this.ingresoForm.observaciones,
+      observaciones: observacionesFinales,
       items: this.ingresoForm.items.map(it => ({
         productoId: it.productoId,
         numeroLote: it.numeroLote,
@@ -678,10 +765,21 @@ export class ComprasComponent implements OnInit {
     this.cargando.set(true);
     this.comprasService.registrarIngreso(request).subscribe({
       next: (ingreso) => {
-        this.mostrarExito(
-          `¡Recepción con Guía ${ingreso.numeroGuia} registrada con éxito! ` +
-          `Se publicó el evento "compra.ingreso-registrado" en RabbitMQ: el inventario fue actualizado automáticamente con los nuevos lotes.`
-        );
+        if (incompletos.length > 0) {
+          const resumenFaltantes = incompletos.map(i => `${i.nombreProducto} (recibido ${i.cantidadRecibida}/${i.cantidadSolicitada}, faltan ${i.faltante})`).join(', ');
+          this.mostrarExito(
+            `⚠️ ¡Recepción con Guía ${ingreso.numeroGuia} registrada como LOTE INCOMPLETO! ` +
+            `Faltantes: ${resumenFaltantes}. ` +
+            `El estado de la Orden de Compra se actualizó a RECIBIDA PARCIAL.`
+          );
+        } else {
+          this.mostrarExito(
+            `¡Recepción con Guía ${ingreso.numeroGuia} registrada con éxito! ` +
+            `Se publicó el evento "compra.ingreso-registrado" en RabbitMQ: el inventario fue actualizado automáticamente con los nuevos lotes.`
+          );
+        }
+        this.confirmadoLoteIncompleto = false;
+        this.modalAlertaLoteIncompletoAbierto = false;
         this.modalIngresoAbierto = false;
         this.cargarTodo();
       },
@@ -733,6 +831,8 @@ export class ComprasComponent implements OnInit {
       case 'PENDIENTE': return 'estado-orden-pendiente';
       case 'APROBADA': return 'estado-orden-aprobada';
       case 'EN_TRANSITO': return 'estado-orden-transito';
+      case 'RECIBIDA_PARCIAL': return 'estado-orden-parcial';
+      case 'RECIBIDA_TOTAL':
       case 'RECIBIDA': return 'estado-orden-recibida';
       case 'CANCELADA': return 'estado-orden-cancelada';
       default: return '';

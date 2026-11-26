@@ -136,11 +136,11 @@
                     Aprobar
                   </button>
                   <button 
-                    *ngIf="(ord.estado === 'APROBADA' || ord.estado === 'EN_TRANSITO') && (esAdmin || esAlmacenero)" 
+                    *ngIf="(ord.estado === 'APROBADA' || ord.estado === 'EN_TRANSITO' || ord.estado === 'RECIBIDA_PARCIAL') && (esAdmin || esAlmacenero)" 
                     class="btn btn-sm btn-recepcion" 
                     (click)="iniciarRecepcionDesdeOrden(ord)" 
                     title="Recepcionar mercadería">
-                    Recepcionar
+                    {{ ord.estado === 'RECIBIDA_PARCIAL' ? 'Completar Recepción' : 'Recepcionar' }}
                   </button>
                 </div>
               </td>
@@ -457,6 +457,25 @@
 
         <section class="receipt-final"><div class="receipt-section-title"><span class="step-number">3</span><div><h4>Datos del ingreso</h4><p>Se completan al aplicar la guía revisada. También puedes corregirlos aquí.</p></div></div>
         <div class="form-grid">
+          <div class="form-group full-width" *ngIf="!ingresoForm.ordenCompraId">
+            <label>Vincular a Orden de Compra (Opcional)</label>
+            <select [(ngModel)]="ingresoForm.ordenCompraId" (change)="alCambiarOrdenEnIngreso()" class="input">
+              <option [ngValue]="null">-- Recepción Directa (Sin Orden de Compra) --</option>
+              <option *ngFor="let ord of ordenesParaRecepcion()" [value]="ord.id">
+                {{ ord.numeroOrden }} · {{ ord.proveedor?.razonSocial }} (S/ {{ ord.total | number:'1.2-2' }})
+              </option>
+            </select>
+          </div>
+          <div class="form-group full-width" *ngIf="ingresoForm.ordenCompraId">
+            <label>Orden de Compra Asociada</label>
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 8px 14px;">
+              <div>
+                <strong style="color: #1b5e20;">Orden #{{ ingresoForm.ordenCompraId }}</strong>
+                <span *ngIf="hayLoteIncompleto()" class="badge-faltante">⚠️ Faltan unidades del lote</span>
+              </div>
+              <button type="button" class="btn btn-outline" style="min-height: 30px; padding: 2px 10px; font-size: 11px;" (click)="ingresoForm.ordenCompraId = null">Desvincular</button>
+            </div>
+          </div>
           <div class="form-group">
             <label>Nº Guía de Remisión *</label>
             <input type="text" [(ngModel)]="ingresoForm.numeroGuia" class="input" placeholder="GR01-0001254"/>
@@ -468,6 +487,28 @@
           <div class="form-group full-width">
             <label>Observaciones de Recepción</label>
             <input type="text" [(ngModel)]="ingresoForm.observaciones" class="input" placeholder="Recepción conforme en almacén"/>
+          </div>
+        </div>
+
+        <!-- Alerta de Lote Incompleto en tiempo real -->
+        <div *ngIf="hayLoteIncompleto()" class="alerta-lote-incompleto" role="alert">
+          <div class="alerta-lote-incompleto-header">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <span>ALERTA DE RECEPCIÓN: LOTE INCOMPLETO</span>
+          </div>
+          <p>Se ha detectado una cantidad menor a la solicitada en la Orden de Compra para los siguientes productos:</p>
+          <ul class="alerta-lote-incompleto-lista">
+            <li *ngFor="let inc of obtenerItemsIncompletos()">
+              <span class="nombre-prod">{{ inc.nombreProducto }}</span>: 
+              Solicitado: <strong>{{ inc.cantidadSolicitada }} unid.</strong> | 
+              Recibiendo: <strong>{{ inc.cantidadRecibida }} unid.</strong>
+              <span class="badge-faltante">⚠️ Faltan {{ inc.faltante }} unidades</span>
+            </li>
+          </ul>
+          <div class="alerta-lote-incompleto-nota">
+            📌 <strong>Nota:</strong> Al confirmar este ingreso, la orden pasará a estado <strong>RECIBIDA PARCIAL</strong> para permitir recepciones posteriores de las unidades pendientes.
           </div>
         </div>
 
@@ -533,7 +574,15 @@
                 <td><strong>{{ it.nombreProducto }}</strong></td>
                 <td><input class="input" [(ngModel)]="it.numeroLote" maxlength="50" [attr.aria-label]="'Lote de ' + it.nombreProducto" placeholder="Lote real" /></td>
                 <td><input class="input" type="date" [(ngModel)]="it.fechaVencimiento" [attr.aria-label]="'Vencimiento de ' + it.nombreProducto" /></td>
-                <td><input class="input" type="number" min="1" step="1" [(ngModel)]="it.cantidadRecibida" (ngModelChange)="actualizarSubtotalIngreso(it)" [attr.aria-label]="'Cantidad de ' + it.nombreProducto" /></td>
+                <td>
+                  <input class="input" type="number" min="1" step="1" [(ngModel)]="it.cantidadRecibida" (ngModelChange)="actualizarSubtotalIngreso(it)" [attr.aria-label]="'Cantidad de ' + it.nombreProducto" />
+                  <div *ngIf="it.cantidadSolicitada && it.cantidadRecibida < it.cantidadSolicitada" class="tag-incompleto-fila">
+                    ⚠️ Faltan {{ it.cantidadSolicitada - it.cantidadRecibida }} un. (Solicitado: {{ it.cantidadSolicitada }})
+                  </div>
+                  <div *ngIf="it.cantidadSolicitada && it.cantidadRecibida > it.cantidadSolicitada" class="tag-excedente-fila">
+                    ℹ️ Excede en {{ it.cantidadRecibida - it.cantidadSolicitada }} un. (Solicitado: {{ it.cantidadSolicitada }})
+                  </div>
+                </td>
                 <td><input class="input" type="number" min="0.01" step="0.01" [(ngModel)]="it.costoUnitarioReal" (ngModelChange)="actualizarSubtotalIngreso(it)" [attr.aria-label]="'Costo unitario de ' + it.nombreProducto" /></td>
                 <td class="text-right font-bold text-accent">S/ {{ it.subtotal | number:'1.2-2' }}</td>
                 <td class="text-center">
@@ -625,10 +674,10 @@
           Aprobar Orden
         </button>
         <button 
-          *ngIf="(ordenSeleccionada.estado === 'APROBADA' || ordenSeleccionada.estado === 'EN_TRANSITO') && (esAdmin || esAlmacenero)" 
+          *ngIf="(ordenSeleccionada.estado === 'APROBADA' || ordenSeleccionada.estado === 'EN_TRANSITO' || ordenSeleccionada.estado === 'RECIBIDA_PARCIAL') && (esAdmin || esAlmacenero)" 
           class="btn btn-primary" 
           (click)="iniciarRecepcionDesdeOrden(ordenSeleccionada)">
-          Recepcionar Mercadería
+          {{ ordenSeleccionada.estado === 'RECIBIDA_PARCIAL' ? 'Completar Recepción' : 'Recepcionar Mercadería' }}
         </button>
       </div>
     </div>
@@ -677,6 +726,43 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" (click)="modalDetalleIngresoAbierto = false">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: CONFIRMACIÓN Y ALERTA DE LOTE INCOMPLETO                           -->
+  <!-- ========================================================================= -->
+  <div *ngIf="modalAlertaLoteIncompletoAbierto" class="modal-backdrop">
+    <div class="modal-alerta-lote" role="alertdialog" aria-modal="true" aria-labelledby="alerta-lote-incompleto-titulo">
+      <div class="modal-alerta-header">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E65100" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <h3 id="alerta-lote-incompleto-titulo">⚠️ Advertencia: Entrega de Lote Incompleto</h3>
+      </div>
+      <div class="modal-alerta-body">
+        <p>Estás a punto de registrar la recepción física de mercadería con <strong>cantidades menores</strong> a las pactadas en la Orden de Compra:</p>
+        <ul style="margin: 12px 0; padding-left: 20px; line-height: 1.8;">
+          <li *ngFor="let inc of obtenerItemsIncompletos()">
+            <strong>{{ inc.nombreProducto }}</strong>: 
+            Se solicitaron <strong>{{ inc.cantidadSolicitada }}</strong> unid., pero se registrarán <strong>{{ inc.cantidadRecibida }}</strong> unid. 
+            <span class="badge-faltante">Faltan {{ inc.faltante }} unidades</span>
+          </li>
+        </ul>
+        <div style="background: #FFF8E1; border: 1px solid #FFE082; padding: 12px 14px; border-radius: 8px; font-size: 12.5px; color: #795548;">
+          📌 <strong>Consecuencias de confirmar:</strong>
+          <ul style="margin: 6px 0 0 0; padding-left: 16px;">
+            <li>El stock de inventario aumentará únicamente con las unidades recibidas físicamente.</li>
+            <li>El estado de la Orden de Compra cambiará a <strong>RECIBIDA PARCIAL</strong>.</li>
+            <li>Se registrará automáticamente la observación del faltante en la recepción.</li>
+          </ul>
+        </div>
+        <p style="margin-top: 14px; font-weight: 600; color: #17332e;">¿Deseas confirmar la recepción parcial del lote o volver a corregir las cantidades?</p>
+      </div>
+      <div class="modal-alerta-footer">
+        <button type="button" class="btn btn-outline" (click)="modalAlertaLoteIncompletoAbierto = false">Volver y Corregir</button>
+        <button type="button" class="btn-warning-action" (click)="confirmarIngresoLoteIncompleto()">Confirmar Recepción Parcial</button>
       </div>
     </div>
   </div>

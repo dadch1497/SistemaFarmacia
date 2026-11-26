@@ -130,7 +130,40 @@ public class ComprasService {
             if (ocOpt.isPresent()) {
                 OrdenCompra oc = ocOpt.get();
                 ingreso.setOrdenCompra(oc);
-                oc.setEstado(EstadoOrden.RECIBIDA_TOTAL);
+
+                // Evaluar si todos los ítems de la orden se completaron en esta recepción
+                boolean completo = true;
+                StringBuilder faltantes = new StringBuilder();
+                if (oc.getDetalles() != null && !oc.getDetalles().isEmpty()) {
+                    for (DetalleOrdenCompra detDoc : oc.getDetalles()) {
+                        int recibidoEnEsteIngreso = req.getItems().stream()
+                                .filter(it -> it.getProductoId() != null && it.getProductoId().equals(detDoc.getProductoId()))
+                                .mapToInt(RegistrarIngresoRequest.ItemIngresoRequest::getCantidadRecibida)
+                                .sum();
+
+                        if (recibidoEnEsteIngreso < detDoc.getCantidadSolicitada()) {
+                            completo = false;
+                            int faltante = detDoc.getCantidadSolicitada() - recibidoEnEsteIngreso;
+                            if (faltantes.length() > 0) faltantes.append(", ");
+                            faltantes.append("Producto #").append(detDoc.getProductoId())
+                                     .append(" (solicitado: ").append(detDoc.getCantidadSolicitada())
+                                     .append(", recibido: ").append(recibidoEnEsteIngreso)
+                                     .append(", faltan: ").append(faltante).append(")");
+                        }
+                    }
+                }
+
+                if (!completo) {
+                    oc.setEstado(EstadoOrden.RECIBIDA_PARCIAL);
+                    String alertaIncompleto = "[ALERTA: Lote incompleto - " + faltantes.toString() + "]";
+                    if (ingreso.getObservaciones() == null || ingreso.getObservaciones().isBlank()) {
+                        ingreso.setObservaciones(alertaIncompleto);
+                    } else if (!ingreso.getObservaciones().contains("Lote incompleto")) {
+                        ingreso.setObservaciones(ingreso.getObservaciones() + " | " + alertaIncompleto);
+                    }
+                } else {
+                    oc.setEstado(EstadoOrden.RECIBIDA_TOTAL);
+                }
                 ordenCompraRepository.save(oc);
             }
         }
