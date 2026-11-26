@@ -321,7 +321,8 @@ export class ComprasComponent implements OnInit {
     return this.ordenes().filter(o =>
       o.numeroOrden.toLowerCase().includes(query) ||
       (o.proveedor && o.proveedor.razonSocial.toLowerCase().includes(query)) ||
-      o.estado.toLowerCase().includes(query)
+      o.estado.toLowerCase().includes(query) ||
+      (o.estado === 'RECIBIDA_PARCIAL' && ('lote incompleto'.includes(query) || 'incompleto'.includes(query)))
     );
   }
 
@@ -770,7 +771,7 @@ export class ComprasComponent implements OnInit {
           this.mostrarExito(
             `⚠️ ¡Recepción con Guía ${ingreso.numeroGuia} registrada como LOTE INCOMPLETO! ` +
             `Faltantes: ${resumenFaltantes}. ` +
-            `El estado de la Orden de Compra se actualizó a RECIBIDA PARCIAL.`
+            `El estado de la Orden de Compra se actualizó a LOTE INCOMPLETO.`
           );
         } else {
           this.mostrarExito(
@@ -836,6 +837,19 @@ export class ComprasComponent implements OnInit {
       case 'RECIBIDA': return 'estado-orden-recibida';
       case 'CANCELADA': return 'estado-orden-cancelada';
       default: return '';
+    }
+  }
+
+  obtenerTextoEstadoOrden(estado: EstadoOrden): string {
+    switch (estado) {
+      case 'PENDIENTE': return 'PENDIENTE';
+      case 'APROBADA': return 'APROBADA';
+      case 'EN_TRANSITO': return 'EN TRÁNSITO';
+      case 'RECIBIDA_PARCIAL': return 'LOTE INCOMPLETO';
+      case 'RECIBIDA_TOTAL':
+      case 'RECIBIDA': return 'RECIBIDA';
+      case 'CANCELADA': return 'CANCELADA';
+      default: return estado;
     }
   }
 }

@@ -120,7 +120,7 @@
               <td class="text-right font-bold text-accent">S/ {{ ord.total | number:'1.2-2' }}</td>
               <td class="text-center">
                 <span class="badge-estado-orden" [ngClass]="obtenerClaseEstadoOrden(ord.estado)">
-                  {{ ord.estado }}
+                  {{ obtenerTextoEstadoOrden(ord.estado) }}
                 </span>
               </td>
               <td class="text-center">
@@ -508,7 +508,7 @@
             </li>
           </ul>
           <div class="alerta-lote-incompleto-nota">
-            📌 <strong>Nota:</strong> Al confirmar este ingreso, la orden pasará a estado <strong>RECIBIDA PARCIAL</strong> para permitir recepciones posteriores de las unidades pendientes.
+            📌 <strong>Nota:</strong> Al confirmar este ingreso, la orden pasará a estado <strong>LOTE INCOMPLETO</strong> para permitir recepciones posteriores de las unidades pendientes.
           </div>
         </div>
 
@@ -622,7 +622,7 @@
           <div><strong>Proveedor:</strong> {{ ordenSeleccionada.proveedor?.razonSocial || 'Proveedor #' + ordenSeleccionada.proveedor?.id }}</div>
           <div><strong>Estado:</strong> 
             <span class="badge-estado-orden" [ngClass]="obtenerClaseEstadoOrden(ordenSeleccionada.estado)">
-              {{ ordenSeleccionada.estado }}
+              {{ obtenerTextoEstadoOrden(ordenSeleccionada.estado) }}
             </span>
           </div>
           <div><strong>Fecha Emisión:</strong> {{ formatearFecha(ordenSeleccionada.fechaEmision) }}</div>
@@ -754,15 +754,15 @@
           📌 <strong>Consecuencias de confirmar:</strong>
           <ul style="margin: 6px 0 0 0; padding-left: 16px;">
             <li>El stock de inventario aumentará únicamente con las unidades recibidas físicamente.</li>
-            <li>El estado de la Orden de Compra cambiará a <strong>RECIBIDA PARCIAL</strong>.</li>
+            <li>El estado de la Orden de Compra cambiará a <strong>LOTE INCOMPLETO</strong>.</li>
             <li>Se registrará automáticamente la observación del faltante en la recepción.</li>
           </ul>
         </div>
-        <p style="margin-top: 14px; font-weight: 600; color: #17332e;">¿Deseas confirmar la recepción parcial del lote o volver a corregir las cantidades?</p>
+        <p style="margin-top: 14px; font-weight: 600; color: #17332e;">¿Deseas confirmar la recepción con lote incompleto o volver a corregir las cantidades?</p>
       </div>
       <div class="modal-alerta-footer">
         <button type="button" class="btn btn-outline" (click)="modalAlertaLoteIncompletoAbierto = false">Volver y Corregir</button>
-        <button type="button" class="btn-warning-action" (click)="confirmarIngresoLoteIncompleto()">Confirmar Recepción Parcial</button>
+        <button type="button" class="btn-warning-action" (click)="confirmarIngresoLoteIncompleto()">Confirmar Lote Incompleto</button>
       </div>
     </div>
   </div>
