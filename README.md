@@ -103,3 +103,4 @@ Para validación rápida desde consola:
   ```powershell
   powershell -ExecutionPolicy Bypass -File scratch/test_ms_reportes.ps1
   ```
+
